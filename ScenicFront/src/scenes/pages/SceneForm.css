@@ -1,0 +1,24 @@
+.scene-form {
+  position: relative;
+  list-style: none;
+  margin-top: 15vh;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 1rem;
+  width: 90%;
+  max-width: 40rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.26);
+  border-radius: 6px;
+  background: white;
+}
+
+.scene__submit {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+}
+
+.update__button {
+  display: flex;
+  justify-content: space-between;
+}

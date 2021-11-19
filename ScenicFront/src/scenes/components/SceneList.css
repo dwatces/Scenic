@@ -1,0 +1,35 @@
+.scene-list {
+  list-style: none;
+  padding: 0;
+}
+
+ul.scene-list {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  flex-wrap: wrap;
+}
+
+.scene-error {
+  margin-top: 15vh;
+}
+
+.upload__header {
+  margin-bottom: 2rem;
+}
+
+.scene__header {
+  margin-top: 10vh;
+  margin-bottom: 1.5rem;
+  color: white;
+}
+
+.scene__header__underline {
+  border-bottom: 4px solid #ca7c00;
+}
+
+.scenes__bottom {
+  margin-top: 3rem;
+  margin-bottom: 3rem;
+}

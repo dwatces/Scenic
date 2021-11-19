@@ -1,0 +1,18 @@
+.authentication {
+  width: 90%;
+  max-width: 25rem;
+  display: block;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 15vh;
+  text-align: left;
+}
+
+.authentication form {
+  margin-bottom: 1rem;
+}
+
+.auth__button {
+  display: flex;
+  justify-content: space-between;
+}
