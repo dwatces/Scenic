@@ -21,4 +21,4 @@ Implemented Authentication and Authorization.
 Live Link: https://scenic-16511.web.app/
 
 
-Future work: Speed up the get and post for mongodb 
+Future work: Speed up the get and post to mongodb 
