@@ -26,11 +26,11 @@ const LandingPage = () => {
       setIndex((i) => (i + 1) % imgarray.length);
     }, 3000);
     return () => clearInterval(interval);
-  }, []);
+  }, [imgarray, imgarray.length]);
 
   React.useEffect(() => {
     setData(imgarray[index]);
-  }, [index]);
+  }, [index, imgarray]);
 
   return (
     <header
@@ -52,9 +52,9 @@ const LandingPage = () => {
       </h1>
 
       <h2 className="subheader">
-        Scenic is your first choice for sharing your most precious scenes.
+        Scenic is your first choice for sharing your most precious images.
         <br />
-        Create a free account and upload your favourite scenes to share with the
+        Create a free account and upload your favourite images to share with the
         community.
       </h2>
 

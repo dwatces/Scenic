@@ -37,11 +37,7 @@ const MainNavigation = (props) => {
         </button>
         <h1 className="main-navigation__title">
           {!auth.isLoggedIn && <NavLink to="/">Scenic</NavLink>}
-          {auth.isLoggedIn && (
-            <NavLink activeClassName="active__link" to="/landing">
-              Scenic
-            </NavLink>
-          )}
+          {auth.isLoggedIn && <NavLink to="/landing">Scenic</NavLink>}
         </h1>
         <nav className="main-navigation__header-nav">
           <NavLinks />

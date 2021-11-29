@@ -8,9 +8,9 @@ import "./SceneList.css";
 const SceneList = (props) => {
   const auth = useContext(AuthContext);
 
-  if (auth.userId == props.auth && props.items.length === 0)
+  if (auth.userId === props.auth && props.items.length === 0)
     return (
-      <div className="scene-error center">
+      <div className="scene-error center fallback__scene">
         <Card>
           <h2 className="upload__header">
             You haven't uploaded any scenes yet!
@@ -21,10 +21,10 @@ const SceneList = (props) => {
     );
   if (auth.userId !== props.auth && props.items.length === 0)
     return (
-      <div className="scene-error center">
+      <div className="scene-error center fallback__scene">
         <Card>
           <h2 className="upload__header">No scenes found for this user</h2>
-          <Button to="/scenes">Return</Button>
+          <Button to="/users">Return</Button>
         </Card>
       </div>
     );
@@ -50,7 +50,7 @@ const SceneList = (props) => {
           />
         ))}
       </ul>
-      {auth.userId == props.auth && (
+      {auth.userId === props.auth && (
         <span className="center scenes__bottom">
           <Button to="/scenes/new">Add Another Scene</Button>
         </span>

@@ -10,7 +10,7 @@
 .users-list {
   list-style: none;
   margin-top: 5vh;
-  padding-left: 5rem;
+  padding-left: 3rem;
 }
 
 ul.users-list {
@@ -23,4 +23,11 @@ ul.users-list {
 
 .user__margin {
   margin-top: 15vh;
+}
+
+@media (max-width: 768px) {
+  .users-list {
+    padding-left: 0rem;
+    margin-top: 2vh;
+  }
 }

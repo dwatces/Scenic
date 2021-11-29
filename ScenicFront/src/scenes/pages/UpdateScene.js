@@ -3,7 +3,6 @@ import { useParams, useHistory } from "react-router-dom";
 import Input from "../../shared/components/FormElements/Input";
 import Button from "../../shared/components/FormElements/Button";
 import Card from "../../shared/components/UIElements/Card";
-import ImageUpload from "../../shared/components/FormElements/ImageUpload";
 import {
   VALIDATOR_REQUIRE,
   VALIDATOR_MINLENGTH,

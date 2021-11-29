@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useContext } from "react";
 import { NavLink } from "react-router-dom";
 import Card from "../../shared/components/UIElements/Card";
 import Input from "../../shared/components/FormElements/Input";
@@ -18,7 +18,7 @@ const Login = () => {
   const auth = useContext(AuthContext);
   const { isLoading, error, sendRequest, clearError } = useHttpClient();
 
-  const [formState, inputHandler, setFormData] = useForm(
+  const [formState, inputHandler] = useForm(
     {
       email: {
         value: "",
@@ -57,7 +57,7 @@ const Login = () => {
       <Card className="authentication">
         <h2 className="center">Login Required</h2>
         <hr />
-        <form onSubmit={authSubmitHandler} enctype="multipart/form-data">
+        <form onSubmit={authSubmitHandler} encType="multipart/form-data">
           <Input
             element="input"
             id="email"

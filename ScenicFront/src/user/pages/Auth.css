@@ -4,7 +4,7 @@
   display: block;
   left: 50%;
   transform: translateX(-50%);
-  margin-top: 15vh;
+  margin-top: 20vh;
   text-align: left;
 }
 
@@ -15,4 +15,10 @@
 .auth__button {
   display: flex;
   justify-content: space-between;
+}
+
+@media (max-width: 579px) {
+  .authentication {
+    margin-top: 25vh !important;
+  }
 }

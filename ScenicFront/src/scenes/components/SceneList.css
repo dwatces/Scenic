@@ -33,3 +33,10 @@ ul.scene-list {
   margin-top: 3rem;
   margin-bottom: 3rem;
 }
+
+@media (max-width: 480px) {
+  .fallback__scene {
+    margin-left: 1rem;
+    margin-right: 1rem;
+  }
+}

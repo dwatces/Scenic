@@ -8,16 +8,16 @@
 }
 
 .landingpage__header {
-  margin-top: 200px;
+  margin-top: 15rem;
   display: flex;
   justify-content: center;
   align-items: center;
-  text-align: left;
-  left: 10px;
-  right: 0px;
+  text-align: center;
+  left: 0.5rem;
+  right: 0.5rem;
   color: #fff;
-  font-size: 80px;
-  line-height: 80px;
+  font-size: 4rem;
+  line-height: 4rem;
   font-weight: 600;
 }
 
@@ -25,14 +25,14 @@
   display: flex;
   justify-content: center;
   align-items: cetner;
-  text-align: left;
-  left: 10px;
-  right: 0px;
+  text-align: center;
+  left: 0.5rem;
+  right: 0.5rem;
   color: #fff;
-  font-size: 80px;
-  line-height: 80px;
+  font-size: 4rem;
+  line-height: 4rem;
   font-weight: 600;
-  margin-bottom: 90px;
+  margin-bottom: 5rem;
 }
 
 .underline {
@@ -44,11 +44,10 @@
   justify-content: center;
   align-items: center;
   text-align: center;
-  margin-top: 0px;
-  margin-bottom: 50px;
+  margin-bottom: 5rem;
   color: #fff;
-  font-size: 30px;
-  line-height: 40px;
+  font-size: 2rem;
+  line-height: 3rem;
   font-weight: 500;
 }
 
@@ -60,9 +59,9 @@
   cursor: pointer;
   border-radius: 4px;
   border: 1px solid #008560;
-  padding: 10px 0;
+  padding: 0.5rem;
   background-color: #08a67a;
-  font-size: 18px;
+  font-size: 1.2rem;
   font-weight: 700;
   width: 200px;
 }
@@ -74,15 +73,42 @@
 
 @media (max-width: 768px) {
   .landingpage__header {
-    font-size: 40px;
-    font-weight: 300;
+    font-size: 3rem;
+    line-height: 3rem;
+    margin-top: 10rem;
   }
   .underline__header {
-    font-size: 40px;
-    font-weight: 300;
+    font-size: 3rem;
+    margin-bottom: 4rem;
+    line-height: 3rem;
   }
   .subheader {
-    font-size: 20px;
-    font-weight: 250;
+    font-size: 1.5rem;
+    margin-bottom: 4rem;
+    line-height: 2.5rem;
+  }
+  .signup_button {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 579px) {
+  .landingpage__header {
+    font-size: 2.3rem;
+    line-height: 2.5rem;
+    text-align: center;
+  }
+  .underline__header {
+    font-size: 2.3rem;
+    line-height: 2.5rem;
+    margin-bottom: 3rem;
+  }
+  .subheader {
+    font-size: 1.2rem;
+    line-height: 2rem;
+    margin-bottom: 3rem;
+  }
+  .signup_button {
+    font-size: 1rem;
   }
 }

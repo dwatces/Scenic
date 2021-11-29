@@ -66,7 +66,7 @@ const NewScene = () => {
       <form
         className="scene-form"
         onSubmit={sceneSubmitHandler}
-        enctype="multipart/form-data"
+        encType="multipart/form-data"
       >
         <h2 className="center">Add Scene</h2>
         <Input
@@ -106,7 +106,6 @@ const NewScene = () => {
         />
         <Button
           className="scene__submit"
-          center
           type="submit"
           disabled={!formState.isValid}
         >

@@ -3,8 +3,15 @@
 }
 
 .scene-item {
-  margin: 1rem 0;
+  margin-left: 1rem;
+  margin-right: 1rem;
   padding-bottom: 1rem;
+}
+
+@media (max-width: 480px) {
+  .scene-item .card {
+    margin-top: 0rem !important;
+  }
 }
 
 li.scene-item {

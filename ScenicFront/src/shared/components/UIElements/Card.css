@@ -6,3 +6,9 @@
   overflow: hidden;
   background: white;
 }
+
+@media (max-width: 480px) {
+  .card {
+    margin-top: 5vh;
+  }
+}

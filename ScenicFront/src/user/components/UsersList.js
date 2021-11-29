@@ -6,7 +6,7 @@ import { useHttpClient } from "../../shared/hooks/http-hook";
 import "./UserList.css";
 
 const UserList = (props) => {
-  const { isLoading, error, sendRequest, clearError } = useHttpClient();
+  const { isLoading } = useHttpClient();
   if (props.items.length === 0) {
     return (
       <div className="center user__margin">

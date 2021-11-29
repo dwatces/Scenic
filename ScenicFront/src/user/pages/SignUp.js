@@ -19,7 +19,7 @@ import "./Auth.css";
 const Signup = () => {
   const auth = useContext(AuthContext);
   const { isLoading, error, sendRequest, clearError } = useHttpClient();
-  const [formState, inputHandler, setFormData] = useForm(
+  const [formState, inputHandler] = useForm(
     {
       email: {
         value: "",
@@ -61,7 +61,7 @@ const Signup = () => {
       <Card className="authentication">
         <h2 className="center">Sign Up</h2>
         <hr />
-        <form onSubmit={authSubmitHandler} enctype="multipart/form-data">
+        <form onSubmit={authSubmitHandler} encType="multipart/form-data">
           <Input
             element="input"
             id="name"
@@ -98,8 +98,8 @@ const Signup = () => {
             errorText="Please Enter A Valid Password. (at least 6 characters)"
             onInput={inputHandler}
           />
-          <Button center type="submit" disabled={!formState.isValid}>
-            Sign Up!
+          <Button type="submit" disabled={!formState.isValid}>
+            Sign Up
           </Button>
         </form>
       </Card>
