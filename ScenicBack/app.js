@@ -25,6 +25,22 @@ app.get("/", (req, res) => {
   res.json({ status: "ok", api: "Scenic backend" });
 });
 
+// DEMO MODE: while no database is configured, GET routes serve seeded demo
+// content and writes return a clear message. Bypassed once Mongo connects.
+const mongoose = require("mongoose");
+const demo = require("./util/demoData");
+app.use((req, res, next) => {
+  if (mongoose.connection.readyState === 1) return next();
+  const hit = demo.handle(req);
+  if (hit) return res.status(hit.status || 200).json(hit.body);
+  if (req.method !== "GET")
+    return res.status(503).json({
+      message:
+        "Demo mode: the live database is being provisioned. Browsing works; sign-up and posting return shortly.",
+    });
+  return next();
+});
+
 app.use("/api/scenes", sceneRoutes);
 app.use("/api/users", userRoutes);
 
