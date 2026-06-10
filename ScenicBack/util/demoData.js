@@ -32,4 +32,4 @@ function handle(req) {
   }
   return null;
 }
-module.exports = { handle };
+module.exports = { handle, USERS, SCENES };

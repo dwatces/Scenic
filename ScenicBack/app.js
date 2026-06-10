@@ -27,9 +27,21 @@ app.get("/", (req, res) => {
 
 // DEMO MODE: while no database is configured, GET routes serve seeded demo
 // content and writes return a clear message. Bypassed once Mongo connects.
+// Serverless note: the function freezes between requests, so the boot-time
+// connect may still be in flight on the first request — wait for it (bounded)
+// before falling back to demo content.
 const mongoose = require("mongoose");
 const demo = require("./util/demoData");
-app.use((req, res, next) => {
+const connecting = connection().catch((err) =>
+  console.error("MongoDB connection failed:", err.message)
+);
+app.use(async (req, res, next) => {
+  if (mongoose.connection.readyState !== 1) {
+    await Promise.race([
+      connecting,
+      new Promise((resolve) => setTimeout(resolve, 8000)),
+    ]);
+  }
   if (mongoose.connection.readyState === 1) return next();
   const hit = demo.handle(req);
   if (hit) return res.status(hit.status || 200).json(hit.body);
@@ -62,12 +74,6 @@ app.use((error, req, res, next) => {
     .status(status)
     .json({ message: error.message || "An unknown error occurred!" });
 });
-
-// connect (non-fatal: in serverless the API stays up and reports cleanly
-// while DB_URL is not yet provisioned)
-connection().catch((err) =>
-  console.error("MongoDB connection failed:", err.message)
-);
 
 if (require.main === module) {
   const port = process.env.PORT || 5000;
