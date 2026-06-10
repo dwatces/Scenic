@@ -1,6 +1,4 @@
 const multer = require("multer");
-const uuidv1 = require("uuidv1");
-const fs = require("fs-extra");
 
 const MIME_TYPE_MAP = {
   "image/png": "png",
@@ -8,19 +6,11 @@ const MIME_TYPE_MAP = {
   "image/jpg": "jpg",
 };
 
+// Memory storage: serverless filesystems are read-only, and the image is
+// stored base64-in-DB anyway, so the upload never needs to touch disk.
 const upload = multer({
-  limits: 500000,
-  storage: multer.diskStorage({
-    destination: (req, file, cb) => {
-      let path = "./uploads/images";
-      fs.mkdirSync(path, { recursive: true });
-      cb(null, path);
-    },
-    filename: (req, file, cb) => {
-      const ext = MIME_TYPE_MAP[file.mimetype];
-      cb(null, uuidv1() + "." + ext);
-    },
-  }),
+  limits: { fileSize: 3 * 1024 * 1024 },
+  storage: multer.memoryStorage(),
   fileFilter: (req, file, cb) => {
     const isValid = !!MIME_TYPE_MAP[file.mimetype];
     let error = isValid ? null : new Error("Invalid mime type!");

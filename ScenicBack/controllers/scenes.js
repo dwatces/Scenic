@@ -1,4 +1,3 @@
-const fs = require("fs");
 const { validationResult } = require("express-validator");
 const mongoose = require("mongoose");
 const HttpError = require("../models/http-error");
@@ -67,8 +66,7 @@ const createScene = async (req, res, next) => {
     return next(error);
   }
 
-  const bitmap = fs.readFileSync("uploads/images/" + req.file.filename);
-  const encImage = Buffer.from(bitmap).toString("base64");
+  const encImage = req.file.buffer.toString("base64");
 
   const createdScene = new Scene({
     title,

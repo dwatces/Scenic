@@ -1,5 +1,4 @@
 require("dotenv").config();
-const fs = require("fs");
 const { validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
@@ -44,8 +43,7 @@ const signup = async (req, res, next) => {
 
   let hashedPassword = bcrypt.hashSync(password, 8);
 
-  const bitmap = fs.readFileSync("uploads/images/" + req.file.filename);
-  const encImage = Buffer.from(bitmap).toString("base64");
+  const encImage = req.file.buffer.toString("base64");
 
   const createdUser = new User({
     name,
