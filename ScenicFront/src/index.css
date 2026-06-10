@@ -1,47 +1,163 @@
-@import url("https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap");
+
+/* ============================================================
+   Scenic — dark gallery design system
+   ============================================================ */
+
+:root {
+  /* surfaces */
+  --bg: #0f0f11;
+  --surface: #17171b;
+  --surface-2: #1f1f24;
+  --surface-3: #29292f;
+
+  /* lines */
+  --border: #2a2a31;
+  --border-strong: #3a3a45;
+
+  /* text */
+  --text: #f4f4f5;
+  --text-muted: #a8a8b3;
+  --text-dim: #6f6f7a;
+
+  /* accent (emerald) */
+  --accent: #10b981;
+  --accent-hover: #16c993;
+  --accent-press: #0c8f63;
+  --accent-soft: rgba(16, 185, 129, 0.13);
+  --accent-ring: rgba(16, 185, 129, 0.35);
+
+  /* danger */
+  --danger: #f0524d;
+  --danger-hover: #f4716d;
+  --danger-soft: rgba(240, 82, 77, 0.13);
+
+  /* shape */
+  --radius-sm: 8px;
+  --radius: 14px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+
+  /* depth */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 18px rgba(0, 0, 0, 0.32);
+  --shadow: 0 28px 64px rgba(0, 0, 0, 0.6);
+
+  /* layout */
+  --header-h: 4.25rem;
+  --container: 1200px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
 
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  border: 0;
-  outline: 0;
-  vertical-align: baseline;
-  background: transparent;
-  text-decoration: none;
-  font-family: "Nunito", "Helvetica Neue", Helvetica;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: #454545;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 1rem;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+/* clear the fixed header on content pages (landing hero pulls back up) */
+main {
+  padding-top: var(--header-h);
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: "Space Grotesk", "Inter", sans-serif;
+  font-weight: 600;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-family: inherit;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+ul {
+  list-style: none;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* scrollbar */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--surface-3);
+  border: 3px solid var(--bg);
+  border-radius: var(--radius-pill);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-strong);
+}
+
+/* side-drawer slide transition (react-transition-group) */
 .slide-in-left-enter {
   transform: translateX(-100%);
 }
-
 .slide-in-left-enter-active {
   transform: translateX(0);
   opacity: 1;
-  transition: all 200ms;
+  transition: all 220ms var(--ease);
 }
-
 .slide-in-left-exit {
   transform: translateX(0%);
   opacity: 1;
 }
-
 .slide-in-left-exit-active {
   transform: translateX(-100%);
   opacity: 0;
-  transition: all 200ms;
+  transition: all 220ms var(--ease);
 }
 
+/* helpers */
 .center {
-  text-align: center;
   display: flex;
   justify-content: center;
   align-items: center;
+  text-align: center;
 }
 
 .center__button {

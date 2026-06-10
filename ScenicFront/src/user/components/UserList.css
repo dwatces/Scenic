@@ -1,33 +1,25 @@
 .user__header {
-  margin-top: 10vh;
-  color: white;
+  margin: 2.5rem 0 2rem;
+  padding: 0 1.5rem;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  color: var(--text);
 }
 
 .user__header__underline {
-  border-bottom: 4px solid #ca7c00;
+  padding-bottom: 0.15em;
+  border-bottom: 4px solid var(--accent);
 }
 
 .users-list {
-  list-style: none;
-  margin-top: 5vh;
-  padding-left: 3rem;
-}
-
-ul.users-list {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: row;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  gap: 1rem;
+  width: 100%;
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 1.5rem 3.5rem;
 }
 
 .user__margin {
-  margin-top: 15vh;
-}
-
-@media (max-width: 768px) {
-  .users-list {
-    padding-left: 0rem;
-    margin-top: 2vh;
-  }
+  margin-top: 3rem;
 }

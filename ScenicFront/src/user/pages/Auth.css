@@ -1,24 +1,39 @@
 .authentication {
   width: 90%;
-  max-width: 25rem;
-  display: block;
-  left: 50%;
-  transform: translateX(-50%);
-  margin-top: 20vh;
+  max-width: 26rem;
+  margin: clamp(2.5rem, 8vh, 6rem) auto;
   text-align: left;
 }
 
+.authentication h2 {
+  font-size: 1.5rem;
+}
+
+.authentication hr {
+  margin: 1rem 0 1.25rem;
+  border: none;
+  border-top: 1px solid var(--border);
+}
+
 .authentication form {
-  margin-bottom: 1rem;
+  margin-bottom: 0.25rem;
 }
 
 .auth__button {
   display: flex;
-  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 1.4rem;
 }
 
-@media (max-width: 579px) {
-  .authentication {
-    margin-top: 25vh !important;
-  }
+.auth__button > button,
+.auth__button > a {
+  flex: 1;
+}
+
+.auth__button a {
+  display: flex;
+}
+
+.auth__button a .button {
+  width: 100%;
 }

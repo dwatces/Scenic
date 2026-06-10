@@ -33,8 +33,17 @@ const getScenesByUserId = async (req, res, next) => {
   const userId = req.params.userId;
 
   let userWithScenes;
+  try {
+    userWithScenes = await User.findById(userId).populate("scenes");
+  } catch (err) {
+    return next(new HttpError("Fetching scenes failed, please try again", 500));
+  }
 
-  userWithScenes = await User.findById(userId).populate("scenes");
+  if (!userWithScenes) {
+    return next(
+      new HttpError("Could not find a user for the provided id", 404)
+    );
+  }
 
   res.json({
     scenes: userWithScenes.scenes.map((scene) =>
@@ -46,7 +55,7 @@ const getScenesByUserId = async (req, res, next) => {
 const createScene = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    next(new HttpError("Invalid inputs, please try again", 422));
+    return next(new HttpError("Invalid inputs, please try again", 422));
   }
 
   const { title, description, address } = req.body;

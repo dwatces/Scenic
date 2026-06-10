@@ -1,19 +1,25 @@
 .image-upload.center {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  flex-direction: column;
+  margin: 1.25rem 0;
 }
 
 .image-upload__preview {
-  width: 13rem;
-  height: 13rem;
-  border: 1px solid #ccc;
   display: flex;
   justify-content: center;
   align-items: center;
-  text-align: center;
+  width: 12rem;
+  height: 12rem;
   margin-bottom: 1rem;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  background: var(--surface-2);
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--radius);
+  overflow: hidden;
 }
 
 .image-upload__preview img {

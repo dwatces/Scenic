@@ -1,42 +1,43 @@
-.scene-list {
-  list-style: none;
-  padding: 0;
-}
-
-ul.scene-list {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  flex-wrap: wrap;
-}
-
-.scene-error {
-  margin-top: 15vh;
-}
-
-.upload__header {
-  margin-bottom: 2rem;
-}
-
 .scene__header {
-  margin-top: 10vh;
-  margin-bottom: 1.5rem;
-  color: white;
+  margin: 2.5rem 0 2rem;
+  padding: 0 1.5rem;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  color: var(--text);
 }
 
 .scene__header__underline {
-  border-bottom: 4px solid #ca7c00;
+  padding-bottom: 0.15em;
+  border-bottom: 4px solid var(--accent);
+}
+
+.scene-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+  gap: 1.5rem;
+  align-items: stretch;
+  width: 100%;
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 1.5rem;
 }
 
 .scenes__bottom {
-  margin-top: 3rem;
-  margin-bottom: 3rem;
+  display: flex;
+  justify-content: center;
+  margin: 2.5rem 0 3.5rem;
 }
 
-@media (max-width: 480px) {
-  .fallback__scene {
-    margin-left: 1rem;
-    margin-right: 1rem;
-  }
+.scene-error {
+  margin-top: 3rem;
+}
+
+.fallback__scene {
+  width: 90%;
+  max-width: 32rem;
+  margin: 3rem auto;
+}
+
+.upload__header {
+  margin-bottom: 1.25rem;
+  font-size: 1.35rem;
 }

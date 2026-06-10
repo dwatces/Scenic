@@ -12,7 +12,6 @@ const headers = [
 
 const LandingPage = () => {
   const auth = useContext(AuthContext);
-  const [data, setData] = useState(0);
   const [index, setIndex] = useState(0);
   const [imgarray] = useState([
     "Street.jpg",
@@ -28,16 +27,11 @@ const LandingPage = () => {
     return () => clearInterval(interval);
   }, [imgarray, imgarray.length]);
 
-  React.useEffect(() => {
-    setData(imgarray[index]);
-  }, [index, imgarray]);
-
   return (
     <header
       className="hero"
       style={{
-        backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 39%, rgba(0,0,0,0.65) 100%), 
-        url(/assets/${data} )`,
+        backgroundImage: `linear-gradient(180deg, rgba(15,15,17,0.7) 0%, rgba(15,15,17,0.25) 32%, rgba(15,15,17,0.6) 72%, rgba(15,15,17,0.96) 100%), url("/assets/${imgarray[index]}")`,
         backgroundAttachment: "scroll",
         backgroundRepeat: "no-repeat",
         backgroundPosition: "center",

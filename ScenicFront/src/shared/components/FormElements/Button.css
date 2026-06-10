@@ -1,70 +1,83 @@
 .button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font: inherit;
-  padding: 0.5rem 1.5rem;
-  border: 1px solid #008560;
-  border-radius: 4px;
-  background: #08a67a;
-  color: white;
-  cursor: pointer;
+  font-weight: 600;
+  padding: 0.62rem 1.45rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  color: #06130d;
   text-decoration: none;
-}
-
-.button:focus {
-  outline: none;
+  cursor: pointer;
+  transition: background 0.2s var(--ease), border-color 0.2s var(--ease),
+    color 0.2s var(--ease), transform 0.15s var(--ease);
 }
 
 .button:hover,
 .button:active {
-  background: #00684b;
-  border-color: #00684b;
+  background: var(--accent-hover);
+  transform: translateY(-1px);
 }
 
+.button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* secondary / outline */
 .button--inverse {
-  background: #08a67a;
-  border: 1px solid #008560;
+  background: transparent;
+  color: var(--accent);
+  border-color: var(--border-strong);
 }
 
 .button--inverse:hover,
 .button--inverse:active {
-  background: #00684b;
-  border-color: #00684b;
+  background: var(--accent-soft);
+  color: var(--accent-hover);
+  border-color: var(--accent);
 }
 
+/* edit (amber) */
 .button--edit {
-  background: #fea00c;
-  border: 1px solid #ca7c00;
+  background: #f5a524;
+  color: #1a1206;
 }
 
 .button--edit:hover,
-.button-edit:active {
-  background: #9f6100;
-  border-color: #9f6100;
+.button--edit:active {
+  background: #ffb845;
 }
 
+/* danger */
 .button--danger {
-  background: #ed0b37;
-  border: 1px solid #bc0025;
+  background: var(--danger);
+  color: #fff;
 }
 
 .button--danger:hover,
 .button--danger:active {
-  background: #94001d;
-  border-color: #94001d;
+  background: var(--danger-hover);
 }
 
 .button:disabled,
 .button:hover:disabled,
 .button:active:disabled {
-  background: #ccc;
-  color: #979797;
-  border-color: #ccc;
+  background: var(--surface-3);
+  color: var(--text-dim);
+  border-color: transparent;
+  transform: none;
   cursor: not-allowed;
 }
 
 .button--small {
-  font-size: 0.8rem;
+  font-size: 0.82rem;
+  padding: 0.45rem 1rem;
 }
 
 .button--big {
-  font-size: 1.5rem;
+  font-size: 1.15rem;
+  padding: 0.75rem 1.85rem;
 }

@@ -150,14 +150,10 @@ const UpdateScene = () => {
             initialValid={true}
           />
           <div className="update__button">
-            <Button className="auth__button" onClick={() => history.goBack()}>
+            <Button inverse onClick={() => history.goBack()}>
               Return
             </Button>
-            <Button
-              className="scene__submit"
-              type="submit"
-              disabled={!formState.isValid}
-            >
+            <Button type="submit" disabled={!formState.isValid}>
               Update Scene
             </Button>
           </div>

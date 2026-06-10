@@ -4,8 +4,7 @@
   "description": "backend server for scenic",
   "main": "index.js",
   "engines": {
-    "node": "14.17.2",
-    "npm": "8.1.2"
+    "node": ">=18"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

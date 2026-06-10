@@ -81,7 +81,7 @@ const Login = () => {
               Login
             </Button>
             <NavLink activeClassName="active__link" to="/signup">
-              <Button>Sign up</Button>
+              <Button inverse>Sign up</Button>
             </NavLink>
           </div>
         </form>
