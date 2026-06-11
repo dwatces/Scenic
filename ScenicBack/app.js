@@ -20,6 +20,16 @@ app.use((req, res, next) => {
   next();
 });
 
+// Edge caching for reads: the CDN answers instantly from cache and revalidates
+// in the background, which hides serverless cold starts from visitors. Writes
+// are never cached; a read right after a write may be one view stale.
+app.use((req, res, next) => {
+  if (req.method === "GET") {
+    res.setHeader("Cache-Control", "s-maxage=1, stale-while-revalidate=599");
+  }
+  next();
+});
+
 // simple health check
 app.get("/", (req, res) => {
   res.json({ status: "ok", api: "Scenic backend" });
