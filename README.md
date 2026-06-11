@@ -1,24 +1,29 @@
-A fulllstack MERN app. This applicaiton allows visitors to register an account, and with their user account, upload their favourite scenes to share with the community.
+# Scenic
 
-JavaScript
+A full-stack MERN image-sharing app: register an account, upload your favourite scenes, and
+browse what the community has shared.
 
-React.JS
+**Live:** https://scenic-app.vercel.app
+**API:** https://scenic-api.vercel.app
 
-Node.JS
+## Stack
 
-Express.JS
+- React (`ScenicFront/`) — CRA client
+- Node.js / Express (`ScenicBack/`) — REST API with JWT auth
+- MongoDB Atlas — images stored base64-in-document (serverless-safe uploads)
+- Location geocoding with keyless fallbacks (Nominatim → Photon, Google when keyed)
+- Both deployed serverless on Vercel, with edge caching on read endpoints
 
-MongoDB
+## Local development
 
-HTML5
+```bash
+# API
+cd ScenicBack && npm install
+DB_URL=<mongodb-connection-string> JWT_KEY=<secret> npm start
 
-CSS3
+# Client
+cd ScenicFront && npm install
+REACT_APP_BACKEND_URL=http://localhost:5000/api npm start
+```
 
-Utilising back end file upload with node and express to MongoDB.
-
-Implemented Authentication and Authorization.
-
-Live Link: https://scenic-b670e.web.app/
-
-
-Future work: Speed up the get and post to mongodb 
+Without `DB_URL` the API serves a read-only demo dataset.
