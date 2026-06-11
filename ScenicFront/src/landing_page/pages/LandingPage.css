@@ -17,7 +17,8 @@
 .landingpage__header,
 .underline__header {
   display: block;
-  max-width: 16ch;
+  max-width: 26ch;
+  text-wrap: balance;
   color: #fff;
   font-family: "Space Grotesk", "Inter", sans-serif;
   font-size: clamp(2.4rem, 6.5vw, 4.75rem);
