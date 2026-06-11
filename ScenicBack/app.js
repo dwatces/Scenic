@@ -32,11 +32,19 @@ app.get("/", (req, res) => {
 // before falling back to demo content.
 const mongoose = require("mongoose");
 const demo = require("./util/demoData");
-const connecting = connection().catch((err) =>
+let connecting = connection().catch((err) =>
   console.error("MongoDB connection failed:", err.message)
 );
 app.use(async (req, res, next) => {
   if (mongoose.connection.readyState !== 1) {
+    // readyState 0 = a previous attempt failed and settled; mongoose 5 never
+    // retries on its own, so a transient failure would otherwise poison this
+    // serverless instance permanently. Kick off a fresh attempt per request.
+    if (mongoose.connection.readyState === 0) {
+      connecting = connection().catch((err) =>
+        console.error("MongoDB connection failed:", err.message)
+      );
+    }
     await Promise.race([
       connecting,
       new Promise((resolve) => setTimeout(resolve, 8000)),

@@ -12,6 +12,8 @@ module.exports = async function connection() {
     useCreateIndex: true,
     useUnifiedTopology: true,
     useFindAndModify: false,
+    // settle fast inside the request-bounded await (serverless)
+    serverSelectionTimeoutMS: 6000,
   };
 
   await mongoose.connect(process.env.DB_URL, connectionParams);
