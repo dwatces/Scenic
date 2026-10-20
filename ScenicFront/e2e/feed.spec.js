@@ -19,7 +19,8 @@ test("the landing page shows the six newest scenes and links to Explore", async 
   const sources = await recent
     .locator(".scene-card img")
     .evaluateAll((images) => images.map((img) => img.getAttribute("src")));
-  for (const src of sources) expect(src).toMatch(/^https?:\/\//);
+  // Cards load the card-size copy of each photo.
+  for (const src of sources) expect(src).toMatch(/^https?:\/\/.*\/image\?v=\d+&size=card$/);
   await recent.getByRole("link", { name: "See all scenes" }).click();
   await expect(page).toHaveURL("/explore");
   // The landing page stays on screen while the Explore chunk loads.

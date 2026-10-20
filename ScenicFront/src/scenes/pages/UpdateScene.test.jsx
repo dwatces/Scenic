@@ -4,7 +4,15 @@ import userEvent from "@testing-library/user-event";
 
 import UpdateScene from "./UpdateScene";
 import { resetFreshness } from "../../shared/util/api";
-import { KIRI, json, mockApi, renderPage, sceneFixture, signedInAs } from "../../test/api-mock";
+import {
+  API,
+  KIRI,
+  json,
+  mockApi,
+  renderPage,
+  sceneFixture,
+  signedInAs,
+} from "../../test/api-mock";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -33,6 +41,11 @@ describe("Edit scene", () => {
     const title = await screen.findByLabelText("Title");
     expect(title).toHaveValue("Old title");
     expect(screen.getByLabelText("Description")).toHaveValue("Old description.");
+    // The full photo, not the card copy.
+    expect(document.querySelector(".scene-form__preview img")).toHaveAttribute(
+      "src",
+      `${API}/scenes/${scene.id}/image?v=1700000000000`,
+    );
     await waitFor(() => expect(document.title).toBe("Edit Old title · Scenic"));
 
     await userEvent.clear(title);

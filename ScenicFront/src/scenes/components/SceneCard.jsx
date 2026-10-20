@@ -21,7 +21,7 @@ const SceneCard = ({ scene, headingLevel = 2, showCreator = true, canEdit = fals
       <article className="scene-card__inner">
         <div className="scene-card__image">
           <img
-            src={apiAsset(scene.imageUrl)}
+            src={apiAsset(scene.cardImageUrl || scene.imageUrl)}
             alt=""
             width="600"
             height="400"

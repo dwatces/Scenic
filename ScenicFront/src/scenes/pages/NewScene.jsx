@@ -44,7 +44,10 @@ const NewScene = () => {
     formData.append("title", formState.inputs.title.value);
     formData.append("description", formState.inputs.description.value);
     formData.append("address", formState.inputs.address.value);
-    formData.append("image", formState.inputs.image.value);
+    const { image, thumb } = formState.inputs.image.value;
+    formData.append("image", image);
+    // The card copy the scene's cards show; the API falls back to the photo without it.
+    if (thumb) formData.append("thumb", thumb);
     let data;
     try {
       data = await sendRequest(`${API_URL}/scenes`, "POST", formData, {
@@ -78,6 +81,7 @@ const NewScene = () => {
         />
         <ImageUpload
           id="image"
+          withCard
           onInput={inputHandler}
           text="Choose a photo"
           uploadText="Choose a different photo"

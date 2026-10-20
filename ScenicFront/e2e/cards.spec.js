@@ -20,9 +20,13 @@ async function postPhoto(request, member, file, title) {
   return (await res.json()).scene;
 }
 
-/** Wait until the card titled `title` has loaded its (portrait) photo. */
+/**
+ * Wait until the card titled `title` has loaded its (portrait) photo. It was
+ * posted without a card image, so its card URL serves the full photo.
+ */
 async function portraitLoaded(page, title) {
   const image = page.locator(".scene-card", { hasText: title }).locator("img");
+  await expect(image).toHaveAttribute("src", /&size=card$/);
   await image.scrollIntoViewIfNeeded();
   await expect
     .poll(() => image.evaluate((img) => img.complete && img.naturalHeight > img.naturalWidth))

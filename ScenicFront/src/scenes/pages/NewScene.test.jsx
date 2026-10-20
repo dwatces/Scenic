@@ -8,7 +8,8 @@ import { resetFreshness } from "../../shared/util/api";
 import { KIRI, json, mockApi, renderPage, sceneFixture, signedInAs } from "../../test/api-mock";
 
 // Preparing a photo needs a real browser's decoder (prepare-image.test.js
-// covers it with mocks); here it hands back a small WebP straight away.
+// covers it with mocks); here it hands back a small WebP and its card copy
+// straight away.
 vi.mock("../../shared/util/prepare-image", async (importOriginal) => ({
   ...(await importOriginal()),
   prepareImage: vi.fn(),
@@ -17,9 +18,12 @@ vi.mock("../../shared/util/prepare-image", async (importOriginal) => ({
 const PREPARED = new File([new Uint8Array([82, 73, 70, 70])], "scene.webp", {
   type: "image/webp",
 });
+const CARD = new File([new Uint8Array([82, 73, 70, 70])], "scene-card.webp", {
+  type: "image/webp",
+});
 
 beforeEach(() => {
-  vi.mocked(prepareImage).mockReset().mockResolvedValue(PREPARED);
+  vi.mocked(prepareImage).mockReset().mockResolvedValue({ image: PREPARED, thumb: CARD });
   URL.createObjectURL = vi.fn(() => "blob:preview");
   URL.revokeObjectURL = vi.fn();
 });
@@ -38,7 +42,7 @@ async function fillIn() {
 }
 
 describe("Add a scene", () => {
-  it("posts the prepared photo with the fields and opens the new scene at once", async () => {
+  it("posts the prepared photo and its card copy with the fields and opens the new scene at once", async () => {
     const created = sceneFixture(1, { title: "Kitekite Falls" });
     const calls = mockApi({ "POST /scenes": () => json({ scene: created }, 201) });
     renderPage(<NewScene />, {
@@ -55,7 +59,7 @@ describe("Add a scene", () => {
       "src",
       "blob:preview",
     );
-    expect(prepareImage).toHaveBeenCalledWith(original);
+    expect(prepareImage).toHaveBeenCalledWith(original, { card: true });
 
     await userEvent.click(screen.getByRole("button", { name: "Add scene" }));
     await waitFor(() => expect(screen.getByText("Scene page")).toBeInTheDocument());
@@ -65,6 +69,28 @@ describe("Add a scene", () => {
     expect(body.get("title")).toBe("Kitekite Falls");
     expect(body.get("address")).toBe("Piha, Auckland");
     expect(body.get("image")).toBe(PREPARED);
+    expect(body.get("thumb")).toBe(CARD);
+  });
+
+  it("posts the photo alone when the browser couldn't make a card copy", async () => {
+    vi.mocked(prepareImage).mockResolvedValue({ image: PREPARED, thumb: null });
+    const calls = mockApi({ "POST /scenes": () => json({ scene: sceneFixture(1) }, 201) });
+    renderPage(<NewScene />, {
+      path: "/scenes/new",
+      auth: signedInAs(KIRI),
+      routes: { "/scenes/:sceneId": <p>Scene page</p> },
+    });
+    await fillIn();
+    await userEvent.upload(
+      screen.getByLabelText("Choose a photo"),
+      new File(["x"], "a.jpg", { type: "image/jpeg" }),
+    );
+    await screen.findByRole("img", { name: "Preview of your upload" });
+    await userEvent.click(screen.getByRole("button", { name: "Add scene" }));
+    await waitFor(() => expect(screen.getByText("Scene page")).toBeInTheDocument());
+    const body = calls.find((c) => c.method === "POST").init.body;
+    expect(body.get("image")).toBe(PREPARED);
+    expect(body.has("thumb")).toBe(false);
   });
 
   it("asks for a photo (and the rest) before sending anything", async () => {

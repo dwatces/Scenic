@@ -13,7 +13,8 @@ const HINT = "JPEG, PNG or WebP. Large photos are resized for you.";
  * file is refused before it reaches the server.
  *
  * Reports onInput(id, file, isValid): invalid while a photo is being
- * prepared, and valid with no photo when `optional`.
+ * prepared, and valid with no photo when `optional`. With `withCard` the
+ * value is { image, thumb }: the photo and its card copy, made together.
  */
 const ImageUpload = ({
   id,
@@ -21,6 +22,7 @@ const ImageUpload = ({
   text,
   uploadText,
   optional = false,
+  withCard = false,
   round = false,
   showErrors = false,
   errorText = "Choose a photo",
@@ -41,9 +43,11 @@ const ImageUpload = ({
     setPreparing(true);
     onInput(id, null, false);
     try {
-      const prepared = await prepareImage(file);
+      const prepared = withCard
+        ? await prepareImage(file, { card: true })
+        : await prepareImage(file);
       setChosen(prepared);
-      setPreview(URL.createObjectURL(prepared));
+      setPreview(URL.createObjectURL(withCard ? prepared.image : prepared));
       onInput(id, prepared, true);
     } catch (err) {
       setMessage(err instanceof ImagePrepError ? err.message : UNREADABLE);

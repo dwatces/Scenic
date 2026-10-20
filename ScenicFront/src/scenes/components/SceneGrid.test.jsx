@@ -7,17 +7,29 @@ import { API, DEMO_DANIEL, KIRI, renderPage, sceneFixture } from "../../test/api
 const cards = () => screen.getAllByRole("listitem");
 
 describe("SceneGrid and SceneCard", () => {
-  it("shows each photo from the API's origin at a fixed 3:2 size, lazily, as decoration", () => {
+  it("shows each photo's card copy from the API's origin at a fixed 3:2 size, lazily, as decoration", () => {
     const scenes = [sceneFixture(1), sceneFixture(2)];
     renderPage(<SceneGrid scenes={scenes} />);
     expect(cards()).toHaveLength(2);
     const img = cards()[0].querySelector(".scene-card__image img");
-    expect(img).toHaveAttribute("src", `${API}/scenes/${scenes[0].id}/image?v=1700000000000`);
+    expect(img).toHaveAttribute(
+      "src",
+      `${API}/scenes/${scenes[0].id}/image?v=1700000000000&size=card`,
+    );
     expect(img).toHaveAttribute("width", "600");
     expect(img).toHaveAttribute("height", "400");
     expect(img).toHaveAttribute("loading", "lazy");
     // The title link right under the photo names the card.
     expect(img).toHaveAttribute("alt", "");
+  });
+
+  it("falls back to the full photo for a scene without a card image URL", () => {
+    const scene = { ...sceneFixture(1), cardImageUrl: undefined };
+    renderPage(<SceneGrid scenes={[scene]} />);
+    expect(cards()[0].querySelector(".scene-card__image img")).toHaveAttribute(
+      "src",
+      `${API}/scenes/${scene.id}/image?v=1700000000000`,
+    );
   });
 
   it("links the title to the scene page, at the heading level asked for", () => {

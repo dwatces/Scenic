@@ -1,6 +1,14 @@
 import { describe, it, expect, vi } from "vitest";
 
-import { prepareImage, fitWithin, WRONG_TYPE, UNREADABLE, TARGET_BYTES } from "./prepare-image";
+import {
+  prepareImage,
+  fitWithin,
+  WRONG_TYPE,
+  UNREADABLE,
+  TARGET_BYTES,
+  CARD_EDGE,
+  CARD_TARGET_BYTES,
+} from "./prepare-image";
 
 /**
  * A stand-in for <canvas>: records what was drawn and how it was encoded.
@@ -9,15 +17,13 @@ import { prepareImage, fitWithin, WRONG_TYPE, UNREADABLE, TARGET_BYTES } from ".
 function fakeCanvasFactory(encodeAs) {
   const canvases = [];
   const makeCanvas = () => {
+    const context = { drawImage: vi.fn(), fillRect: vi.fn(), fillStyle: "" };
     const canvas = {
       width: 0,
       height: 0,
       calls: [],
-      getContext: () => ({
-        drawImage: vi.fn(),
-        fillRect: vi.fn(),
-        fillStyle: "",
-      }),
+      context,
+      getContext: () => context,
       toBlob(callback, type, quality) {
         canvas.calls.push({ type, quality });
         callback(encodeAs(type, quality));
@@ -40,6 +46,11 @@ describe("fitWithin", () => {
     expect(fitWithin(3000, 4000)).toEqual({ width: 1200, height: 1600 });
     expect(fitWithin(800, 600)).toEqual({ width: 800, height: 600 });
     expect(fitWithin(1, 1)).toEqual({ width: 1, height: 1 });
+  });
+
+  it("fits a card copy within 640 px", () => {
+    expect(fitWithin(1600, 1200, CARD_EDGE)).toEqual({ width: 640, height: 480 });
+    expect(fitWithin(1200, 1600, CARD_EDGE)).toEqual({ width: 480, height: 640 });
   });
 });
 
@@ -104,5 +115,75 @@ describe("prepareImage", () => {
     });
     expect(canvases[0].calls.map((call) => call.quality)).toEqual([0.82, 0.72, 0.62]);
     expect(file.size).toBeLessThanOrEqual(TARGET_BYTES);
+  });
+});
+
+describe("prepareImage with a card copy", () => {
+  it("makes the photo and a 640 px WebP card from one decode", async () => {
+    const { makeCanvas, canvases } = fakeCanvasFactory((type, quality) =>
+      blobOf(type, quality === 0.82 ? 200 * 1024 : 40 * 1024),
+    );
+    const decode = vi.fn(async () => bitmap(4000, 3000));
+    const { image, thumb } = await prepareImage(photo(), { card: true, decode, makeCanvas });
+    expect(decode).toHaveBeenCalledTimes(1);
+    expect(image.type).toBe("image/webp");
+    expect(image.name).toBe("IMG_0001.webp");
+    expect(canvases).toHaveLength(2);
+    expect(canvases[1]).toMatchObject({ width: 640, height: 480 });
+    // Drawn from the prepared photo, so it is upright too.
+    expect(canvases[1].context.drawImage).toHaveBeenCalledWith(canvases[0], 0, 0, 640, 480);
+    expect(canvases[1].calls).toEqual([{ type: "image/webp", quality: 0.72 }]);
+    expect(thumb.type).toBe("image/webp");
+    expect(thumb.name).toBe("IMG_0001-card.webp");
+    expect(thumb.size).toBeLessThanOrEqual(CARD_TARGET_BYTES);
+  });
+
+  it("steps the card's quality down until it fits 60 KB", async () => {
+    const cardSizes = { 0.72: 90, 0.62: 70, 0.52: 55 };
+    const { makeCanvas, canvases } = fakeCanvasFactory((type, quality) =>
+      blobOf(type, (canvases.length === 1 ? 300 : cardSizes[quality]) * 1024),
+    );
+    const { thumb } = await prepareImage(photo(), {
+      card: true,
+      decode: async () => bitmap(3000, 4000),
+      makeCanvas,
+    });
+    expect(canvases[1]).toMatchObject({ width: 480, height: 640 });
+    expect(canvases[1].calls.map((call) => call.quality)).toEqual([0.72, 0.62, 0.52]);
+    expect(thumb.size).toBeLessThanOrEqual(CARD_TARGET_BYTES);
+  });
+
+  it("never enlarges a small photo's card", async () => {
+    const { makeCanvas, canvases } = fakeCanvasFactory((type) => blobOf(type, 1000));
+    await prepareImage(photo(), { card: true, decode: async () => bitmap(500, 300), makeCanvas });
+    expect(canvases[1]).toMatchObject({ width: 500, height: 300 });
+  });
+
+  it("makes a JPEG card from the white-backed canvas when WebP isn't available (Safari)", async () => {
+    const { makeCanvas, canvases } = fakeCanvasFactory((type) =>
+      type === "image/webp" ? blobOf("image/png", 900 * 1024) : blobOf(type, 40 * 1024),
+    );
+    const { image, thumb } = await prepareImage(photo("image/png", "screen.png"), {
+      card: true,
+      decode: async () => bitmap(1200, 800),
+      makeCanvas,
+    });
+    expect(image.type).toBe("image/jpeg");
+    expect(canvases).toHaveLength(3);
+    expect(canvases[2].context.drawImage).toHaveBeenCalledWith(canvases[1], 0, 0, 640, 427);
+    expect(canvases[2].calls).toEqual([{ type: "image/jpeg", quality: 0.75 }]);
+    expect(thumb.type).toBe("image/jpeg");
+    expect(thumb.name).toBe("screen-card.jpg");
+  });
+
+  it("leaves the card out when it can't be made small enough for the API", async () => {
+    const { makeCanvas } = fakeCanvasFactory((type) => blobOf(type, 400 * 1024));
+    const { image, thumb } = await prepareImage(photo(), {
+      card: true,
+      decode: async () => bitmap(4000, 3000),
+      makeCanvas,
+    });
+    expect(image.type).toBe("image/webp");
+    expect(thumb).toBeNull();
   });
 });

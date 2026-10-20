@@ -1,6 +1,6 @@
 // Sign-up without an avatar, and photos prepared in the browser before they
-// are uploaded: resized, re-encoded, stripped of metadata, wrong types
-// refused. All against the local API.
+// are uploaded: resized, re-encoded with a card-size copy, stripped of
+// metadata, wrong types refused. All against the local API.
 import fs from "node:fs";
 import { test, expect, API_URL, signUp, useSession } from "./fixtures.js";
 import { largePhoto } from "./generate-fixtures.js";
@@ -59,7 +59,7 @@ test("the sign-up and log-in pages link to each other", async ({ page }) => {
   await expect(page).toHaveURL("/login");
 });
 
-test("a 6 MB, 4000 x 3000 photo is resized to 1600 px and sent under 1 MB", async ({
+test("a 6 MB, 4000 x 3000 photo is resized to 1600 px, with a 640 px card copy, and sent under 1 MB", async ({
   page,
   request,
   browser,
@@ -77,12 +77,21 @@ test("a 6 MB, 4000 x 3000 photo is resized to 1600 px and sent under 1 MB", asyn
   await page.getByRole("button", { name: "Add scene" }).click();
   const body = (await posted).postDataBuffer();
   expect(body.length).toBeLessThan(1024 * 1024);
+  expect(body.toString("latin1")).toContain('name="thumb"; filename="large-4000x3000-card.webp"');
 
   await expect(page).toHaveURL(/\/scenes\/[0-9a-f]{24}$/);
   await expect(page.locator("h1")).toHaveText("A very large photo");
   const photo = page.locator(".scene-page__figure img");
   await expect.poll(() => photo.evaluate((img) => img.naturalWidth)).toBe(1600);
   expect(await photo.evaluate((img) => img.naturalHeight)).toBe(1200);
+
+  // The member's page shows the card copy, not the photo.
+  await page.goto(`/${member.userId}/scenes`);
+  const card = page.locator(".scene-card", { hasText: "A very large photo" }).locator("img");
+  await expect(card).toHaveAttribute("src", /&size=card$/);
+  await card.scrollIntoViewIfNeeded();
+  await expect.poll(() => card.evaluate((img) => img.complete && img.naturalWidth)).toBe(640);
+  expect(await card.evaluate((img) => img.naturalHeight)).toBe(480);
 });
 
 test("a GIF is refused in the form and nothing is sent", async ({ page, request }) => {

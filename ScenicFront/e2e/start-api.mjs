@@ -41,6 +41,8 @@ if (process.env.E2E_FIXTURE === "1") {
   const Scene = require(backDir + "models/scene.js");
   const images = require(backDir + "util/demoImages.js");
   const image = { data: images.milfordSound.toString("base64"), contentType: "image/webp" };
+  // With a card image, as the client posts them, so cards load what they would live.
+  const thumb = { data: images.milfordSoundCard.toString("base64"), contentType: "image/webp" };
   const member = await User.create({
     name: "Test member (demo)",
     email: "e2e-fixture@scenic.example",
@@ -56,6 +58,7 @@ if (process.env.E2E_FIXTURE === "1") {
       location: { lat: -36.8485, lng: 174.7633 },
       creator: member._id,
       image,
+      thumb,
     });
     await User.updateOne({ _id: member._id }, { $addToSet: { scenes: scene._id } });
   }

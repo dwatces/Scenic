@@ -45,19 +45,19 @@ The client ships about 105 KB of gzipped JavaScript in all (a test caps it at 11
 | GET | `/` | | Health check: `mode` is `"db"` when MongoDB is connected, `"demo"` otherwise |
 | GET | `/api/scenes` | | The feed, newest first: `?limit=` (1 to 24, default 12), `?before=<sceneId>` (the `nextCursor` of the previous page), `?creator=<userId>`. Returns `{ scenes, nextCursor }` |
 | GET | `/api/scenes/:sceneId` | | One scene with its creator |
-| GET | `/api/scenes/:sceneId/image` | | The scene's photo as an image |
+| GET | `/api/scenes/:sceneId/image` | | The scene's photo as an image; `?size=card` serves its card-size copy, or the photo when it has none |
 | GET | `/api/users` | | Every member, by name, with their scene count |
 | GET | `/api/users/:userId` | | One member's public profile |
 | GET | `/api/users/:userId/image` | | The member's avatar as an image (404 when they have none) |
 | POST | `/api/users/signup` | | Create an account (multipart: `name`, `email`, `password`, optional `image`); returns `userId` and `token` |
 | POST | `/api/users/login` | | Log in with `email` and `password`; returns `userId` and `token` |
-| POST | `/api/scenes` | Bearer token | Create a scene (multipart: `title`, `description`, `address`, `image`); returns the new scene |
+| POST | `/api/scenes` | Bearer token | Create a scene (multipart: `title`, `description`, `address`, `image`, optional `thumb`); returns the new scene |
 | PATCH | `/api/scenes/:sceneId` | Bearer token | Update `title` and `description` (owner only); returns the scene |
 | DELETE | `/api/scenes/:sceneId` | Bearer token | Delete a scene (owner only) |
 | GET | `/api/users/users` | | Deprecated: members with inline avatars, kept for the deployed client |
 | GET | `/api/scenes/user/:userId` | | Deprecated: a member's scenes with inline images, kept for the deployed client |
 
-Scenes and members in responses never include an email address, a password hash or image bytes: images are referenced by `imageUrl` and `avatarUrl`, paths on the API such as `/api/scenes/<id>/image?v=<version>`.
+Scenes and members in responses never include an email address, a password hash or image bytes: images are referenced by `imageUrl`, `cardImageUrl` and `avatarUrl`, paths on the API such as `/api/scenes/<id>/image?v=<version>`.
 
 **Status codes.** Every error is JSON with a `message` and `Cache-Control: no-store`; nothing internal (stack traces, database errors) is ever sent.
 
@@ -69,7 +69,7 @@ Scenes and members in responses never include an email address, a password hash 
 | 401 | No token, an invalid or expired token, or an email and password that don't match (the same message whether the email exists or not) |
 | 403 | Changing someone else's scene |
 | 404 | An unknown route, or an id that doesn't exist or isn't a valid id |
-| 413 | A photo over 3 MB or a JSON body over 100 KB |
+| 413 | A photo over 3 MB, a card image over 300 KB or a JSON body over 100 KB |
 | 422 | Input that fails validation (the message names the field), an email already in use, a file that isn't a JPEG, PNG or WebP by its bytes, or a place the geocoder can't find |
 | 429 | More than 10 sign-up or login attempts from one address in 15 minutes |
 | 502 | The geocoder couldn't be reached |
@@ -78,7 +78,8 @@ Scenes and members in responses never include an email address, a password hash 
 ### How images are stored and served
 
 - **Stored** as base64 inside the scene or user document in MongoDB, so an upload never touches the server's filesystem (Vercel's is read-only) and there is no separate file store to run.
-- **Served** as real images from `/api/scenes/:id/image` and `/api/users/:id/image`, never inline in JSON. A list of scenes is a few kilobytes, and browsers can lazy-load, size and cache each photo. The type comes from the stored bytes (JPEG, PNG or WebP; anything else is not served), with a strong ETag, a year of browser caching (the URL carries a version) and a day at the CDN.
+- **Served** as real images from `/api/scenes/:id/image` and `/api/users/:id/image`, never inline in JSON. A list of scenes is a few kilobytes, and browsers can lazy-load, size and cache each photo. The type comes from the stored bytes (JPEG, PNG or WebP; anything else is not served), with a strong ETag, a year of browser caching and a day at the CDN. The URL carries a version: when the document last changed, or for demo content a hash of the image bytes, so a new photo always gets a new URL.
+- **Card-size copies:** scene cards load `cardImageUrl` (`?size=card`), a copy of the photo at most 640 px on the long edge that the browser makes with the upload and sends as `thumb` (300 KB at most; the demo cards are about 33 KB against about 100 KB for the photos). A scene without one (posted by an older client or a script) serves the full photo at that URL.
 - **Prepared in the browser** before upload: checked (JPEG, PNG or WebP), turned upright, scaled to at most 1600 px on the long edge and re-encoded as WebP (JPEG where the browser can't encode WebP), aiming for 600 KB. The API still caps uploads at 3 MB and checks the bytes.
 - **No hidden location data:** every photo is re-encoded, even a small one, which drops its EXIF metadata, GPS position included. Where a scene is comes only from the Location the member types.
 
@@ -192,7 +193,7 @@ ScenicBack/
   models/           Mongoose User and Scene schemas, HttpError
   middleware/       JWT check, MongoDB connection, uploads, validation, error responses
   util/             serialisers, image type detection and serving, email rules, geocoding, demo data, seeding script
-  assets/demo/      demo scene photos and avatars (built by scripts/make-demo-images.py)
+  assets/demo/      demo scene photos, their 640 px card copies (*-card.webp) and avatars (built by scripts/make-demo-images.py)
   test/             API tests (Vitest + supertest + in-memory MongoDB)
 ScenicFront/
   index.html        Vite entry

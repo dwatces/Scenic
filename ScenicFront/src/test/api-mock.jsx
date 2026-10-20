@@ -73,6 +73,7 @@ export function sceneFixture(n, { creator = KIRI, ...overrides } = {}) {
     address: "Piha, Auckland",
     location: { lat: -36.9541, lng: 174.4706 },
     imageUrl: `/api/scenes/${id}/image?v=1700000000000`,
+    cardImageUrl: `/api/scenes/${id}/image?v=1700000000000&size=card`,
     imageType: "image/webp",
     createdAt: "2026-10-20T03:00:00.000Z",
     credit: null,
