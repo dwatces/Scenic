@@ -112,10 +112,17 @@ function createApp({
   geocode = (address) => getCoordinatesForAddress(address, { apiKey: env.GOOGLE_API_KEY }),
   rateLimit = true,
 } = {}) {
-  checkConfig(env);
   const app = express();
   app.locals.geocode = geocode;
   app.locals.env = env;
+
+  // Report missing configuration once, when the app first handles a
+  // request (on Vercel, straight after boot), rather than whenever app.js
+  // is imported by a script or test that builds its own app.
+  app.use((req, res, next) => {
+    checkConfig(env);
+    next();
+  });
 
   app.disable("x-powered-by");
   // Vercel's edge is the one proxy in front of the function: req.ip is the
