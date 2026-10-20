@@ -1,0 +1,82 @@
+# Lint, format, unit and API tests, the production build and the end-to-end
+# tests for both packages. Everything runs against an in-memory MongoDB that
+# the tests start themselves: no secrets, no real database, no deploy.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # The MongoDB server the tests run (mongodb-memory-server downloads it
+  # once; the cache step keeps it between runs).
+  MONGOMS_VERSION: "8.2.6"
+  MONGOMS_DOWNLOAD_DIR: /home/runner/.cache/mongodb-binaries
+
+jobs:
+  api:
+    name: API (ScenicBack)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: ScenicBack
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: ScenicBack/package-lock.json
+      - uses: actions/cache@v4
+        with:
+          path: /home/runner/.cache/mongodb-binaries
+          key: mongodb-${{ runner.os }}-${{ env.MONGOMS_VERSION }}
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run test:coverage
+
+  client:
+    name: Client (ScenicFront)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: ScenicFront
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            ScenicFront/package-lock.json
+            ScenicBack/package-lock.json
+      - uses: actions/cache@v4
+        with:
+          path: /home/runner/.cache/mongodb-binaries
+          key: mongodb-${{ runner.os }}-${{ env.MONGOMS_VERSION }}
+      # The end-to-end tests start the real API from ../ScenicBack.
+      - run: npm ci
+        working-directory: ScenicBack
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm run test:coverage
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-results
+          path: ScenicFront/test-results/
+          retention-days: 7
