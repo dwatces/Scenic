@@ -2,12 +2,14 @@
 
 A full-stack MERN image-sharing app: create an account, post photos of places you love with their location, and browse what other members have shared.
 
+My own project: built in 2021, modernised in 2026.
+
 - **Live app:** https://scenic-app.vercel.app
 - **API:** https://scenic-api.vercel.app
 
 ![Scenic landing page: a dark laneway photo behind the headline "What should I do with my street scenes?", a line about sharing photos on a map, and two buttons, Browse scenes and Sign up](docs/landing.webp)
 
-Scenic is my own project: first built in November 2021, moved to serverless hosting on Vercel in June 2026, and modernised in October 2026 (see [What changed in October 2026](#what-changed-in-october-2026)).
+Scenic was first built in November 2021, moved to serverless hosting on Vercel in June 2026, and modernised in October 2026 (see [What changed in October 2026](#what-changed-in-october-2026)).
 
 | Explore                                                                                                                                                                                                                                                  | A scene page                                                                                                                                                                                                                                         | On a phone                                                                                                                                                             |
 | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -249,4 +251,4 @@ docs/               README screenshots
 
 Built by Daniel Olliver. More of my work: [danielolliver.com/dev](https://danielolliver.com/dev/).
 
-I also run [Olliver Web](https://olliverweb.co.nz), my web design and development business in Auckland.
+I also run [Olliver Web](https://olliverweb.co.nz), my web design and development service in Auckland for small-business websites, online stores and web apps.
