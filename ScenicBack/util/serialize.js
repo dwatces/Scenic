@@ -64,7 +64,8 @@ function imagePath(kind, doc) {
 function creatorSummary(user) {
   return {
     id: toId(user),
-    name: user.name,
+    // A scene whose creator no longer exists still renders.
+    name: user.name || "Former member",
     avatarUrl: hasImage(user) ? imagePath("users", user) : null,
     isDemo: isDemoUser(user),
   };

@@ -2,13 +2,15 @@ const mongoose = require("mongoose");
 const HttpError = require("../models/http-error");
 const Scene = require("../models/scene");
 const User = require("../models/user");
-const { assertValid } = require("../middleware/validate");
+const { assertValid, feedOptions } = require("../middleware/validate");
 const { readUploadedImage } = require("../middleware/upload");
-const { legacyScene } = require("../util/serialize");
+const { legacyScene, serializeScene } = require("../util/serialize");
 const { sendStoredImage } = require("../util/send-image");
 
 // Read only to label demo content; the email never leaves the serialiser.
 const CREATOR_FIELDS = "name demo email";
+// A creator summary for lists: the avatar's type and version, never its bytes.
+const CREATOR_SUMMARY_FIELDS = "name demo email image.contentType updatedAt";
 
 const SCENE_NOT_FOUND = "We couldn't find that scene.";
 const MEMBER_NOT_FOUND = "We couldn't find that member.";
@@ -22,6 +24,42 @@ const NOT_OWNER = "You can only change your own scenes.";
 async function creatorOf(scene) {
   return (await User.findById(scene.creator, CREATOR_FIELDS)) || { _id: scene.creator };
 }
+
+/** Creators of a page of scenes, by id, in one query. */
+async function creatorsById(ids) {
+  const unique = [...new Set(ids.map(String))];
+  const users = await User.find({ _id: { $in: unique } }, CREATOR_SUMMARY_FIELDS).lean();
+  return new Map(users.map((user) => [String(user._id), user]));
+}
+
+// GET /api/scenes?limit=12&before=<sceneId>&creator=<userId>. The feed:
+// newest first, a page at a time. `nextCursor` is the `before` value for the
+// next page, or null on the last one. No image bytes: each scene carries an
+// imageUrl.
+const listScenes = async (req, res) => {
+  const { limit, before, creator } = feedOptions(req);
+  const filter = {};
+  if (before) filter._id = { $lt: new mongoose.Types.ObjectId(before) };
+  if (creator) filter.creator = new mongoose.Types.ObjectId(creator);
+
+  // One extra row says whether another page exists.
+  const rows = await Scene.find(filter)
+    .select("-image.data")
+    .sort({ _id: -1 })
+    .limit(limit + 1)
+    .lean();
+  const page = rows.slice(0, limit);
+  const creators = await creatorsById(page.map((scene) => scene.creator));
+
+  res.json({
+    scenes: page.map((scene) =>
+      serializeScene(scene, {
+        creator: creators.get(String(scene.creator)) || { _id: scene.creator },
+      }),
+    ),
+    nextCursor: rows.length > limit ? String(page[page.length - 1]._id) : null,
+  });
+};
 
 // GET /api/scenes/:sceneId. Legacy shape with the image bytes: the deployed
 // client's edit page reads them for its preview.
@@ -96,6 +134,7 @@ const deleteScene = async (req, res) => {
 };
 
 module.exports = {
+  listScenes,
   getSceneById,
   getScenesByUserId,
   getSceneImage,
@@ -104,4 +143,5 @@ module.exports = {
   deleteScene,
   SCENE_NOT_FOUND,
   MEMBER_NOT_FOUND,
+  CREATOR_SUMMARY_FIELDS,
 };

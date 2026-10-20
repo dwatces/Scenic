@@ -5,9 +5,13 @@ const { assertValid } = require("../middleware/validate");
 const { readUploadedImage } = require("../middleware/upload");
 const { signToken } = require("../middleware/auth");
 const { DUPLICATE_EMAIL } = require("../middleware/errors");
-const { legacyUser } = require("../util/serialize");
+const { legacyUser, serializeUser } = require("../util/serialize");
 const { sendStoredImage } = require("../util/send-image");
-const { MEMBER_NOT_FOUND } = require("./scenes");
+const { MEMBER_NOT_FOUND, CREATOR_SUMMARY_FIELDS } = require("./scenes");
+
+// A member for the public profile and list: no avatar bytes, and the email
+// only to label demo accounts (the serialiser never copies it out).
+const MEMBER_FIELDS = `${CREATOR_SUMMARY_FIELDS} scenes`;
 
 const LOGIN_FAILED = "That email and password don't match an account.";
 const BCRYPT_COST = 10;
@@ -21,6 +25,22 @@ const DUMMY_HASH = "$2b$10$KwcZzIUilmr/U7sqivyqeOOm47ecJqyAw.QbvGwcf8Ai.cXxit46O
 const getUsers = async (req, res) => {
   const users = await User.find({}, "name image scenes demo email");
   res.json({ users: users.map(legacyUser) });
+};
+
+// GET /api/users. Every member, sorted by name, without image bytes.
+const listUsers = async (req, res) => {
+  const users = await User.find({}, MEMBER_FIELDS)
+    .collation({ locale: "en", strength: 2 })
+    .sort({ name: 1, _id: 1 })
+    .lean();
+  res.json({ users: users.map((user) => serializeUser(user)) });
+};
+
+// GET /api/users/:userId. One member's public profile.
+const getUserById = async (req, res) => {
+  const user = await User.findById(req.params.userId, MEMBER_FIELDS).lean();
+  if (!user) throw new HttpError(MEMBER_NOT_FOUND, 404);
+  res.json({ user: serializeUser(user) });
 };
 
 // GET /api/users/:userId/image. The member's avatar as an image response.
@@ -67,4 +87,4 @@ const login = async (req, res) => {
   res.json({ userId: user.id, token: signToken(user.id, req.app.locals.env.JWT_KEY) });
 };
 
-module.exports = { getUsers, getUserImage, signup, login };
+module.exports = { getUsers, listUsers, getUserById, getUserImage, signup, login };

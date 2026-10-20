@@ -3,9 +3,9 @@
 // can't tell the shapes apart. Writes get a clear 503.
 const express = require("express");
 const HttpError = require("../models/http-error");
-const { objectIdParam } = require("../middleware/validate");
+const { objectIdParam, feedQuery, feedOptions } = require("../middleware/validate");
 const { SCENE_NOT_FOUND, MEMBER_NOT_FOUND } = require("../controllers/scenes");
-const { legacyUser, legacyScene } = require("../util/serialize");
+const { legacyUser, legacyScene, serializeUser, serializeScene } = require("../util/serialize");
 const { sendStoredImage } = require("../util/send-image");
 const demo = require("../util/demoData");
 
@@ -17,8 +17,37 @@ const router = express.Router();
 router.param("sceneId", objectIdParam(SCENE_NOT_FOUND));
 router.param("userId", objectIdParam(MEMBER_NOT_FOUND));
 
+// Newest first, like the database feed (ObjectIds grow with time).
+const byIdDescending = (a, b) => (String(a._id) < String(b._id) ? 1 : -1);
+const byName = (a, b) => a.name.localeCompare(b.name, "en", { sensitivity: "base" });
+
+// DEPRECATED legacy route; before /api/users/:userId, which would claim it.
 router.get("/api/users/users", (req, res) => {
   res.json({ users: demo.USERS.map(legacyUser) });
+});
+
+router.get("/api/scenes", feedQuery, (req, res) => {
+  const { limit, before, creator } = feedOptions(req);
+  const matching = demo.SCENES.filter(
+    (scene) =>
+      (!before || String(scene._id) < before.toLowerCase()) &&
+      (!creator || String(scene.creator) === creator.toLowerCase()),
+  ).sort(byIdDescending);
+  const page = matching.slice(0, limit);
+  res.json({
+    scenes: page.map((scene) => serializeScene(scene, { creator: demo.findUser(scene.creator) })),
+    nextCursor: matching.length > limit ? String(page[page.length - 1]._id) : null,
+  });
+});
+
+router.get("/api/users", (req, res) => {
+  res.json({ users: [...demo.USERS].sort(byName).map((user) => serializeUser(user)) });
+});
+
+router.get("/api/users/:userId", (req, res) => {
+  const user = demo.findUser(req.params.userId);
+  if (!user) throw new HttpError(MEMBER_NOT_FOUND, 404);
+  res.json({ user: serializeUser(user) });
 });
 
 router.get("/api/scenes/user/:userId", (req, res) => {

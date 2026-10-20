@@ -96,6 +96,27 @@ describe("DB and demo responses have the same shape", () => {
     expect(sorted(deepKeys(fromDb))).toEqual(sorted(deepKeys(fromDemo)));
   });
 
+  it("GET /api/scenes (the feed)", async () => {
+    const [fromDb, fromDemo] = await both("/api/scenes", "/api/scenes");
+    expect(fromDb.scenes.length).toBe(4);
+    expect(sorted(deepKeys(fromDb))).toEqual(sorted(deepKeys(fromDemo)));
+    const [filtered] = await both(
+      `/api/scenes?creator=${member.userId}`,
+      `/api/scenes?creator=${demo.IDS.daniel}`,
+    );
+    expect(sorted(deepKeys(filtered))).toEqual(sorted(deepKeys(fromDemo)));
+  });
+
+  it("GET /api/users and GET /api/users/:userId", async () => {
+    const [list, demoList] = await both("/api/users", "/api/users");
+    expect(sorted(deepKeys(list))).toEqual(sorted(deepKeys(demoList)));
+    const [one, demoOne] = await both(
+      `/api/users/${member.userId}`,
+      `/api/users/${demo.IDS.aroha}`,
+    );
+    expect(sorted(deepKeys(one))).toEqual(sorted(deepKeys(demoOne)));
+  });
+
   it("labels demo accounts and their scenes, and nothing else", async () => {
     const users = (await request(db).get("/api/users/users")).body.users;
     const byName = Object.fromEntries(users.map((u) => [u.name, u.isDemo]));
@@ -120,6 +141,10 @@ describe("DB and demo responses have the same shape", () => {
 
   it("never sends an email, password or __v from any GET route", async () => {
     const paths = [
+      "/api/scenes",
+      "/api/users",
+      `/api/users/${member.userId}`,
+      `/api/users/${seededUserId}`,
       "/api/users/users",
       `/api/scenes/user/${seededUserId}`,
       `/api/scenes/user/${member.userId}`,

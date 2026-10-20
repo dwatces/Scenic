@@ -9,7 +9,12 @@ const { MEMBER_NOT_FOUND } = require("../controllers/scenes");
 
 router.param("userId", objectIdParam(MEMBER_NOT_FOUND));
 
+// DEPRECATED: the deployed client's members list (inlines avatar bytes).
 router.get("/users", usersControllers.getUsers);
+
+router.get("/", usersControllers.listUsers);
+
+router.get("/:userId", usersControllers.getUserById);
 
 router.get("/:userId/image", usersControllers.getUserImage);
 

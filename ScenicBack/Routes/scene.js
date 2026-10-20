@@ -3,7 +3,7 @@ const { body } = require("express-validator");
 const upload = require("../middleware/upload");
 const sceneControllers = require("../controllers/scenes");
 const checkAuth = require("../middleware/auth");
-const { objectIdParam } = require("../middleware/validate");
+const { objectIdParam, feedQuery } = require("../middleware/validate");
 
 const router = express.Router();
 
@@ -19,10 +19,13 @@ const titleAndDescription = [
     .withMessage("The description needs at least 5 characters."),
 ];
 
+router.get("/", feedQuery, sceneControllers.listScenes);
+
 router.get("/:sceneId", sceneControllers.getSceneById);
 
 router.get("/:sceneId/image", sceneControllers.getSceneImage);
 
+// DEPRECATED: the deployed client's member page (inlines image bytes).
 router.get("/user/:userId", sceneControllers.getScenesByUserId);
 
 router.use(checkAuth);
