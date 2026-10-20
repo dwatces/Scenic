@@ -37,6 +37,26 @@ test("one h1 that reads as a question, and two links as calls to action", async 
   }
 });
 
+for (const [width, height] of [
+  [390, 844],
+  [1440, 900],
+  [1920, 1080],
+  [2560, 1440],
+]) {
+  test(`at ${width} x ${height} the first screen cuts off no part of "Recent scenes"`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height });
+    await page.goto("/", { waitUntil: "networkidle" });
+    const heading = page.getByRole("heading", { level: 2, name: "Recent scenes" });
+    await expect(heading).toBeVisible();
+    const box = await heading.boundingBox();
+    const fullyBelow = box.y >= height;
+    const fullyShown = box.y + box.height <= height;
+    expect(fullyBelow || fullyShown, `heading spans ${box.y} to ${box.y + box.height}`).toBe(true);
+  });
+}
+
 test("the first photo loads first; the others only after the load event", async ({ page }) => {
   const order = [];
   page.on("requestfinished", (req) => {
