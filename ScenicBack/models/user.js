@@ -27,7 +27,12 @@ const UserSchema = new Schema({
       ref: "Scene",
     },
   ],
-});
+  // Demo accounts (seeded content) are labelled as demo in every response.
+  demo: {
+    type: Boolean,
+    default: false,
+  },
+}, { timestamps: true });
 
 // Defence in depth: a user document turned into JSON or a plain object never
 // carries the password hash or email. Responses are still built from an

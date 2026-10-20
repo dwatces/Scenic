@@ -4,6 +4,10 @@ const Scene = require("../models/scene");
 const User = require("../models/user");
 const { assertValid } = require("../middleware/validate");
 const { readUploadedImage } = require("../middleware/upload");
+const { legacyScene } = require("../util/serialize");
+
+// Read only to label demo content; the email never leaves the serialiser.
+const CREATOR_FIELDS = "name demo email";
 
 const SCENE_NOT_FOUND = "We couldn't find that scene.";
 const MEMBER_NOT_FOUND = "We couldn't find that member.";
@@ -13,18 +17,25 @@ const NOT_OWNER = "You can only change your own scenes.";
 // handler, so a thrown HttpError becomes its status and message, and any
 // other error a generic 500.
 
+/** The scene's creator, or a bare id if the account no longer exists. */
+async function creatorOf(scene) {
+  return (await User.findById(scene.creator, CREATOR_FIELDS)) || { _id: scene.creator };
+}
+
+// GET /api/scenes/:sceneId. Legacy shape with the image bytes: the deployed
+// client's edit page reads them for its preview.
 const getSceneById = async (req, res) => {
   const scene = await Scene.findById(req.params.sceneId);
   if (!scene) throw new HttpError(SCENE_NOT_FOUND, 404);
-  res.json({ scene: scene.toObject({ getters: true }) });
+  res.json({ scene: legacyScene(scene, { creator: await creatorOf(scene) }) });
 };
 
+// GET /api/scenes/user/:userId. DEPRECATED legacy shape, kept for the
+// deployed client.
 const getScenesByUserId = async (req, res) => {
-  const userWithScenes = await User.findById(req.params.userId).populate("scenes");
-  if (!userWithScenes) throw new HttpError(MEMBER_NOT_FOUND, 404);
-  res.json({
-    scenes: userWithScenes.scenes.map((scene) => scene.toObject({ getters: true })),
-  });
+  const user = await User.findById(req.params.userId, `${CREATOR_FIELDS} scenes`).populate("scenes");
+  if (!user) throw new HttpError(MEMBER_NOT_FOUND, 404);
+  res.json({ scenes: user.scenes.map((scene) => legacyScene(scene, { creator: user })) });
 };
 
 const createScene = async (req, res) => {
@@ -33,9 +44,8 @@ const createScene = async (req, res) => {
   const { title, description, address } = req.body;
   const { userId } = req.userData;
 
-  if (!(await User.exists({ _id: userId }))) {
-    throw new HttpError("We couldn't find your account. Sign in again.", 404);
-  }
+  const creator = await User.findById(userId, CREATOR_FIELDS);
+  if (!creator) throw new HttpError("We couldn't find your account. Sign in again.", 404);
 
   const location = await req.app.locals.geocode(address);
   const createdScene = new Scene({ title, description, image, address, location, creator: userId });
@@ -50,7 +60,7 @@ const createScene = async (req, res) => {
     );
   });
 
-  res.status(201).json({ scene: createdScene.toObject({ getters: true }) });
+  res.status(201).json({ scene: legacyScene(createdScene, { creator }) });
 };
 
 const updateScene = async (req, res) => {
@@ -63,7 +73,7 @@ const updateScene = async (req, res) => {
   scene.description = req.body.description;
   await scene.save();
 
-  res.status(200).json({ scene: scene.toObject({ getters: true }) });
+  res.status(200).json({ scene: legacyScene(scene, { creator: await creatorOf(scene) }) });
 };
 
 const deleteScene = async (req, res) => {

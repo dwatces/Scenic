@@ -5,6 +5,7 @@ const { assertValid } = require("../middleware/validate");
 const { readUploadedImage } = require("../middleware/upload");
 const { signToken } = require("../middleware/auth");
 const { DUPLICATE_EMAIL } = require("../middleware/errors");
+const { legacyUser } = require("../util/serialize");
 
 const LOGIN_FAILED = "That email and password don't match an account.";
 const BCRYPT_COST = 10;
@@ -13,11 +14,11 @@ const BCRYPT_COST = 10;
 // long as a wrong password and the response can't reveal who has an account.
 const DUMMY_HASH = "$2b$10$KwcZzIUilmr/U7sqivyqeOOm47ecJqyAw.QbvGwcf8Ai.cXxit46O";
 
-// Legacy members list (the deployed client still reads it): only the fields
-// it shows. Email and password hash never leave the API.
+// GET /api/users/users. DEPRECATED legacy shape, kept for the deployed
+// client. The email is read only to label demo accounts.
 const getUsers = async (req, res) => {
-  const users = await User.find({}, "name image scenes");
-  res.json({ users: users.map((user) => user.toObject({ getters: true })) });
+  const users = await User.find({}, "name image scenes demo email");
+  res.json({ users: users.map(legacyUser) });
 };
 
 const signup = async (req, res) => {

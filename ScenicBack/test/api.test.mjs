@@ -343,7 +343,10 @@ describe("API with a database", () => {
         contentType: "image/jpeg",
       });
       expect(res.status).toBe(201);
-      expect(res.body.scene.image.contentType).toBe("image/png");
+      expect(res.body.scene.contentType).toBe("png");
+      const Scene = require("../models/scene.js");
+      const stored = await Scene.collection.findOne({ title: "Labelled JPEG, really PNG" });
+      expect(stored.image.contentType).toBe("image/png");
     });
 
     it("accepts WebP and JPEG", async () => {
@@ -354,7 +357,7 @@ describe("API with a database", () => {
         contentType: "image/webp",
       });
       expect(webp.status).toBe(201);
-      expect(webp.body.scene.image.contentType).toBe("image/webp");
+      expect(webp.body.scene.image.contentType).toBe("webp");
       const jpeg = await createScene(server, owner.token, {
         fields: { title: "JPEG scene" },
         image: JPEG_1PX,
@@ -362,7 +365,7 @@ describe("API with a database", () => {
         contentType: "image/jpeg",
       });
       expect(jpeg.status).toBe(201);
-      expect(jpeg.body.scene.image.contentType).toBe("image/jpeg");
+      expect(jpeg.body.scene.image.contentType).toBe("jpeg");
     });
   });
 

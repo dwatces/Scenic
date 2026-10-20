@@ -9,7 +9,7 @@ const connection = require("./middleware/mongo");
 const { errorHandler, notFound, noStoreOnErrors } = require("./middleware/errors");
 const sceneRoutes = require("./Routes/scene");
 const userRoutes = require("./Routes/users");
-const demo = require("./util/demoData");
+const demoRoutes = require("./Routes/demo");
 const getCoordinatesForAddress = require("./util/location");
 
 // One MongoDB connection per process (one serverless instance), shared by
@@ -32,6 +32,30 @@ function startConnection(dbUrl) {
 }
 
 const isConnected = () => mongoose.connection.readyState === 1;
+
+/**
+ * Make sure a connection attempt is running and wait for it, at most 8 s.
+ * Serverless note: the function freezes between requests, so the connect
+ * may still be in flight on the first request.
+ */
+async function ensureConnection(env) {
+  if (!env.DB_URL) {
+    if (!warnedNoDbUrl) {
+      warnedNoDbUrl = true;
+      console.warn("DB_URL is not set: serving read-only demo content.");
+    }
+    return;
+  }
+  if (isConnected()) return;
+  // readyState 0 = no attempt yet, or a previous attempt failed and settled.
+  // The driver never retries a failed initial connect, so a transient
+  // failure would otherwise poison this serverless instance permanently.
+  if (!connecting || mongoose.connection.readyState === 0) startConnection(env.DB_URL);
+  await waitAtMost(connecting, 8000);
+}
+
+/** An app without DB_URL always serves demo content. */
+const usesDatabase = (env) => Boolean(env.DB_URL) && isConnected();
 
 let warnedNoJwtKey = false;
 function checkConfig(env) {
@@ -144,45 +168,21 @@ function createApp({
     next();
   });
 
-  // DEMO MODE: while no database is configured, GET routes serve seeded demo
-  // content and writes return a clear message. Bypassed once Mongo connects.
-  // Serverless note: the function freezes between requests, so the connection
-  // may still be in flight on the first request: wait for it (bounded) before
-  // falling back to demo content.
-  app.use(async (req, res, next) => {
-    if (!isConnected() && env.DB_URL) {
-      // readyState 0 = no attempt yet, or a previous attempt failed and
-      // settled. The driver never retries a failed initial connect, so a
-      // transient failure would otherwise poison this serverless instance
-      // permanently. Kick off a fresh attempt.
-      if (!connecting || mongoose.connection.readyState === 0) {
-        startConnection(env.DB_URL);
-      }
-      await waitAtMost(connecting, 8000);
-    } else if (!env.DB_URL && !warnedNoDbUrl) {
-      warnedNoDbUrl = true;
-      console.warn("DB_URL is not set: serving read-only demo content.");
-    }
-    if (isConnected()) return next();
-    const hit = demo.handle(req);
-    if (hit) return res.status(hit.status || 200).json(hit.body);
-    if (req.method !== "GET")
-      return res.status(503).json({
-        message:
-          "Demo mode: the live database is being provisioned. Browsing works; sign-up and posting return shortly.",
-      });
-    return next();
+  // Health check: waits for the connection like any request, then reports
+  // "db" or "demo" (no DB_URL, or the connection failed), so a check after a
+  // deploy tells the truth. Existing keys are unchanged.
+  app.get("/", async (req, res) => {
+    await ensureConnection(env);
+    res.json({ status: "ok", api: "Scenic backend", mode: usesDatabase(env) ? "db" : "demo" });
   });
 
-  // Health check. It sits behind the gate so it reports the truth: "db" once
-  // MongoDB is connected, "demo" when the API is serving demo content (no
-  // DB_URL, or the connection failed). Existing keys are unchanged.
-  app.get("/", (req, res) => {
-    res.json({
-      status: "ok",
-      api: "Scenic backend",
-      mode: isConnected() ? "db" : "demo",
-    });
+  // DEMO MODE: while no database is configured or reachable, reads are
+  // answered from demo data and writes get a clear 503 (Routes/demo.js).
+  // Bypassed once MongoDB connects.
+  app.use(async (req, res, next) => {
+    await ensureConnection(env);
+    if (usesDatabase(env)) return next();
+    return demoRoutes(req, res, next);
   });
 
   app.use("/api/scenes", sceneRoutes);

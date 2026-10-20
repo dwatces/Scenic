@@ -34,6 +34,11 @@ const SceneSchema = new Schema({
     required: true,
     ref: "User",
   },
-});
+  // Optional photo credit, shown with the scene when set.
+  credit: {
+    text: String,
+    url: String,
+  },
+}, { timestamps: true });
 
 module.exports = mongoose.model("Scene", SceneSchema);

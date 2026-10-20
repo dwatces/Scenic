@@ -87,3 +87,20 @@ export const WEBP_1PX = Buffer.from(
   "base64"
 );
 export const GIF_1PX = Buffer.from("R0lGODdhAQABAIEAAChaPAAAAAAAAAAAACwAAAAAAQABAAAIBAABBAQAOw==", "base64");
+
+/** The set of key paths in a JSON value, with array items collapsed to "[]". */
+export function deepKeys(value, path = "") {
+  const keys = new Set();
+  if (Array.isArray(value)) {
+    for (const item of value) for (const key of deepKeys(item, `${path}[]`)) keys.add(key);
+  } else if (value && typeof value === "object") {
+    for (const [key, child] of Object.entries(value)) {
+      const childPath = path ? `${path}.${key}` : key;
+      keys.add(childPath);
+      for (const nested of deepKeys(child, childPath)) keys.add(nested);
+    }
+  }
+  return keys;
+}
+
+export const sorted = (set) => [...set].sort();

@@ -16,7 +16,7 @@ Scenic was first built in November 2021 as a learning project and reworked in Ju
 - **Scenes:** signed-in users add a scene with a title, description, location and a PNG or JPEG image (up to 3 MB). Images are stored as base64 in the MongoDB document, so uploads never touch the server's filesystem.
 - **Edit and delete:** owners can edit a scene's title and description or delete it. The API checks ownership before any change.
 - **Maps:** the location you type is turned into coordinates (Google Geocoding API when `GOOGLE_API_KEY` is set, otherwise Nominatim with Photon as a fallback), and "View on the Map" opens an OpenStreetMap embed.
-- **Demo mode:** if no database is configured or it cannot be reached, read requests are answered from a built-in set of two users and three New Zealand scenes, and write requests return a 503 with an explanation.
+- **Demo mode:** if no database is configured or it cannot be reached, read requests are answered from a built-in set of two demo members and three New Zealand scenes, through the same serialisers as database responses, and write requests return a 503 with an explanation. Demo accounts are labelled `isDemo: true` in every response.
 - **Edge caching:** GET responses send `Cache-Control: s-maxage=1, stale-while-revalidate=599`, so the CDN can answer reads from cache while it refreshes in the background, which hides serverless cold starts.
 
 ## Tech stack
@@ -30,12 +30,12 @@ Scenic was first built in November 2021 as a learning project and reworked in Ju
 
 | Method | Path | Auth | Purpose |
 | --- | --- | --- | --- |
-| GET | `/` | | Health check |
-| GET | `/api/users/users` | | List users (passwords excluded) |
+| GET | `/` | | Health check: `mode` is `"db"` when MongoDB is connected, `"demo"` otherwise |
+| GET | `/api/users/users` | | List members (deprecated: inlines avatars; kept for the deployed client) |
 | POST | `/api/users/signup` | | Create an account (multipart: `name`, `email`, `password`, `image`) |
 | POST | `/api/users/login` | | Log in with `email` and `password`, returns `userId` and `token` |
 | GET | `/api/scenes/:sceneId` | | Get one scene |
-| GET | `/api/scenes/user/:userId` | | List a user's scenes |
+| GET | `/api/scenes/user/:userId` | | List a member's scenes (deprecated: inlines images; kept for the deployed client) |
 | POST | `/api/scenes` | Bearer token | Create a scene (multipart: `title`, `description`, `address`, `image`) |
 | PATCH | `/api/scenes/:sceneId` | Bearer token | Update `title` and `description` (owner only) |
 | DELETE | `/api/scenes/:sceneId` | Bearer token | Delete a scene (owner only) |
