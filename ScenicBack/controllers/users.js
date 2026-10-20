@@ -6,6 +6,8 @@ const { readUploadedImage } = require("../middleware/upload");
 const { signToken } = require("../middleware/auth");
 const { DUPLICATE_EMAIL } = require("../middleware/errors");
 const { legacyUser } = require("../util/serialize");
+const { sendStoredImage } = require("../util/send-image");
+const { MEMBER_NOT_FOUND } = require("./scenes");
 
 const LOGIN_FAILED = "That email and password don't match an account.";
 const BCRYPT_COST = 10;
@@ -19,6 +21,13 @@ const DUMMY_HASH = "$2b$10$KwcZzIUilmr/U7sqivyqeOOm47ecJqyAw.QbvGwcf8Ai.cXxit46O
 const getUsers = async (req, res) => {
   const users = await User.find({}, "name image scenes demo email");
   res.json({ users: users.map(legacyUser) });
+};
+
+// GET /api/users/:userId/image. The member's avatar as an image response.
+const getUserImage = async (req, res) => {
+  const user = await User.findById(req.params.userId, "image").lean();
+  if (!user) throw new HttpError(MEMBER_NOT_FOUND, 404);
+  sendStoredImage(res, user);
 };
 
 const signup = async (req, res) => {
@@ -58,4 +67,4 @@ const login = async (req, res) => {
   res.json({ userId: user.id, token: signToken(user.id, req.app.locals.env.JWT_KEY) });
 };
 
-module.exports = { getUsers, signup, login };
+module.exports = { getUsers, getUserImage, signup, login };

@@ -6,6 +6,7 @@ const HttpError = require("../models/http-error");
 const { objectIdParam } = require("../middleware/validate");
 const { SCENE_NOT_FOUND, MEMBER_NOT_FOUND } = require("../controllers/scenes");
 const { legacyUser, legacyScene } = require("../util/serialize");
+const { sendStoredImage } = require("../util/send-image");
 const demo = require("../util/demoData");
 
 const DEMO_WRITE =
@@ -30,6 +31,18 @@ router.get("/api/scenes/:sceneId", (req, res) => {
   const scene = demo.findScene(req.params.sceneId);
   if (!scene) throw new HttpError(SCENE_NOT_FOUND, 404);
   res.json({ scene: legacyScene(scene, { creator: demo.findUser(scene.creator) }) });
+});
+
+router.get("/api/scenes/:sceneId/image", (req, res) => {
+  const scene = demo.findScene(req.params.sceneId);
+  if (!scene) throw new HttpError(SCENE_NOT_FOUND, 404);
+  sendStoredImage(res, scene);
+});
+
+router.get("/api/users/:userId/image", (req, res) => {
+  const user = demo.findUser(req.params.userId);
+  if (!user) throw new HttpError(MEMBER_NOT_FOUND, 404);
+  sendStoredImage(res, user);
 });
 
 // Nothing else exists in demo mode: writes are refused with an explanation,

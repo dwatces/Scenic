@@ -21,6 +21,8 @@ const titleAndDescription = [
 
 router.get("/:sceneId", sceneControllers.getSceneById);
 
+router.get("/:sceneId/image", sceneControllers.getSceneImage);
+
 router.get("/user/:userId", sceneControllers.getScenesByUserId);
 
 router.use(checkAuth);

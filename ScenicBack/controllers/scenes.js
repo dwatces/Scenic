@@ -5,6 +5,7 @@ const User = require("../models/user");
 const { assertValid } = require("../middleware/validate");
 const { readUploadedImage } = require("../middleware/upload");
 const { legacyScene } = require("../util/serialize");
+const { sendStoredImage } = require("../util/send-image");
 
 // Read only to label demo content; the email never leaves the serialiser.
 const CREATOR_FIELDS = "name demo email";
@@ -38,6 +39,13 @@ const getScenesByUserId = async (req, res) => {
   );
   if (!user) throw new HttpError(MEMBER_NOT_FOUND, 404);
   res.json({ scenes: user.scenes.map((scene) => legacyScene(scene, { creator: user })) });
+};
+
+// GET /api/scenes/:sceneId/image. The scene's photo as an image response.
+const getSceneImage = async (req, res) => {
+  const scene = await Scene.findById(req.params.sceneId, "image").lean();
+  if (!scene) throw new HttpError(SCENE_NOT_FOUND, 404);
+  sendStoredImage(res, scene);
 };
 
 const createScene = async (req, res) => {
@@ -90,6 +98,7 @@ const deleteScene = async (req, res) => {
 module.exports = {
   getSceneById,
   getScenesByUserId,
+  getSceneImage,
   createScene,
   updateScene,
   deleteScene,

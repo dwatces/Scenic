@@ -4,8 +4,14 @@ const usersControllers = require("../controllers/users");
 const upload = require("../middleware/upload");
 const { requireJwtKey } = require("../middleware/auth");
 const { emailField } = require("../util/email");
+const { objectIdParam } = require("../middleware/validate");
+const { MEMBER_NOT_FOUND } = require("../controllers/scenes");
+
+router.param("userId", objectIdParam(MEMBER_NOT_FOUND));
 
 router.get("/users", usersControllers.getUsers);
+
+router.get("/:userId/image", usersControllers.getUserImage);
 
 router.post(
   "/signup",
