@@ -78,12 +78,9 @@ const NewScene = () => {
         />
         <ImageUpload
           id="image"
-          name="file"
           onInput={inputHandler}
-          errorText="Please provide an image"
-          uploadText="Change your Image"
-          text="Upload Image"
-          center
+          text="Choose a photo"
+          uploadText="Choose a different photo"
         />
         <Input
           id="description"

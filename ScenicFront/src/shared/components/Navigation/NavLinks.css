@@ -61,3 +61,13 @@
     white-space: nowrap;
   }
 }
+
+.nav-links a:has(.nav-links__avatar) {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.nav-links__avatar {
+  border-width: 1px;
+}

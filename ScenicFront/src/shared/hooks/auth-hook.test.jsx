@@ -86,7 +86,8 @@ describe("reloading a members-only page while signed in", () => {
   it("sends a signed-out visitor to /login", async () => {
     window.history.replaceState(null, "", "/scenes/new");
     render(<App />);
-    expect(await screen.findByRole("heading", { name: /login/i })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Log in" })).toBeInTheDocument();
     expect(window.location.pathname).toBe("/login");
+    expect(window.location.search).toBe("?next=%2Fscenes%2Fnew");
   });
 });

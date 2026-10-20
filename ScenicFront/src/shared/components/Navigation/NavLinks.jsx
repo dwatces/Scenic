@@ -1,11 +1,14 @@
 import { useContext } from "react";
 import { NavLink } from "react-router";
 import { AuthContext } from "../../context/auth-context";
+import Avatar from "../UIElements/Avatar";
+import { apiAsset } from "../../../config";
 import "./NavLinks.css";
 
 const activeClass = ({ isActive }) => (isActive ? "active__link" : undefined);
 
-const NavLinks = () => {
+/** @param {{ member?: { name: string, avatarUrl: string | null } | null }} props the signed-in member, once loaded */
+const NavLinks = ({ member = null }) => {
   const auth = useContext(AuthContext);
 
   return (
@@ -23,6 +26,14 @@ const NavLinks = () => {
       {auth.isLoggedIn && (
         <li>
           <NavLink className={activeClass} to={`/${auth.userId}/scenes`}>
+            {member && (
+              <Avatar
+                src={apiAsset(member.avatarUrl)}
+                name={member.name}
+                size={26}
+                className="nav-links__avatar"
+              />
+            )}
             My scenes
           </NavLink>
         </li>

@@ -37,3 +37,36 @@
 .auth__button a .button {
   width: 100%;
 }
+
+.authentication__heading {
+  font-size: 1.6rem;
+}
+
+.authentication__notice {
+  margin-top: 0.85rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+.authentication .button {
+  min-height: 44px;
+}
+
+.authentication__switch {
+  margin-top: 1.25rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.authentication__switch a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
