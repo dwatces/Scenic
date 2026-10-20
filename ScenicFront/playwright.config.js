@@ -6,6 +6,8 @@ const API_PORT = Number(process.env.PW_API_PORT || 7105);
 
 export default defineConfig({
   testDir: "./e2e",
+  // Budgets have their own config and run (npm run test:perf).
+  testIgnore: ["perf/**"],
   fullyParallel: false,
   workers: 1,
   forbidOnly: Boolean(process.env.CI),
