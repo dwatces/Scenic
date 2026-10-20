@@ -32,10 +32,8 @@ li.user-item {
   border-color: var(--accent);
 }
 
-.user-item__image {
-  flex: 0 0 auto;
-  width: 3.5rem;
-  height: 3.5rem;
+.user-item__info {
+  min-width: 0;
 }
 
 .user-item__info h2 {
@@ -43,9 +41,10 @@ li.user-item {
   font-size: 1.15rem;
   font-weight: 600;
   color: var(--text);
+  overflow-wrap: anywhere;
 }
 
-.user-item__info h3 {
+.user-item__count {
   margin: 0;
   font-size: 0.9rem;
   font-weight: 500;

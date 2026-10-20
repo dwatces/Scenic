@@ -1,16 +1,14 @@
-import React, { useState, useContext } from "react";
-import { NavLink } from "react-router";
+import React, { useState } from "react";
+import { Link } from "react-router";
 
 import MainHeader from "./MainHeader";
 import NavLinks from "./NavLinks";
 import SideDrawer from "./SideDrawer";
 import Backdrop from "../UIElements/Backdrop";
-import { AuthContext } from "../../context/auth-context";
 import "./MainNavigation.css";
 
 const MainNavigation = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const auth = useContext(AuthContext);
 
   const openDrawer = () => {
     setDrawerOpen(true);
@@ -35,10 +33,10 @@ const MainNavigation = () => {
           <span></span>
           <span></span>
         </button>
-        <h1 className="main-navigation__title">
-          {!auth.isLoggedIn && <NavLink to="/">Scenic</NavLink>}
-          {auth.isLoggedIn && <NavLink to="/landing">Scenic</NavLink>}
-        </h1>
+        {/* The logo is a plain link home: each page has its own h1. */}
+        <div className="main-navigation__title">
+          <Link to="/">Scenic</Link>
+        </div>
         <nav className="main-navigation__header-nav">
           <NavLinks />
         </nav>

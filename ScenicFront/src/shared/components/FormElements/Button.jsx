@@ -29,7 +29,14 @@ const Button = (props) => {
     );
   }
   return (
-    <button className={classes} type={props.type} onClick={props.onClick} disabled={props.disabled}>
+    // type defaults to "button": a typeless button inside a form submits it.
+    <button
+      className={classes}
+      type={props.type || "button"}
+      onClick={props.onClick}
+      disabled={props.disabled}
+      aria-busy={props.busy || undefined}
+    >
       {props.children}
     </button>
   );

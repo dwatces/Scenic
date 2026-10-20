@@ -1,34 +1,33 @@
-import React, { useEffect, useState } from "react";
 import UsersList from "../components/UsersList";
-import ErrorModal from "../../shared/components/UIElements/ErrorModal";
-import LoadingSpinner from "../../shared/components/UIElements/LoadingSpinner";
-import { useHttpClient } from "../../shared/hooks/http-hook";
+import PageHeading from "../../shared/components/UIElements/PageHeading";
+import { ErrorPanel, StatusLine } from "../../shared/components/UIElements/LoadState";
+import { useApiResource } from "../../shared/hooks/resource-hook";
+import { useDocumentTitle } from "../../shared/hooks/use-document-title";
+import { withFreshness } from "../../shared/util/api";
 import { API_URL } from "../../config";
+import "../components/UserList.css";
 
+/** /users: every member, by name. */
 const Users = () => {
-  const { isLoading, error, sendRequest, clearError } = useHttpClient();
-  const [loadedUsers, setLoadedUsers] = useState();
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const responseData = await sendRequest(`${API_URL}/users/users`);
-        setLoadedUsers(responseData.users);
-      } catch (err) {}
-    };
-    fetchUsers();
-  }, [sendRequest]);
+  useDocumentTitle("Members");
+  const resource = useApiResource(withFreshness(`${API_URL}/users`));
+  const users = resource.data ? resource.data.users : [];
 
   return (
-    <React.Fragment>
-      <ErrorModal error={error} onClear={clearError} />
-      {!loadedUsers && (
-        <div className="center">
-          <LoadingSpinner asOverlay />
-        </div>
+    <div className="members-page">
+      <header className="members-page__header">
+        <PageHeading>Members</PageHeading>
+      </header>
+      {resource.status === "loading" && <StatusLine>Loading members…</StatusLine>}
+      {resource.status === "error" && (
+        <ErrorPanel
+          title="We couldn't load the members"
+          message={resource.error.message}
+          onRetry={resource.retry}
+        />
       )}
-      {!isLoading && loadedUsers && <UsersList items={loadedUsers} />}
-    </React.Fragment>
+      {resource.status === "ready" && <UsersList items={users} />}
+    </div>
   );
 };
 

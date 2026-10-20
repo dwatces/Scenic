@@ -1,18 +1,17 @@
-.user__header {
-  margin: 2.5rem 0 2rem;
-  padding: 0 1.5rem;
-  font-size: clamp(1.8rem, 4vw, 2.6rem);
-  color: var(--text);
+.members-page__header {
+  width: 100%;
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 1.75rem;
+  text-align: center;
 }
 
-.user__header__underline {
-  padding-bottom: 0.15em;
-  border-bottom: 4px solid var(--accent);
-}
-
+/* Cards keep a steady width and the whole set is centred, however few
+   members there are. */
 .users-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(16rem, 100%), 19rem));
+  justify-content: center;
   gap: 1rem;
   width: 100%;
   max-width: var(--container);
@@ -20,6 +19,8 @@
   padding: 0 1.5rem 3.5rem;
 }
 
-.user__margin {
-  margin-top: 3rem;
+.members-page__empty {
+  margin: 2rem auto;
+  color: var(--text-muted);
+  text-align: center;
 }

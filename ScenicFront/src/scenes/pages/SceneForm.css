@@ -27,3 +27,26 @@
   gap: 0.6rem;
   margin-top: 0.85rem;
 }
+
+.scene-form__heading {
+  margin-bottom: 1rem;
+  font-size: 1.6rem;
+}
+
+.scene-form__preview {
+  margin-bottom: 1rem;
+  aspect-ratio: 3 / 2;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.scene-form__preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.update__button .button {
+  min-height: 44px;
+}

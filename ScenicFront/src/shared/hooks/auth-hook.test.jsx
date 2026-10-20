@@ -79,7 +79,7 @@ describe("reloading a members-only page while signed in", () => {
     store({ userId: "u1", token: "t1", expiration: new Date(Date.now() + HOUR).toISOString() });
     window.history.replaceState(null, "", "/scenes/new");
     render(<App />);
-    expect(await screen.findByRole("heading", { name: "Add Scene" })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: "Add a scene" })).toBeInTheDocument();
     expect(window.location.pathname).toBe("/scenes/new");
   });
 

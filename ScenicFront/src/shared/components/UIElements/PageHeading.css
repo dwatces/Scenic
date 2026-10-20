@@ -1,0 +1,9 @@
+.page-heading {
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  /* Focus scrolls the heading into view: keep it clear of the fixed header. */
+  scroll-margin-top: calc(var(--header-h) + 1rem);
+}
+
+.page-heading:focus:not(:focus-visible) {
+  outline: none;
+}

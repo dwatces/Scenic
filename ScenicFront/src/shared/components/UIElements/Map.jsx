@@ -15,7 +15,7 @@ const Map = (props) => {
 
   return (
     <iframe
-      title="Scene location map"
+      title={props.title || "Scene location map"}
       className={`map ${props.className || ""}`}
       style={{ border: 0, ...props.style }}
       src={src}

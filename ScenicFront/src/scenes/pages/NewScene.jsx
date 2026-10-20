@@ -11,6 +11,9 @@ import { AuthContext } from "../../shared/context/auth-context";
 import { useForm } from "../../shared/hooks/form";
 import "./SceneForm.css";
 import { API_URL } from "../../config";
+import PageHeading from "../../shared/components/UIElements/PageHeading";
+import { markWrite } from "../../shared/util/api";
+import { useDocumentTitle } from "../../shared/hooks/use-document-title";
 
 const NewScene = () => {
   const auth = useContext(AuthContext);
@@ -38,6 +41,8 @@ const NewScene = () => {
   );
 
   const navigate = useNavigate();
+  useDocumentTitle("Add a scene");
+
   const sceneSubmitHandler = async (event) => {
     event.preventDefault();
     try {
@@ -46,18 +51,22 @@ const NewScene = () => {
       formData.append("description", formState.inputs.description.value);
       formData.append("address", formState.inputs.address.value);
       formData.append("image", formState.inputs.image.value);
-      await sendRequest(`${API_URL}/scenes`, "POST", formData, {
+      const data = await sendRequest(`${API_URL}/scenes`, "POST", formData, {
         Authorization: "Bearer " + auth.token,
       });
-      navigate("/");
-    } catch (err) {}
+      markWrite();
+      // Straight to the new scene, shown from the response (no refetch).
+      navigate(`/scenes/${data.scene.id}`, { state: { scene: data.scene } });
+    } catch {
+      // Shown in the error modal, or the session-ended redirect.
+    }
   };
 
   return (
     <React.Fragment>
       <ErrorModal error={error} onClear={clearError} />
       <form className="scene-form" onSubmit={sceneSubmitHandler} encType="multipart/form-data">
-        <h2 className="center">Add Scene</h2>
+        <PageHeading className="scene-form__heading">Add a scene</PageHeading>
         <Input
           id="title"
           element="input"

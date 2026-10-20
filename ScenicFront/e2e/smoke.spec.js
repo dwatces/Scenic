@@ -13,8 +13,10 @@ test.describe("smoke", () => {
 
   test("the members page lists the seeded demo members", async ({ page }) => {
     await page.goto("/users");
-    await expect(page.locator(".user-item")).toHaveCount(2);
-    await expect(page.locator(".user-item h2")).toHaveText(["Daniel (demo)", "Aroha (demo)"]);
+    // Other specs sign members up, so check the seeded two are listed.
+    const names = page.locator(".user-item h2");
+    await expect(names.filter({ hasText: "Aroha (demo)" })).toHaveCount(1);
+    await expect(names.filter({ hasText: "Daniel (demo)" })).toHaveCount(1);
   });
 
   test("the drawer opens at 375 px without blanking the app", async ({ page }) => {
@@ -25,7 +27,7 @@ test.describe("smoke", () => {
     await expect(
       page.locator(".side-drawer").getByRole("link", { name: "All Users" }),
     ).toBeVisible();
-    await expect(page.locator(".user-item")).toHaveCount(2);
+    await expect(page.locator(".user-item").first()).toBeVisible();
   });
 
   test("reloading /scenes/new while signed in stays there", async ({ page, request }) => {
@@ -41,9 +43,9 @@ test.describe("smoke", () => {
       expiration: new Date(Date.now() + 3600e3).toISOString(),
     });
     await page.goto("/scenes/new");
-    await expect(page.getByRole("heading", { name: "Add Scene" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Add a scene" })).toBeVisible();
     await page.reload();
-    await expect(page.getByRole("heading", { name: "Add Scene" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Add a scene" })).toBeVisible();
     expect(new URL(page.url()).pathname).toBe("/scenes/new");
   });
 });

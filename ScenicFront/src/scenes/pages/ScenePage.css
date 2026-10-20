@@ -1,0 +1,102 @@
+.scene-page {
+  display: grid;
+  gap: 1.75rem;
+  width: 100%;
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 3.5rem;
+}
+
+.scene-page__figure img {
+  width: 100%;
+  height: auto;
+  max-height: 75vh;
+  aspect-ratio: 3 / 2;
+  object-fit: contain;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.scene-page__credit {
+  margin-top: 0.5rem;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+.scene-page__credit a {
+  text-decoration: underline;
+}
+
+.scene-page__place {
+  margin-top: 0.5rem;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.scene-page__description {
+  max-width: 65ch;
+  margin-top: 1rem;
+  color: var(--text-muted);
+  font-size: 1.05rem;
+}
+
+.scene-page__byline {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 1.25rem;
+  color: var(--text-muted);
+}
+
+.scene-page__byline a {
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.scene-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.5rem;
+}
+
+.scene-page__actions .button {
+  min-height: 44px;
+}
+
+.scene-page__map h2 {
+  font-size: 1.3rem;
+}
+
+.scene-page__map-frame {
+  height: 20rem;
+  margin-top: 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.scene-page__map-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: 0.5rem;
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (min-width: 900px) {
+  .scene-page {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    align-items: start;
+  }
+
+  .scene-page__figure {
+    grid-row: span 2;
+  }
+}
