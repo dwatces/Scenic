@@ -1,5 +1,5 @@
 // The API against a real (in-memory) MongoDB replica set: accounts, scenes,
-// ownership, ids, uploads and error responses.
+// ownership, ids, uploads (photos and card images) and error responses.
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import request from "supertest";
 import {
@@ -455,6 +455,142 @@ describe("API with a database", () => {
       });
       expect(jpeg.status).toBe(201);
       expect(jpeg.body.scene.imageType).toBe("image/jpeg");
+    });
+  });
+
+  describe("card images", () => {
+    const Scene = () => require("../models/scene.js");
+    const withThumb = (req, thumb, contentType = "image/webp", filename = "a-card.webp") =>
+      req.attach("thumb", thumb, { filename, contentType });
+
+    async function expectNothingCreated(title) {
+      expect(await Scene().countDocuments({ title })).toBe(0);
+      await expectAlive();
+    }
+
+    it("stores a card image sent in thumb beside the photo, typed by its bytes", async () => {
+      const res = await withThumb(
+        createScene(server, owner.token, { fields: { title: "With a card image" } }),
+        WEBP_1PX,
+        "image/png",
+        "a-card.png",
+      );
+      expect(res.status).toBe(201);
+      expect(res.body.scene.cardImageUrl).toBe(`${res.body.scene.imageUrl}&size=card`);
+      expect(res.body.scene).not.toHaveProperty("thumb");
+      const stored = await Scene().collection.findOne({ title: "With a card image" });
+      expect(stored.thumb).toEqual({
+        data: WEBP_1PX.toString("base64"),
+        contentType: "image/webp",
+      });
+      expect(stored.image.data).toBe(PNG_1PX.toString("base64"));
+    });
+
+    it("creates a scene without one, as older clients and scripts send it", async () => {
+      const res = await createScene(server, owner.token, { fields: { title: "No card image" } });
+      expect(res.status).toBe(201);
+      expect(res.body.scene.cardImageUrl).toBe(`${res.body.scene.imageUrl}&size=card`);
+      const stored = await Scene().collection.findOne({ title: "No card image" });
+      expect(stored).not.toHaveProperty("thumb");
+    });
+
+    it("treats an empty thumb field as no card image", async () => {
+      const res = await withThumb(
+        createScene(server, owner.token, { fields: { title: "Empty card image" } }),
+        Buffer.alloc(0),
+      );
+      expect(res.status).toBe(201);
+      const stored = await Scene().collection.findOne({ title: "Empty card image" });
+      expect(stored).not.toHaveProperty("thumb");
+    });
+
+    it("refuses a card image that isn't a JPEG, PNG or WebP with 422, and creates nothing", async () => {
+      const html = Buffer.from("<!doctype html><script>alert(1)</script>");
+      const sniffed = await withThumb(
+        createScene(server, owner.token, { fields: { title: "Bad card image" } }),
+        html,
+        "image/webp",
+      );
+      expect(sniffed.status).toBe(422);
+      expect(sniffed.body.message).toBe("That file isn't a JPEG, PNG or WebP image.");
+      const gif = await withThumb(
+        createScene(server, owner.token, { fields: { title: "Bad card image" } }),
+        GIF_1PX,
+        "image/gif",
+        "a.gif",
+      );
+      expect(gif.status).toBe(422);
+      expect(gif.body.message).toBe("That file isn't a JPEG, PNG or WebP image.");
+      await expectNothingCreated("Bad card image");
+    });
+
+    it("refuses a card image over 300 KB with 413, and creates nothing", async () => {
+      for (const extra of [301 * 1024, 3.5 * 1024 * 1024]) {
+        const big = Buffer.concat([WEBP_1PX, Buffer.alloc(extra)]);
+        const res = await withThumb(
+          createScene(server, owner.token, { fields: { title: "Big card image" } }),
+          big,
+        );
+        expect(res.status, `${extra} bytes`).toBe(413);
+        expect(res.body.message).toBe("Card images must be 300 KB or smaller.");
+        expect(res.headers["cache-control"]).toBe("no-store");
+      }
+      await expectNothingCreated("Big card image");
+    });
+
+    it("refuses a second card image with 422", async () => {
+      const res = await withThumb(
+        withThumb(createScene(server, owner.token, { fields: { title: "Two cards" } }), WEBP_1PX),
+        WEBP_1PX,
+      );
+      expect(res.status).toBe(422);
+      await expectNothingCreated("Two cards");
+    });
+
+    it("keeps the card image when the title and description change", async () => {
+      const created = await withThumb(
+        createScene(server, owner.token, { fields: { title: "Card kept" } }),
+        WEBP_1PX,
+      );
+      const edit = await request(server)
+        .patch(`/api/scenes/${created.body.scene.id}`)
+        .set("Authorization", `Bearer ${owner.token}`)
+        .send({ title: "Card still kept", description: "Only the words changed." });
+      expect(edit.status).toBe(200);
+      const stored = await Scene().findById(created.body.scene.id, "thumb").lean();
+      expect(stored.thumb.data).toBe(WEBP_1PX.toString("base64"));
+    });
+
+    it("drops the card image when the photo is replaced without a new one", async () => {
+      const created = await withThumb(
+        createScene(server, owner.token, { fields: { title: "Photo replaced" } }),
+        WEBP_1PX,
+      );
+      const { id, imageUrl } = created.body.scene;
+      const scene = await Scene().findById(id);
+      scene.image = { data: JPEG_1PX.toString("base64"), contentType: "image/jpeg" };
+      await scene.save();
+
+      const stored = await Scene().collection.findOne({ _id: scene._id });
+      expect(stored).not.toHaveProperty("thumb");
+      const { scene: after } = (await request(server).get(`/api/scenes/${id}`)).body;
+      expect(after.imageUrl).not.toBe(imageUrl); // a new version, so no cached card survives
+      const card = await request(server).get(after.cardImageUrl).responseType("blob");
+      expect(card.headers["content-type"]).toBe("image/jpeg");
+      expect(card.body.equals(JPEG_1PX)).toBe(true);
+    });
+
+    it("keeps a new card image saved with a new photo", async () => {
+      const created = await withThumb(
+        createScene(server, owner.token, { fields: { title: "Both replaced" } }),
+        WEBP_1PX,
+      );
+      const scene = await Scene().findById(created.body.scene.id);
+      scene.image = { data: JPEG_1PX.toString("base64"), contentType: "image/jpeg" };
+      scene.thumb = { data: PNG_1PX.toString("base64"), contentType: "image/png" };
+      await scene.save();
+      const stored = await Scene().findById(scene._id, "thumb").lean();
+      expect(stored.thumb.data).toBe(PNG_1PX.toString("base64"));
     });
   });
 

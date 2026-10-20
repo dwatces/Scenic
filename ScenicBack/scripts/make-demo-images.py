@@ -2,7 +2,8 @@
 
 Scene photos are free-to-use photos from Pexels, credited on each scene
 (util/demoData.js). They are cropped to 3:2 and saved as 1200 x 800 WebP,
-small enough to sit inside a scene document. The member avatars are drawn:
+small enough to sit inside a scene document, plus a 640 x 427 copy of the
+same crop (<name>-card.webp) for scene cards. The member avatars are drawn:
 an initial on a flat colour, so no real face stands in for a demo account.
 
 Usage (from ScenicBack/, Python 3 with Pillow built with WebP support):
@@ -33,9 +34,13 @@ AVATARS = {
 
 def photo(name, pexels_id, box, originals):
     image = ImageOps.exif_transpose(Image.open(originals / f"{pexels_id}.jpg")).convert("RGB")
-    image = image.crop(box).resize((1200, 800), Image.LANCZOS)
+    image = image.crop(box)
     # Re-encoding drops the original's EXIF, so no camera or location data ships.
-    image.save(OUT / f"{name}.webp", "WEBP", quality=74, method=6)
+    full = image.resize((1200, 800), Image.LANCZOS)
+    full.save(OUT / f"{name}.webp", "WEBP", quality=74, method=6)
+    # Cards show the photo 340 to 370 px wide, so 640 px stays sharp on high-density screens.
+    card = image.resize((640, 427), Image.LANCZOS)
+    card.save(OUT / f"{name}-card.webp", "WEBP", quality=72, method=6)
 
 
 def avatar(name, initial, colour):

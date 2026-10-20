@@ -32,7 +32,7 @@ router.use(checkAuth);
 
 router.post(
   "/",
-  upload.single("image"),
+  upload.sceneUpload,
   [
     ...titleAndDescription,
     body("address").isString().trim().notEmpty().withMessage("Add a location."),

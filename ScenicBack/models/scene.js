@@ -16,6 +16,11 @@ const SceneSchema = new Schema(
       data: String,
       contentType: String,
     },
+    // Optional small copy of the photo for scene cards, made by the client.
+    thumb: {
+      data: String,
+      contentType: String,
+    },
     address: {
       type: String,
       required: true,
@@ -43,5 +48,13 @@ const SceneSchema = new Schema(
   },
   { timestamps: true },
 );
+
+// A new photo saved without a new card image drops the old one, so a card
+// never shows the previous photo (it falls back to the full image instead).
+SceneSchema.pre("save", function dropStaleThumb() {
+  if (!this.isNew && this.isModified("image") && !this.isModified("thumb")) {
+    this.thumb = undefined;
+  }
+});
 
 module.exports = mongoose.model("Scene", SceneSchema);

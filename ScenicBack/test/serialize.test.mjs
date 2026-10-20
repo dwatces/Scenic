@@ -90,6 +90,7 @@ describe("serializeUser and serializeScene", () => {
     expect(Object.keys(out).sort()).toEqual(
       [
         "address",
+        "cardImageUrl",
         "createdAt",
         "creator",
         "credit",
@@ -104,6 +105,7 @@ describe("serializeUser and serializeScene", () => {
     );
     expect(out.imageType).toBe("image/webp");
     expect(out.imageUrl).toBe(`/api/scenes/${sceneId}/image?v=${sceneId.getTimestamp().getTime()}`);
+    expect(out.cardImageUrl).toBe(`${out.imageUrl}&size=card`);
     expect(out.createdAt).toBe(sceneId.getTimestamp().toISOString()); // no stored timestamp: the id's time
     expect(out.credit).toBeNull();
     expect(out.creator).toEqual({

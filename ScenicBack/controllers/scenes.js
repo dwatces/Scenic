@@ -3,14 +3,16 @@ const HttpError = require("../models/http-error");
 const Scene = require("../models/scene");
 const User = require("../models/user");
 const { assertValid, feedOptions } = require("../middleware/validate");
-const { readUploadedImage } = require("../middleware/upload");
+const { readUploadedImage, readUploadedThumb, uploadedFile } = require("../middleware/upload");
 const { legacyScene, legacyEditFields, serializeScene } = require("../util/serialize");
-const { sendStoredImage } = require("../util/send-image");
+const { sendStoredImage, hasImageData, wantsCard } = require("../util/send-image");
 
 // Read only to label demo content; the email never leaves the serialiser.
 const CREATOR_FIELDS = "name demo email";
 // A creator summary for lists: the avatar's type and version, never its bytes.
 const CREATOR_SUMMARY_FIELDS = "name demo email image.contentType updatedAt";
+// A scene for JSON: everything but the photo's bytes and the card image.
+const SCENE_FIELDS = "-image.data -thumb";
 
 const SCENE_NOT_FOUND = "We couldn't find that scene.";
 const MEMBER_NOT_FOUND = "We couldn't find that member.";
@@ -43,7 +45,7 @@ const listScenes = async (req, res) => {
 
   // One extra row says whether another page exists.
   const rows = await Scene.find(filter)
-    .select("-image.data")
+    .select(SCENE_FIELDS)
     .sort({ _id: -1 })
     .limit(limit + 1)
     .lean();
@@ -63,7 +65,7 @@ const listScenes = async (req, res) => {
 // GET /api/scenes/:sceneId. The legacy edit fields keep the deployed client's
 // edit page working.
 const getSceneById = async (req, res) => {
-  const scene = await Scene.findById(req.params.sceneId).select("-image.data").lean();
+  const scene = await Scene.findById(req.params.sceneId).select(SCENE_FIELDS).lean();
   if (!scene) throw new HttpError(SCENE_NOT_FOUND, 404);
   res.json({
     scene: {
@@ -74,25 +76,35 @@ const getSceneById = async (req, res) => {
 };
 
 // GET /api/scenes/user/:userId. DEPRECATED legacy shape, kept for the
-// deployed client.
+// deployed client. It inlines each photo, never the card image.
 const getScenesByUserId = async (req, res) => {
-  const user = await User.findById(req.params.userId, `${CREATOR_FIELDS} scenes`).populate(
-    "scenes",
-  );
+  const user = await User.findById(req.params.userId, `${CREATOR_FIELDS} scenes`).populate({
+    path: "scenes",
+    select: "-thumb",
+  });
   if (!user) throw new HttpError(MEMBER_NOT_FOUND, 404);
   res.json({ scenes: user.scenes.map((scene) => legacyScene(scene, { creator: user })) });
 };
 
-// GET /api/scenes/:sceneId/image
+// GET /api/scenes/:sceneId/image[?size=card]. The card image is read on its
+// own, so a card never pulls the full photo's bytes from the database; a scene
+// without one (posted by an older client) falls back to the full photo.
 const getSceneImage = async (req, res) => {
-  const scene = await Scene.findById(req.params.sceneId, "image").lean();
+  const { sceneId } = req.params;
+  if (wantsCard(req)) {
+    const scene = await Scene.findById(sceneId, "thumb").lean();
+    if (!scene) throw new HttpError(SCENE_NOT_FOUND, 404);
+    if (hasImageData(scene.thumb)) return sendStoredImage(res, scene, scene.thumb);
+  }
+  const scene = await Scene.findById(sceneId, "image").lean();
   if (!scene) throw new HttpError(SCENE_NOT_FOUND, 404);
   sendStoredImage(res, scene);
 };
 
 const createScene = async (req, res) => {
   assertValid(req);
-  const image = readUploadedImage(req.file);
+  const image = readUploadedImage(uploadedFile(req, "image"));
+  const thumb = readUploadedThumb(uploadedFile(req, "thumb"));
   const { title, description, address } = req.body;
   const { userId } = req.userData;
 
@@ -100,7 +112,15 @@ const createScene = async (req, res) => {
   if (!creator) throw new HttpError("We couldn't find your account. Log in again.", 404);
 
   const location = await req.app.locals.geocode(address);
-  const createdScene = new Scene({ title, description, image, address, location, creator: userId });
+  const createdScene = new Scene({
+    title,
+    description,
+    image,
+    ...(thumb && { thumb }),
+    address,
+    location,
+    creator: userId,
+  });
 
   // The scene and the creator's list change together or not at all.
   await mongoose.connection.transaction(async (session) => {

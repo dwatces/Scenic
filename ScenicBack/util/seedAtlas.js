@@ -12,7 +12,7 @@ const { USERS, SCENES } = require("./demoData");
 /**
  * Seed the demo content through the already-open default mongoose
  * connection, exactly as util/demoData.js has it: accounts are flagged
- * demo: true, and each scene keeps its photo and photo credit.
+ * demo: true, and each scene keeps its photo, card image and photo credit.
  * @param {{ password: string }} options the login password for seeded accounts
  * @returns {Promise<{ created: number, users: number, scenes: number }>}
  */
@@ -47,6 +47,7 @@ async function seed({ password }) {
       title: s.title,
       description: s.description,
       image: { data: s.image.data, contentType: s.image.contentType },
+      thumb: { data: s.thumb.data, contentType: s.thumb.contentType },
       address: s.address,
       location: s.location,
       creator,

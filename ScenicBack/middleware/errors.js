@@ -1,6 +1,7 @@
 // The API's error responses: JSON with a `message`, a status that comes only
 // from known sources, and never cached by the CDN.
 const HttpError = require("../models/http-error");
+const { THUMB_TOO_BIG } = require("./upload");
 
 const GENERIC_MESSAGE = "Something went wrong. Please try again.";
 const DUPLICATE_EMAIL = "An account with this email already exists.";
@@ -10,9 +11,11 @@ function knownError(err) {
   if (err instanceof HttpError) return err;
   if (!err) return null;
   if (err.name === "MulterError") {
-    return err.code === "LIMIT_FILE_SIZE"
-      ? new HttpError("Images must be 3 MB or smaller.", 413)
-      : new HttpError("Send one JPEG, PNG or WebP image in the image field.", 422);
+    if (err.code !== "LIMIT_FILE_SIZE") {
+      return new HttpError("Send one JPEG, PNG or WebP image in the image field.", 422);
+    }
+    const message = err.field === "thumb" ? THUMB_TOO_BIG : "Images must be 3 MB or smaller.";
+    return new HttpError(message, 413);
   }
   // body-parser (express.json)
   if (err.type === "entity.too.large") {

@@ -51,7 +51,8 @@ describe("DB and demo responses have the same shape", () => {
       .field("title", "Piha")
       .field("description", "Lion Rock at low tide.")
       .field("address", "Piha")
-      .attach("image", PNG_1PX, { filename: "a.png", contentType: "image/png" });
+      .attach("image", PNG_1PX, { filename: "a.png", contentType: "image/png" })
+      .attach("thumb", PNG_1PX, { filename: "a-card.png", contentType: "image/png" });
     memberSceneId = created.body.scene.id;
   });
 
@@ -152,7 +153,7 @@ describe("DB and demo responses have the same shape", () => {
     expect(users.find((u) => u.name === "Legacy demo").isDemo).toBe(true);
   });
 
-  it("never sends an email, password or __v from any GET route", async () => {
+  it("never sends an email, password, __v or card image from any GET route", async () => {
     const paths = [
       "/api/scenes",
       "/api/users",
@@ -165,7 +166,7 @@ describe("DB and demo responses have the same shape", () => {
     ];
     for (const path of paths) {
       const res = await request(db).get(path);
-      expect(findKeys(res.body, ["email", "password", "__v"])).toEqual([]);
+      expect(findKeys(res.body, ["email", "password", "__v", "thumb"])).toEqual([]);
       expect(res.text).not.toMatch(/@(scenic\.)?example(\.com)?/);
     }
   });

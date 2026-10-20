@@ -10,19 +10,32 @@ const isWebp = (bytes) =>
   bytes.toString("ascii", 0, 4) === "RIFF" && bytes.toString("ascii", 8, 12) === "WEBP";
 
 describe("demo content", () => {
-  it("loads three scene photos of 150 KB or less and two avatars of 5 KB or less, all WebP", () => {
+  it("loads three scene photos of 150 KB or less, their card images of 60 KB or less and two avatars of 5 KB or less, all WebP", () => {
     expect(Object.keys(images).sort()).toEqual([
       "avatarAroha",
       "avatarDaniel",
       "cathedralCove",
+      "cathedralCoveCard",
       "lakeTekapo",
+      "lakeTekapoCard",
       "milfordSound",
+      "milfordSoundCard",
     ]);
     for (const [name, bytes] of Object.entries(images)) {
       expect(Buffer.isBuffer(bytes), name).toBe(true);
       expect(isWebp(bytes), name).toBe(true);
-      const limit = name.startsWith("avatar") ? 5 : 150;
+      const limit = name.startsWith("avatar") ? 5 : name.endsWith("Card") ? 60 : 150;
       expect(bytes.length, name).toBeLessThanOrEqual(limit * 1024);
+    }
+  });
+
+  it("makes each card image 640 x 427, a copy of its photo's 3:2 crop", () => {
+    // VP8 (lossy) WebP: 14-bit width and height at bytes 26 to 29.
+    const size = (bytes) => [bytes.readUInt16LE(26) & 0x3fff, bytes.readUInt16LE(28) & 0x3fff];
+    for (const name of ["milfordSound", "lakeTekapo", "cathedralCove"]) {
+      expect(images[name].toString("ascii", 12, 16), name).toBe("VP8 ");
+      expect(size(images[name]), name).toEqual([1200, 800]);
+      expect(size(images[`${name}Card`]), name).toEqual([640, 427]);
     }
   });
 
@@ -31,6 +44,19 @@ describe("demo content", () => {
     for (const doc of [...demo.USERS, ...demo.SCENES]) {
       expect(doc.image.contentType).toBe("image/webp");
       expect(files).toContain(doc.image.data);
+    }
+  });
+
+  it("gives every demo scene its own photo's card image", () => {
+    const byPhoto = new Map(
+      ["milfordSound", "lakeTekapo", "cathedralCove"].map((name) => [
+        images[name].toString("base64"),
+        images[`${name}Card`].toString("base64"),
+      ]),
+    );
+    for (const scene of demo.SCENES) {
+      expect(scene.thumb.contentType, scene.title).toBe("image/webp");
+      expect(scene.thumb.data, scene.title).toBe(byPhoto.get(scene.image.data));
     }
   });
 

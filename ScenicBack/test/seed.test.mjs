@@ -32,14 +32,15 @@ describe("seed()", () => {
     }
   });
 
-  it("copies the demo content as it is: names, descriptions, credits and WebP photos", async () => {
+  it("copies the demo content as it is: names, descriptions, credits, WebP photos and card images", async () => {
     const users = await User.find({}, "name image").lean();
     expect(users.map((u) => u.name).sort()).toEqual(["Aroha", "Daniel"]);
-    const scenes = await Scene.find({}, "title description image credit").lean();
+    const scenes = await Scene.find({}, "title description image thumb credit").lean();
     for (const scene of scenes) {
       const source = demo.SCENES.find((s) => s.title === scene.title);
       expect(scene.description).toBe(source.description);
       expect(scene.credit).toEqual(source.credit);
+      expect(scene.thumb).toEqual(source.thumb);
     }
     for (const doc of [...users, ...scenes]) {
       const bytes = Buffer.from(doc.image.data, "base64");

@@ -58,6 +58,7 @@ const SCENES = [
     location: { lat: -44.6717, lng: 167.9256 },
     creator: IDS.daniel,
     image: webp(images.milfordSound),
+    thumb: webp(images.milfordSoundCard),
     credit: pexels("Ravish Maqsood", "cruise-milford-sound-new-zealand-17431554"),
     createdAt: new Date("2026-06-20T09:10:00Z"),
   },
@@ -70,6 +71,7 @@ const SCENES = [
     location: { lat: -44.0046, lng: 170.4771 },
     creator: IDS.daniel,
     image: webp(images.lakeTekapo),
+    thumb: webp(images.lakeTekapoCard),
     credit: pexels("Chee Huey Wong", "purple-lavender-by-the-lake-62344"),
     createdAt: new Date("2026-06-20T09:15:00Z"),
   },
@@ -81,6 +83,7 @@ const SCENES = [
     location: { lat: -36.8277, lng: 175.7917 },
     creator: IDS.aroha,
     image: webp(images.cathedralCove),
+    thumb: webp(images.cathedralCoveCard),
     credit: pexels(
       "Frank Schrader",
       "looking-at-te-hoho-rock-through-cathedral-cove-hahei-new-zealand-28240868",

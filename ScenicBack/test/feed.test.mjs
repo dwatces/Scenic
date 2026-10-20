@@ -1,6 +1,6 @@
 // The scene feed (GET /api/scenes), the members list (GET /api/users) and
 // public profiles (GET /api/users/:id): paging, filters, query checks, and
-// no image bytes or private fields in any response.
+// no image bytes (photo or card image) or private fields in any response.
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import request from "supertest";
 import {
@@ -40,6 +40,7 @@ describe("feed and member API (database)", () => {
   let Scene;
   let member; // signed up through the API, with 30 scenes
   let seededDanielId;
+  let bigThumb;
 
   beforeAll(async () => {
     server = await listen(buildApp({ env: { ...process.env, DB_URL: dbUrl("feed") } }));
@@ -64,6 +65,10 @@ describe("feed and member API (database)", () => {
       data: Buffer.concat([PNG_1PX, Buffer.alloc(300 * 1024, 7)]).toString("base64"),
       contentType: "image/png",
     };
+    bigThumb = {
+      data: Buffer.concat([PNG_1PX, Buffer.alloc(250 * 1024, 9)]).toString("base64"),
+      contentType: "image/png",
+    };
     for (let i = 1; i <= EXTRA_SCENES; i++) {
       const scene = await Scene.create({
         title: `Test scene ${String(i).padStart(2, "0")}`,
@@ -72,6 +77,7 @@ describe("feed and member API (database)", () => {
         location: { lat: -36.95, lng: 174.47 },
         creator: member.userId,
         image: i === 1 ? { data: PNG_1PX.toString("base64"), contentType: "image/png" } : bigImage,
+        ...(i > 1 && { thumb: bigThumb }),
       });
       await User.updateOne({ _id: member.userId }, { $addToSet: { scenes: scene._id } });
     }
@@ -167,6 +173,7 @@ describe("feed and member API (database)", () => {
       expect(Buffer.byteLength(res.text)).toBeLessThanOrEqual(20 * 1024);
       for (const scene of res.body.scenes) {
         expect(scene.imageUrl).toMatch(new RegExp(`^/api/scenes/${scene.id}/image\\?v=\\d+$`));
+        expect(scene.cardImageUrl).toBe(`${scene.imageUrl}&size=card`);
         expect(scene).not.toHaveProperty("image");
       }
       const first = res.body.scenes.at(-1);
@@ -188,6 +195,59 @@ describe("feed and member API (database)", () => {
       expect((await get(scene.creator.avatarUrl)).status).toBe(200);
       const seeded = await get(`/api/scenes?creator=${seededDanielId}`);
       expect(seeded.body.scenes.every((s) => s.isDemo && s.creator.isDemo)).toBe(true);
+    });
+  });
+
+  describe("card images", () => {
+    /** The projection of every query on the scenes collection while `fn` runs. */
+    async function sceneProjections(fn) {
+      const projections = [];
+      mongoose.set("debug", (collection, method, filter, options) => {
+        if (collection === "scenes") projections.push({ method, projection: options?.projection });
+      });
+      try {
+        await fn();
+      } finally {
+        mongoose.set("debug", false);
+      }
+      return projections;
+    }
+
+    it("never reads them from the database for the feed, a scene or the legacy member route", async () => {
+      const sceneId = String((await Scene.findOne({ title: "Test scene 30" }, "_id"))._id);
+      const paths = [
+        "/api/scenes?limit=24",
+        `/api/scenes?creator=${member.userId}`,
+        `/api/scenes/${sceneId}`,
+        `/api/scenes/user/${member.userId}`,
+      ];
+      const projections = await sceneProjections(async () => {
+        for (const path of paths) expect((await get(path)).status, path).toBe(200);
+      });
+      expect(projections.length).toBeGreaterThanOrEqual(paths.length);
+      for (const { method, projection } of projections) {
+        expect(projection, method).toMatchObject({ thumb: 0 });
+      }
+    });
+
+    it("never sends them in the feed or a scene", async () => {
+      const sceneId = String((await Scene.findOne({ title: "Test scene 30" }, "_id"))._id);
+      for (const path of ["/api/scenes?limit=24", `/api/scenes/${sceneId}`]) {
+        const res = await get(path);
+        expect(findKeys(res.body, ["thumb"]), path).toEqual([]);
+        expect(longStrings(res.body), path).toEqual([]);
+      }
+    });
+
+    it("leaves the legacy member route inlining the photos only, as before", async () => {
+      const res = await get(`/api/scenes/user/${member.userId}`);
+      expect(res.status).toBe(200);
+      expect(res.body.scenes).toHaveLength(EXTRA_SCENES);
+      expect(findKeys(res.body, ["thumb"])).toEqual([]);
+      expect(res.text).not.toContain(bigThumb.data.slice(-64));
+      const stored = await Scene.find({ creator: member.userId }, "image").lean();
+      const photos = new Map(stored.map((scene) => [String(scene._id), scene.image.data]));
+      for (const scene of res.body.scenes) expect(scene.image.data).toBe(photos.get(scene.id));
     });
   });
 

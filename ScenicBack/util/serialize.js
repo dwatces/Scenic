@@ -87,13 +87,16 @@ function serializeUser(user, { sceneCount } = {}) {
  */
 function serializeScene(scene, { creator }) {
   const credit = scene.credit && scene.credit.text ? scene.credit : null;
+  const imageUrl = imagePath("scenes", scene);
   return {
     id: toId(scene),
     title: scene.title,
     description: scene.description,
     address: scene.address,
     location: { lat: scene.location.lat, lng: scene.location.lng },
-    imageUrl: imagePath("scenes", scene),
+    imageUrl,
+    // Always present: the API serves the full photo when there is no card image.
+    cardImageUrl: `${imageUrl}&size=card`,
     imageType: normaliseContentType(
       scene.image && scene.image.contentType,
       scene.image && scene.image.data,

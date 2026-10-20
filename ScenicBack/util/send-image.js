@@ -13,6 +13,16 @@ const IMAGE_NOT_FOUND = "We couldn't find that image.";
 const BROWSER_CACHE = "public, max-age=31536000, immutable";
 const CDN_CACHE = "max-age=86400";
 
+/** True when a stored image ({ data, contentType }) has bytes to send. */
+const hasImageData = (image) =>
+  Boolean(image) && typeof image.data === "string" && image.data.length > 0;
+
+/**
+ * ?size=card asks for a scene's card image. Any other value is ignored, like
+ * the version parameter, and gets the full photo.
+ */
+const wantsCard = (req) => req.query.size === "card";
+
 /**
  * Send a stored image as bytes. The Content-Type comes from the bytes, never
  * from the stored label: rows written before uploads were checked may hold
@@ -21,11 +31,12 @@ const CDN_CACHE = "max-age=86400";
  *
  * @param {import("express").Response} res
  * @param {{ _id: unknown, image?: { data?: string } }} doc a scene or user (document or demo)
+ * @param {{ data?: string }} [image] which of its images to send (a scene's thumb); defaults to doc.image
  * @throws {HttpError} 404 when there is no image, or it isn't a JPEG, PNG or WebP
  */
-function sendStoredImage(res, doc) {
-  const data = doc.image && doc.image.data;
-  if (typeof data !== "string" || data.length === 0) throw new HttpError(IMAGE_NOT_FOUND, 404);
+function sendStoredImage(res, doc, image = doc.image) {
+  if (!hasImageData(image)) throw new HttpError(IMAGE_NOT_FOUND, 404);
+  const data = image.data;
 
   const bytes = Buffer.from(data, "base64");
   const type = sniffImageType(bytes);
@@ -45,4 +56,11 @@ function sendStoredImage(res, doc) {
   res.send(bytes);
 }
 
-module.exports = { sendStoredImage, IMAGE_NOT_FOUND, BROWSER_CACHE, CDN_CACHE };
+module.exports = {
+  sendStoredImage,
+  hasImageData,
+  wantsCard,
+  IMAGE_NOT_FOUND,
+  BROWSER_CACHE,
+  CDN_CACHE,
+};

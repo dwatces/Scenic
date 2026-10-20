@@ -1,5 +1,6 @@
-// Images are served as images: GET /api/scenes/:id/image and
-// GET /api/users/:id/image, in database mode and demo mode.
+// Images are served as images: GET /api/scenes/:id/image (?size=card for a
+// scene card's small copy) and GET /api/users/:id/image, in database mode and
+// demo mode.
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import request from "supertest";
 import {
@@ -103,6 +104,73 @@ describe("image endpoints (database)", () => {
     expect(res.body.equals(WEBP_1PX)).toBe(true);
   });
 
+  describe("?size=card", () => {
+    let withCard;
+
+    beforeAll(async () => {
+      const created = await request(server)
+        .post("/api/scenes")
+        .set("Authorization", `Bearer ${member.token}`)
+        .field("title", "Muriwai")
+        .field("description", "The gannet colony on the cliffs.")
+        .field("address", "Muriwai")
+        .attach("image", JPEG_1PX, { filename: "a.jpg", contentType: "image/jpeg" })
+        .attach("thumb", WEBP_1PX, { filename: "a-card.webp", contentType: "image/webp" });
+      expect(created.status).toBe(201);
+      withCard = created.body.scene;
+    });
+
+    it("serves the card image, with the same caching as the photo", async () => {
+      expect(withCard.cardImageUrl).toBe(`${withCard.imageUrl}&size=card`);
+      const card = await getBytes(server, withCard.cardImageUrl);
+      expect(card.status).toBe(200);
+      expectImageHeaders(card, "image/webp");
+      expect(card.body.equals(WEBP_1PX)).toBe(true);
+      const photo = await getBytes(server, withCard.imageUrl);
+      expect(photo.body.equals(JPEG_1PX)).toBe(true);
+      expect(card.headers.etag).not.toBe(photo.headers.etag);
+    });
+
+    it("answers If-None-Match for the card image with 304", async () => {
+      const first = await getBytes(server, withCard.cardImageUrl);
+      const again = await request(server)
+        .get(withCard.cardImageUrl)
+        .set("If-None-Match", first.headers.etag);
+      expect(again.status).toBe(304);
+      expect(again.headers["cache-control"]).toBe(BROWSER_CACHE);
+    });
+
+    it("falls back to the full photo for a scene without a card image", async () => {
+      const res = await getBytes(server, `/api/scenes/${sceneId}/image?size=card`);
+      expect(res.status).toBe(200);
+      expectImageHeaders(res, "image/jpeg");
+      expect(res.body.equals(JPEG_1PX)).toBe(true);
+    });
+
+    it("serves the seeded demo scenes' card images", async () => {
+      const seeded = await Scene.findOne({ title: "Milford Sound" }, "thumb").lean();
+      const res = await getBytes(server, `/api/scenes/${seeded._id}/image?size=card`);
+      expect(res.status).toBe(200);
+      expectImageHeaders(res, "image/webp");
+      expect(res.body.equals(Buffer.from(seeded.thumb.data, "base64"))).toBe(true);
+    });
+
+    it("ignores any other size and serves the full photo", async () => {
+      for (const query of ["size=large", "size=", "size=CARD", "size=card&size=card"]) {
+        const res = await getBytes(server, `/api/scenes/${withCard.id}/image?${query}`);
+        expect(res.status, query).toBe(200);
+        expect(res.body.equals(JPEG_1PX), query).toBe(true);
+      }
+    });
+
+    it("answers a missing scene with a JSON 404", async () => {
+      const res = await request(server).get("/api/scenes/5f0000000000000000000000/image?size=card");
+      expect(res.status).toBe(404);
+      expect(res.body.message).toBe("We couldn't find that scene.");
+      expect(res.headers["cache-control"]).toBe("no-store");
+    });
+  });
+
   it("types a seeded image by its bytes, whatever its stored label says", async () => {
     const seeded = await Scene.findOne({ title: "Milford Sound" }, "image").lean();
     const res = await getBytes(server, `/api/scenes/${seeded._id}/image`);
@@ -204,6 +272,17 @@ describe("image endpoints (demo mode)", () => {
       expectImageHeaders(res, res.headers["content-type"]);
       expect(res.headers["content-type"], path).toMatch(/^image\/(jpeg|png|webp)$/);
       expect(res.body.equals(Buffer.from(doc.image.data, "base64")), path).toBe(true);
+    }
+  });
+
+  it("serves every demo scene's card image for ?size=card", async () => {
+    for (const scene of demo.SCENES) {
+      const path = `/api/scenes/${scene._id}/image?size=card`;
+      const res = await getBytes(server, path);
+      expect(res.status, path).toBe(200);
+      expectImageHeaders(res, "image/webp");
+      expect(res.body.equals(Buffer.from(scene.thumb.data, "base64")), path).toBe(true);
+      expect(res.body.length, path).toBeLessThan(Buffer.from(scene.image.data, "base64").length);
     }
   });
 

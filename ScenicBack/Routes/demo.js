@@ -12,7 +12,7 @@ const {
   serializeUser,
   serializeScene,
 } = require("../util/serialize");
-const { sendStoredImage } = require("../util/send-image");
+const { sendStoredImage, hasImageData, wantsCard } = require("../util/send-image");
 const demo = require("../util/demoData");
 
 // Worded to be true for both causes (no DB_URL, or an unreachable database)
@@ -78,7 +78,8 @@ router.get("/api/scenes/:sceneId", (req, res) => {
 router.get("/api/scenes/:sceneId/image", (req, res) => {
   const scene = demo.findScene(req.params.sceneId);
   if (!scene) throw new HttpError(SCENE_NOT_FOUND, 404);
-  sendStoredImage(res, scene);
+  const card = wantsCard(req) && hasImageData(scene.thumb);
+  sendStoredImage(res, scene, card ? scene.thumb : scene.image);
 });
 
 router.get("/api/users/:userId/image", (req, res) => {

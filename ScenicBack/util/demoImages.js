@@ -14,6 +14,16 @@ module.exports = {
   cathedralCove: fs.readFileSync(
     path.join(__dirname, "..", "assets", "demo", "cathedral-cove.webp"),
   ),
+  // 640 px copies of the same photos, for scene cards.
+  milfordSoundCard: fs.readFileSync(
+    path.join(__dirname, "..", "assets", "demo", "milford-sound-card.webp"),
+  ),
+  lakeTekapoCard: fs.readFileSync(
+    path.join(__dirname, "..", "assets", "demo", "lake-tekapo-card.webp"),
+  ),
+  cathedralCoveCard: fs.readFileSync(
+    path.join(__dirname, "..", "assets", "demo", "cathedral-cove-card.webp"),
+  ),
   avatarDaniel: fs.readFileSync(path.join(__dirname, "..", "assets", "demo", "avatar-daniel.webp")),
   avatarAroha: fs.readFileSync(path.join(__dirname, "..", "assets", "demo", "avatar-aroha.webp")),
 };
