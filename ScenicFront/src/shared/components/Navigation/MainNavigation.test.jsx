@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 
@@ -8,6 +8,20 @@ import NavLinks from "./NavLinks";
 import { AuthContext } from "../../context/auth-context";
 
 const signedIn = { isLoggedIn: true, userId: "u1", token: "t", login() {}, logout() {} };
+
+// The header loads the signed-in member's profile for the avatar.
+beforeEach(() => {
+  vi.spyOn(globalThis, "fetch").mockImplementation(
+    async () =>
+      new Response(
+        JSON.stringify({
+          user: { id: "u1", name: "Aroha", avatarUrl: null, sceneCount: 0, isDemo: false },
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      ),
+  );
+});
+afterEach(() => vi.restoreAllMocks());
 
 describe("NavLinks", () => {
   it("shows Log in when signed out and marks the active link", () => {
@@ -52,5 +66,18 @@ describe("MainNavigation", () => {
     await userEvent.click(document.querySelector(".main-navigation__menu-btn"));
     expect(document.querySelector(".side-drawer")).toBeInTheDocument();
     expect(document.querySelector(".side-drawer nav")).toBeInTheDocument();
+  });
+
+  it("shows the signed-in member's initial beside My scenes once the profile loads", async () => {
+    render(
+      <AuthContext.Provider value={signedIn}>
+        <MemoryRouter>
+          <MainNavigation />
+        </MemoryRouter>
+      </AuthContext.Provider>,
+    );
+    // The initial is decorative: the link's name stays "My scenes".
+    const link = screen.getAllByRole("link", { name: "My scenes" })[0];
+    await waitFor(() => expect(link.querySelector(".avatar__monogram")).toHaveTextContent("A"));
   });
 });
