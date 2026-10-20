@@ -34,7 +34,7 @@ describe("DB_URL set but the database is unreachable", () => {
   let errors;
   beforeAll(async () => {
     errors = vi.spyOn(console, "error").mockImplementation(() => {});
-    // Nothing listens on 7106 (a spare port in this workspace's range).
+    // Nothing listens on this port.
     const env = { JWT_KEY: "x", DB_URL: "mongodb://127.0.0.1:7106/scenic?directConnection=true" };
     server = await listen(buildApp({ env }));
   });

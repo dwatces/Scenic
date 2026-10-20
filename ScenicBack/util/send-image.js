@@ -14,13 +14,10 @@ const BROWSER_CACHE = "public, max-age=31536000, immutable";
 const CDN_CACHE = "max-age=86400";
 
 /**
- * Send a stored image as bytes.
- *
- * The Content-Type comes from the bytes, never from the stored label: rows
- * written before uploads were checked may hold anything. Bytes that aren't a
- * JPEG, PNG or WebP are not served at all. The strong ETag is a hash of the
- * stored string; Express answers a matching If-None-Match with a 304 that
- * keeps these caching headers.
+ * Send a stored image as bytes. The Content-Type comes from the bytes, never
+ * from the stored label: rows written before uploads were checked may hold
+ * anything. Express answers a matching If-None-Match with a 304 that keeps
+ * these caching headers.
  *
  * @param {import("express").Response} res
  * @param {{ _id: unknown, image?: { data?: string } }} doc a scene or user (document or demo)

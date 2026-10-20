@@ -1,13 +1,10 @@
 const { body } = require("express-validator");
 
 /**
- * How sign-up and login normalise an email address before storing or
- * looking it up. These are exactly the defaults of validator 13.7, which
- * express-validator 6.13 applied when every existing account signed up, so
- * stored addresses keep matching (checked against a table of Gmail,
- * Googlemail, Outlook, Hotmail, Yahoo, iCloud and Yandex addresses; see
- * test/email.test.mjs). Pinned explicitly so a future validator release
- * can't change them silently.
+ * How sign-up and login normalise an email address: the validator 13.7
+ * defaults that express-validator 6.13 applied when existing accounts signed
+ * up. Pinned so stored addresses keep matching whatever a later release
+ * changes (see test/email.test.mjs).
  */
 const EMAIL_NORMALISATION = Object.freeze({
   all_lowercase: true,

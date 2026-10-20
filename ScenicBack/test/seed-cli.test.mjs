@@ -1,6 +1,6 @@
-// The seeding script as Daniel runs it: `node util/seedAtlas.js`. Run here
-// only against the in-memory replica set, with SEED_PASSWORD set so the
-// generated-password line (a secret) is never printed.
+// The seeding script as a CLI (`node util/seedAtlas.js`), only ever against
+// the in-memory replica set. SEED_PASSWORD is set, so the generated-password
+// line (a secret) is never printed.
 import { describe, it, expect } from "vitest";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";

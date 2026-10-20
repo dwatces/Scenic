@@ -1,5 +1,5 @@
 // Transport hardening: headers, CORS and the sign-up/login rate limiter.
-// Each app here is its own instance (own limiter store) on port 7109.
+// Each app here is a fresh instance, with its own limiter store, on the spare port.
 import { describe, it, expect, afterEach } from "vitest";
 import request from "supertest";
 import { buildApp, listen, close, SPARE_PORT } from "./helpers.mjs";

@@ -16,9 +16,8 @@ const SCENE_NOT_FOUND = "We couldn't find that scene.";
 const MEMBER_NOT_FOUND = "We couldn't find that member.";
 const NOT_OWNER = "You can only change your own scenes.";
 
-// Handlers are async: Express 5 passes a rejected promise to the error
-// handler, so a thrown HttpError becomes its status and message, and any
-// other error a generic 500.
+// Express 5 passes a rejected handler promise to the error handler, so the
+// handlers below just throw an HttpError.
 
 /** The scene's creator summary, or a bare id if the account no longer exists. */
 async function creatorOf(scene) {
@@ -34,10 +33,8 @@ async function creatorsById(ids) {
   return new Map(users.map((user) => [String(user._id), user]));
 }
 
-// GET /api/scenes?limit=12&before=<sceneId>&creator=<userId>. The feed:
-// newest first, a page at a time. `nextCursor` is the `before` value for the
-// next page, or null on the last one. No image bytes: each scene carries an
-// imageUrl.
+// GET /api/scenes?limit=&before=<sceneId>&creator=<userId>: the feed, newest
+// first. `nextCursor` is the next page's `before`, or null on the last page.
 const listScenes = async (req, res) => {
   const { limit, before, creator } = feedOptions(req);
   const filter = {};
@@ -63,9 +60,8 @@ const listScenes = async (req, res) => {
   });
 };
 
-// GET /api/scenes/:sceneId. One scene with its creator summary and image
-// URL. The legacy edit fields keep the deployed client's edit page working
-// (see legacyEditFields).
+// GET /api/scenes/:sceneId. The legacy edit fields keep the deployed client's
+// edit page working.
 const getSceneById = async (req, res) => {
   const scene = await Scene.findById(req.params.sceneId).select("-image.data").lean();
   if (!scene) throw new HttpError(SCENE_NOT_FOUND, 404);
@@ -87,7 +83,7 @@ const getScenesByUserId = async (req, res) => {
   res.json({ scenes: user.scenes.map((scene) => legacyScene(scene, { creator: user })) });
 };
 
-// GET /api/scenes/:sceneId/image. The scene's photo as an image response.
+// GET /api/scenes/:sceneId/image
 const getSceneImage = async (req, res) => {
   const scene = await Scene.findById(req.params.sceneId, "image").lean();
   if (!scene) throw new HttpError(SCENE_NOT_FOUND, 404);

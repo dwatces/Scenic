@@ -1,16 +1,14 @@
-// Starts one in-memory MongoDB replica set for the whole run (transactions
-// need a replica set) and points every test file at it. Variables set here
-// are inherited by the forked test workers. They are also set before the app
-// loads dotenv, and dotenv never overrides an existing variable, so a
-// developer's real ScenicBack/.env can't leak into a test run.
+// Starts one in-memory MongoDB replica set (transactions need one) for the
+// whole run. The forked workers inherit the variables set here, before the app
+// loads dotenv, and dotenv never overrides an existing variable, so a real
+// ScenicBack/.env can't leak into a test run.
 import { MongoMemoryReplSet } from "mongodb-memory-server-core";
 
 export const DB_PORT = 7107;
 
 export default async function setup() {
-  // 8.2.6 is the binary already in ~/.cache/mongodb-binaries. Locally a
-  // missing binary fails the run instead of downloading 120 MB mid-test;
-  // CI sets MONGOMS_RUNTIME_DOWNLOAD=true.
+  // Locally a missing MongoDB binary fails the run rather than downloading
+  // about 120 MB mid-test. Under CI it is downloaded, and cached by the workflow.
   process.env.MONGOMS_VERSION ??= "8.2.6";
   process.env.MONGOMS_RUNTIME_DOWNLOAD ??= process.env.CI ? "true" : "false";
 
@@ -19,8 +17,8 @@ export default async function setup() {
     instanceOpts: [{ port: DB_PORT, launchTimeout: 60000 }],
   });
   const mongodPid = replSet.servers[0].instanceInfo?.instance?.mongodProcess?.pid;
-  // mongodb-memory-server silently picks a random port when the requested one
-  // is taken; this workspace may only use 7103-7109, so refuse to run instead.
+  // mongodb-memory-server quietly picks a random port when the requested one is
+  // taken. Fail instead, so the suite never runs against an unexpected port.
   if (new URL(replSet.getUri()).port !== String(DB_PORT)) {
     await replSet.stop({ doCleanup: true, force: true });
     throw new Error(`Port ${DB_PORT} is busy: stop whatever holds it and run the tests again.`);

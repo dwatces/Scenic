@@ -12,17 +12,14 @@ const userRoutes = require("./Routes/users");
 const demoRoutes = require("./Routes/demo");
 const getCoordinatesForAddress = require("./util/location");
 
-// One MongoDB connection per process (one serverless instance), shared by
-// every app built here. It starts on the first request rather than at import,
-// so building an app (in tests, or in a script) never connects by itself. On
-// Vercel the first request arrives straight after module load, so cold-start
-// behaviour is unchanged.
+// One MongoDB connection per process (per serverless instance), shared by every
+// app built here. It opens on the first request, not at import, so a test or
+// script that builds an app never connects by itself.
 let connecting = null;
 let warnedNoDbUrl = false;
 function startConnection(dbUrl) {
-  // A failed connect leaves the API in demo mode: GETs still answer 200 and
-  // writes 503. Say so loudly, with the driver's reason, so a bad DB_URL or
-  // an unreachable cluster shows up in the function log.
+  // A failed connect leaves the API in demo mode, so log the driver's reason:
+  // a bad DB_URL or an unreachable cluster then shows up in the function log.
   connecting = connection(dbUrl).catch((err) =>
     console.error(
       `MongoDB connection failed, serving demo content until it connects: ${err.message}`,
@@ -33,11 +30,7 @@ function startConnection(dbUrl) {
 
 const isConnected = () => mongoose.connection.readyState === 1;
 
-/**
- * Make sure a connection attempt is running and wait for it, at most 8 s.
- * Serverless note: the function freezes between requests, so the connect
- * may still be in flight on the first request.
- */
+/** Start a connection attempt if none is running, and wait up to 8 s for it. */
 async function ensureConnection(env) {
   if (!env.DB_URL) {
     if (!warnedNoDbUrl) {
@@ -47,9 +40,9 @@ async function ensureConnection(env) {
     return;
   }
   if (isConnected()) return;
-  // readyState 0 = no attempt yet, or a previous attempt failed and settled.
-  // The driver never retries a failed initial connect, so a transient
-  // failure would otherwise poison this serverless instance permanently.
+  // readyState 0: no attempt yet, or the last one failed. The driver never
+  // retries a failed initial connect, so without a new attempt one transient
+  // failure would keep this instance in demo mode for good.
   if (!connecting || mongoose.connection.readyState === 0) startConnection(env.DB_URL);
   await waitAtMost(connecting, 8000);
 }
@@ -76,9 +69,8 @@ function corsOrigin(value) {
   return origins.length === 0 || origins.includes("*") ? "*" : origins;
 }
 
-// Sign-up and login: 10 attempts per IP per 15 minutes. On serverless the
-// count is per running instance, so this slows guessing rather than capping
-// it exactly.
+// Sign-up and login attempts per IP. Each serverless instance keeps its own
+// count, so this slows password guessing rather than capping it exactly.
 function authRateLimiter(options = {}) {
   return createRateLimiter({
     windowMs: 15 * 60 * 1000,
@@ -116,9 +108,8 @@ function createApp({
   app.locals.geocode = geocode;
   app.locals.env = env;
 
-  // Report missing configuration once, when the app first handles a
-  // request (on Vercel, straight after boot), rather than whenever app.js
-  // is imported by a script or test that builds its own app.
+  // Warn about missing config on the first request rather than at import, so
+  // scripts and tests that build their own app stay quiet.
   app.use((req, res, next) => {
     checkConfig(env);
     next();
@@ -131,9 +122,8 @@ function createApp({
 
   app.use(noStoreOnErrors);
 
-  // A JSON and image API: no HTML is ever served, so the CSP denies
-  // everything. Images are loaded cross-origin by the client, which needs
-  // Cross-Origin-Resource-Policy: cross-origin.
+  // A JSON and image API serves no HTML, so the CSP denies everything. The
+  // client loads images from another origin, hence the cross-origin CORP.
   app.use(
     helmet({
       contentSecurityPolicy: {
@@ -144,8 +134,8 @@ function createApp({
     }),
   );
 
-  // CORS answers preflight requests itself (204), before the database gate,
-  // so a browser sees the real response even in demo mode.
+  // Before the demo-mode gate, so preflight requests get their 204 even in
+  // demo mode.
   app.use(
     cors({
       origin: corsOrigin(env.CORS_ORIGIN),
@@ -155,8 +145,8 @@ function createApp({
     }),
   );
 
-  // JSON only: the client posts JSON (login, edits) or multipart (uploads,
-  // handled by multer on those routes). Nothing posts urlencoded forms.
+  // JSON only: uploads are multipart (multer, on their own routes) and nothing
+  // posts urlencoded forms.
   app.use(express.json({ limit: "100kb" }));
 
   if (rateLimit) {
@@ -164,9 +154,9 @@ function createApp({
     app.post(["/api/users/login", "/api/users/signup"], limiter);
   }
 
-  // Edge caching for reads: the CDN answers instantly from cache and revalidates
-  // in the background, which hides serverless cold starts from visitors. Writes
-  // are never cached; a read right after a write may be one view stale.
+  // The CDN answers reads from cache and revalidates in the background, which
+  // hides serverless cold starts. A read straight after a write may be one view
+  // stale; the client adds ?fresh= after its own writes.
   app.use((req, res, next) => {
     if (req.method === "GET") {
       res.setHeader("Cache-Control", "s-maxage=1, stale-while-revalidate=599");
@@ -174,17 +164,16 @@ function createApp({
     next();
   });
 
-  // Health check: waits for the connection like any request, then reports
-  // "db" or "demo" (no DB_URL, or the connection failed), so a check after a
-  // deploy tells the truth. Existing keys are unchanged.
+  // Health check. It waits for the connection like any other request, so
+  // `mode` right after a deploy says whether the database is really in use.
   app.get("/", async (req, res) => {
     await ensureConnection(env);
     res.json({ status: "ok", api: "Scenic backend", mode: usesDatabase(env) ? "db" : "demo" });
   });
 
-  // DEMO MODE: while no database is configured or reachable, reads are
-  // answered from demo data and writes get a clear 503 (Routes/demo.js).
-  // Bypassed once MongoDB connects.
+  // Demo mode: with no database configured or reachable, visitors still get a
+  // working read-only app. Reads come from demo data and writes get a 503
+  // (Routes/demo.js).
   app.use(async (req, res, next) => {
     await ensureConnection(env);
     if (usesDatabase(env)) return next();
@@ -194,11 +183,8 @@ function createApp({
   app.use("/api/scenes", sceneRoutes);
   app.use("/api/users", userRoutes);
 
-  // Unmatched routes get a JSON 404. Only an HttpError (or a known library
-  // error, see middleware/errors.js) chooses the status and the message.
-  // Anything else is logged and answered with a generic 500, so internals
-  // never reach the client and a MongoDB error code is never mistaken for
-  // an HTTP status.
+  // Only an HttpError or a known library error chooses the status and message.
+  // Anything else is logged and answered with a generic 500 (middleware/errors.js).
   app.use(notFound);
   app.use(errorHandler);
 

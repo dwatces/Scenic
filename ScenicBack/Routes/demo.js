@@ -15,8 +15,8 @@ const {
 const { sendStoredImage } = require("../util/send-image");
 const demo = require("../util/demoData");
 
-// True in both cases that lead here (no DB_URL, or the database can't be
-// reached), and promises nothing about when that will change.
+// Worded to be true for both causes (no DB_URL, or an unreachable database)
+// and to promise nothing about when that will change.
 const DEMO_WRITE =
   "Scenic isn't connected to its database, so signing up, logging in and posting are turned off. You can still browse the demo scenes.";
 

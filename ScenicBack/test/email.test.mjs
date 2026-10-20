@@ -7,7 +7,7 @@ const { emailField } = require("../util/email.js");
 
 // Outputs recorded once from express-validator 6.13.0 + validator 13.7.0
 // (the versions in the old lockfile) running the old sign-up chain,
-// check("email").normalizeEmail().isEmail(), in a scratch install.
+// check("email").normalizeEmail().isEmail(), in a throwaway install.
 const STORED_BY_V6 = {
   "Test.User+123@Gmail.com": "testuser@gmail.com",
   "test.user@gmail.com": "testuser@gmail.com",

@@ -43,7 +43,7 @@ const getUserById = async (req, res) => {
   res.json({ user: serializeUser(user) });
 };
 
-// GET /api/users/:userId/image. The member's avatar as an image response.
+// GET /api/users/:userId/image
 const getUserImage = async (req, res) => {
   const user = await User.findById(req.params.userId, "image").lean();
   if (!user) throw new HttpError(MEMBER_NOT_FOUND, 404);
@@ -52,9 +52,8 @@ const getUserImage = async (req, res) => {
 
 const signup = async (req, res) => {
   assertValid(req);
-  // The avatar is optional: without one the member has no stored image and
-  // clients show their initial instead. A file that is sent must be a real
-  // JPEG, PNG or WebP.
+  // The avatar is optional (clients show the member's initial instead), but a
+  // file that is sent must be a real JPEG, PNG or WebP.
   const image = req.file && req.file.size > 0 ? readUploadedImage(req.file) : undefined;
   const { name, email, password } = req.body;
 

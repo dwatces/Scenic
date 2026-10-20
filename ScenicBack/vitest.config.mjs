@@ -2,7 +2,7 @@ import { defineConfig } from "vitest/config";
 
 // The API is CommonJS and keeps module-level state (the mongoose connection,
 // the demo-mode connect promise), so every test file runs in its own forked
-// process, one file at a time, on fixed ports inside 7103-7109.
+// process, one file at a time, on fixed ports.
 export default defineConfig({
   test: {
     include: ["test/**/*.test.mjs"],
@@ -13,8 +13,8 @@ export default defineConfig({
     fileParallelism: false,
     testTimeout: 30000,
     hookTimeout: 90000,
-    // npm run test:coverage. The app is loaded with Node's own require, which
-    // V8's coverage still sees. Demo fixtures are data, not logic.
+    // The app is loaded with Node's own require, which V8 coverage still sees.
+    // Demo data is not logic, so it is left out.
     coverage: {
       provider: "v8",
       include: ["app.js", "controllers/**", "middleware/**", "Routes/**", "util/**", "models/**"],

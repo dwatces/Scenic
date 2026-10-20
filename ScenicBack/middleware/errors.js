@@ -5,7 +5,7 @@ const HttpError = require("../models/http-error");
 const GENERIC_MESSAGE = "Something went wrong. Please try again.";
 const DUPLICATE_EMAIL = "An account with this email already exists.";
 
-/** Errors we expect, translated into an HttpError; null for anything else. */
+/** Expected errors as an HttpError; null for anything else. */
 function knownError(err) {
   if (err instanceof HttpError) return err;
   if (!err) return null;
