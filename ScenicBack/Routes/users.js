@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const { check } = require("express-validator");
+const { body } = require("express-validator");
 const usersControllers = require("../controllers/users");
 const upload = require("../middleware/upload");
 
@@ -9,9 +9,12 @@ router.post(
   "/signup",
   upload.single("image"),
   [
-    check("name").not().isEmpty(),
-    check("email").normalizeEmail().isEmail(),
-    check("password").isLength({ min: 6 }),
+    body("name").isString().trim().notEmpty().withMessage("Add your name."),
+    body("email").normalizeEmail().isEmail().withMessage("Enter a valid email address."),
+    body("password")
+      .isString()
+      .isLength({ min: 6 })
+      .withMessage("Your password needs at least 6 characters."),
   ],
   usersControllers.signup
 );

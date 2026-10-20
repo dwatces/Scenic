@@ -38,8 +38,7 @@ describe("JWT_KEY unset", () => {
       .field("description", "Posted with a forged token.")
       .field("address", "Anywhere")
       .attach("image", PNG_1PX, { filename: "a.png", contentType: "image/png" });
-    expect(res.status).toBeGreaterThanOrEqual(400);
-    expect(res.status).toBeLessThan(500);
+    expect(res.status).toBe(401);
     const Scene = require("../models/scene.js");
     expect(await Scene.countDocuments()).toBe(0);
   });

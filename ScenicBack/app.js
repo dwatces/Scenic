@@ -3,7 +3,7 @@ require("dotenv").config({ quiet: true });
 const express = require("express");
 const mongoose = require("mongoose");
 const connection = require("./middleware/mongo");
-const HttpError = require("./models/http-error");
+const { errorHandler, notFound, noStoreOnErrors } = require("./middleware/errors");
 const sceneRoutes = require("./Routes/scene");
 const userRoutes = require("./Routes/users");
 const demo = require("./util/demoData");
@@ -54,8 +54,10 @@ function createApp({
   app.locals.geocode = geocode;
   app.locals.env = env;
 
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
+  app.use(noStoreOnErrors);
+  // JSON only: the client posts JSON (login, edits) or multipart (uploads,
+  // handled by multer on those routes). Nothing posts urlencoded forms.
+  app.use(express.json({ limit: "100kb" }));
 
   app.use((req, res, next) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
@@ -121,26 +123,13 @@ function createApp({
   app.use("/api/scenes", sceneRoutes);
   app.use("/api/users", userRoutes);
 
-  // unmatched routes -> 404
-  app.use((req, res, next) => {
-    next(new HttpError("Could not find this route.", 404));
-  });
-
-  // central error handler
-  app.use((error, req, res, next) => {
-    if (res.headersSent) {
-      return next(error);
-    }
-    // Only an HttpError chooses the status and the message. Anything else
-    // (a driver error, a bug) is logged and answered with a generic 500, so
-    // internal details never reach the client and a MongoDB error code is
-    // never mistaken for an HTTP status.
-    if (error instanceof HttpError) {
-      return res.status(error.code).json({ message: error.message });
-    }
-    console.error(error);
-    res.status(500).json({ message: "Something went wrong. Please try again." });
-  });
+  // Unmatched routes get a JSON 404. Only an HttpError (or a known library
+  // error, see middleware/errors.js) chooses the status and the message.
+  // Anything else is logged and answered with a generic 500, so internals
+  // never reach the client and a MongoDB error code is never mistaken for
+  // an HTTP status.
+  app.use(notFound);
+  app.use(errorHandler);
 
   return app;
 }

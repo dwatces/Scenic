@@ -1,197 +1,90 @@
-const { validationResult } = require("express-validator");
 const mongoose = require("mongoose");
 const HttpError = require("../models/http-error");
 const Scene = require("../models/scene");
 const User = require("../models/user");
+const { assertValid } = require("../middleware/validate");
+const { readUploadedImage } = require("../middleware/upload");
 
-const getSceneById = async (req, res, next) => {
-  const sceneId = req.params.sceneId;
+const SCENE_NOT_FOUND = "We couldn't find that scene.";
+const MEMBER_NOT_FOUND = "We couldn't find that member.";
+const NOT_OWNER = "You can only change your own scenes.";
 
-  let scene;
+// Handlers are async: Express 5 passes a rejected promise to the error
+// handler, so a thrown HttpError becomes its status and message, and any
+// other error a generic 500.
 
-  try {
-    scene = await Scene.findById(sceneId);
-  } catch (err) {
-    const error = new HttpError("Could not find this scene", 500);
-    return next(error);
-  }
-
-  if (!scene) {
-    const error = new HttpError(
-      "Could not find a scene with the provided scene id",
-      404
-    );
-    return next(error);
-  }
-
+const getSceneById = async (req, res) => {
+  const scene = await Scene.findById(req.params.sceneId);
+  if (!scene) throw new HttpError(SCENE_NOT_FOUND, 404);
   res.json({ scene: scene.toObject({ getters: true }) });
 };
 
-const getScenesByUserId = async (req, res, next) => {
-  const userId = req.params.userId;
-
-  let userWithScenes;
-  try {
-    userWithScenes = await User.findById(userId).populate("scenes");
-  } catch (err) {
-    return next(new HttpError("Fetching scenes failed, please try again", 500));
-  }
-
-  if (!userWithScenes) {
-    return next(
-      new HttpError("Could not find a user for the provided id", 404)
-    );
-  }
-
+const getScenesByUserId = async (req, res) => {
+  const userWithScenes = await User.findById(req.params.userId).populate("scenes");
+  if (!userWithScenes) throw new HttpError(MEMBER_NOT_FOUND, 404);
   res.json({
-    scenes: userWithScenes.scenes.map((scene) =>
-      scene.toObject({ getters: true })
-    ),
+    scenes: userWithScenes.scenes.map((scene) => scene.toObject({ getters: true })),
   });
 };
 
-const createScene = async (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return next(new HttpError("Invalid inputs, please try again", 422));
-  }
-
+const createScene = async (req, res) => {
+  assertValid(req);
+  const image = readUploadedImage(req.file);
   const { title, description, address } = req.body;
+  const { userId } = req.userData;
 
-  let coordinates;
-  try {
-    coordinates = await req.app.locals.geocode(address);
-  } catch (error) {
-    return next(error);
+  if (!(await User.exists({ _id: userId }))) {
+    throw new HttpError("We couldn't find your account. Sign in again.", 404);
   }
 
-  const encImage = req.file.buffer.toString("base64");
+  const location = await req.app.locals.geocode(address);
+  const createdScene = new Scene({ title, description, image, address, location, creator: userId });
 
-  const createdScene = new Scene({
-    title,
-    description,
-    image: {
-      data: encImage,
-      contentType: req.file.mimetype,
-    },
-    address,
-    location: coordinates,
-    creator: req.userData.userId,
+  // The scene and the creator's list change together or not at all.
+  await mongoose.connection.transaction(async (session) => {
+    await createdScene.save({ session });
+    await User.updateOne(
+      { _id: userId },
+      { $addToSet: { scenes: createdScene._id } },
+      { session }
+    );
   });
 
-  let user;
-
-  try {
-    user = await User.findById(req.userData.userId);
-  } catch (err) {
-    const error = new HttpError("Creating scene failed, please try again", 500);
-    return next(error);
-  }
-
-  if (!user) {
-    const error = new HttpError("Could not find user for provided id", 404);
-    return next(error);
-  }
-
-  try {
-    const sess = await mongoose.startSession();
-    sess.startTransaction();
-    await createdScene.save({ session: sess });
-    user.scenes.push(createdScene);
-    await user.save({ session: sess });
-    await sess.commitTransaction();
-  } catch (err) {
-    const error = new HttpError(
-      "Scene creation failed, please try again.",
-      500
-    );
-    return next(error);
-  }
-
-  res.status(201).json({ scene: createdScene });
+  res.status(201).json({ scene: createdScene.toObject({ getters: true }) });
 };
 
-const updateScene = async (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return next(new HttpError("Invalid inputs, please try again", 422));
-  }
+const updateScene = async (req, res) => {
+  assertValid(req);
+  const scene = await Scene.findById(req.params.sceneId);
+  if (!scene) throw new HttpError(SCENE_NOT_FOUND, 404);
+  if (scene.creator.toString() !== req.userData.userId) throw new HttpError(NOT_OWNER, 403);
 
-  const { title, description } = req.body;
-  const sceneId = req.params.sceneId;
+  scene.title = req.body.title;
+  scene.description = req.body.description;
+  await scene.save();
 
-  let scene;
-  try {
-    scene = await Scene.findById(sceneId);
-  } catch (err) {
-    const error = new HttpError("Could not find this scene to update", 500);
-    return next(error);
-  }
-
-  if (scene.creator.toString() !== req.userData.userId) {
-    const error = new HttpError("You cannot update this scene", 401);
-    return next(error);
-  }
-
-  scene.title = title;
-  scene.description = description;
-
-  try {
-    await scene.save();
-  } catch (err) {
-    const error = new HttpError("Could not update this scene", 500);
-    return next(error);
-  }
-
-  return res.status(200).json({ scene: scene.toObject({ getters: true }) });
+  res.status(200).json({ scene: scene.toObject({ getters: true }) });
 };
 
-const deleteScene = async (req, res, next) => {
-  const sceneId = req.params.sceneId;
+const deleteScene = async (req, res) => {
+  const scene = await Scene.findById(req.params.sceneId, "creator");
+  if (!scene) throw new HttpError(SCENE_NOT_FOUND, 404);
+  if (scene.creator.toString() !== req.userData.userId) throw new HttpError(NOT_OWNER, 403);
 
-  let scene;
-  try {
-    scene = await Scene.findById(sceneId).populate("creator");
-  } catch (err) {
-    const error = new HttpError(
-      "Something went wrong, cannot delete this scene",
-      500
-    );
-    return next(error);
-  }
-
-  if (!scene) {
-    const error = new HttpError("Scene not found by given ID", 404);
-    return next(error);
-  }
-
-  if (scene.creator.id !== req.userData.userId) {
-    const error = new HttpError("You cannot delete this scene", 401);
-    return next(error);
-  }
-
-  try {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    await scene.deleteOne({ session });
-    scene.creator.scenes.pull(scene);
-    await scene.creator.save({ session });
-    await session.commitTransaction();
-  } catch (err) {
-    const error = new HttpError(
-      "Something went wrong, cannot delete this scene",
-      500
-    );
-    return next(error);
-  }
-
-  res.status(200).json({
-    message: "Scene deleted successfully",
+  await mongoose.connection.transaction(async (session) => {
+    await Scene.deleteOne({ _id: scene._id }, { session });
+    await User.updateOne({ _id: scene.creator }, { $pull: { scenes: scene._id } }, { session });
   });
+
+  res.status(200).json({ message: "Scene deleted successfully" });
 };
 
-exports.getSceneById = getSceneById;
-exports.getScenesByUserId = getScenesByUserId;
-exports.createScene = createScene;
-exports.updateScene = updateScene;
-exports.deleteScene = deleteScene;
+module.exports = {
+  getSceneById,
+  getScenesByUserId,
+  createScene,
+  updateScene,
+  deleteScene,
+  SCENE_NOT_FOUND,
+  MEMBER_NOT_FOUND,
+};

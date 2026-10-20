@@ -1,21 +1,23 @@
 const jwt = require("jsonwebtoken");
-
 const HttpError = require("../models/http-error");
 
+const SIGN_IN = "Sign in to do that.";
+const EXPIRED = "Your session has expired. Sign in again.";
+
+/** Requires `Authorization: Bearer <token>`; sets req.userData.userId. */
 module.exports = (req, res, next) => {
-  if (req.method === "OPTIONS") {
-    return next();
+  if (req.method === "OPTIONS") return next();
+
+  const [scheme, token] = (req.headers.authorization || "").split(" ");
+  if (!/^Bearer$/i.test(scheme || "") || !token) {
+    return next(new HttpError(SIGN_IN, 401));
   }
+
   try {
-    const token = req.headers.authorization.split(" ")[1];
-    if (!token) {
-      throw new Error("Authentication failed");
-    }
-    const decodedToken = jwt.verify(token, process.env.JWT_KEY);
-    req.userData = { userId: decodedToken.userId };
-    next();
+    const decoded = jwt.verify(token, req.app.locals.env.JWT_KEY);
+    req.userData = { userId: decoded.userId };
+    return next();
   } catch (err) {
-    const error = new HttpError("Unable to authenticate your details", 403);
-    return next(error);
+    return next(new HttpError(err.name === "TokenExpiredError" ? EXPIRED : SIGN_IN, 401));
   }
 };

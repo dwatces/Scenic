@@ -40,6 +40,7 @@ describe("demo mode (no database configured)", () => {
       .send({ email: "a@b.co", password: "secret1" });
     expect(login.status).toBe(503);
     expect(login.body.message).toMatch(/Demo mode/);
+    expect(login.headers["cache-control"]).toBe("no-store");
 
     const create = await request(server)
       .post("/api/scenes")

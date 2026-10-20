@@ -1,5 +1,5 @@
 // The API against a real (in-memory) MongoDB replica set: accounts, scenes,
-// ownership. Known bugs are listed at the end as todo/fails until fixed.
+// ownership, ids, uploads and error responses.
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import request from "supertest";
 import {
@@ -10,30 +10,38 @@ import {
   close,
   dbUrl,
   PNG_1PX,
+  JPEG_1PX,
+  WEBP_1PX,
+  GIF_1PX,
   STUB_COORDS,
 } from "./helpers.mjs";
 
 const PASSWORD = "secret123";
+const MISSING_ID = "5f0000000000000000000000";
 
-function signup(server, { name = "Test Member", email, password = PASSWORD, image = true } = {}) {
+function signup(server, { name = "Test Member", email, password = PASSWORD, image = PNG_1PX } = {}) {
   const req = request(server)
     .post("/api/users/signup")
     .field("name", name)
     .field("email", email)
     .field("password", password);
-  return image ? req.attach("image", PNG_1PX, { filename: "a.png", contentType: "image/png" }) : req;
+  return image ? req.attach("image", image, { filename: "a.png", contentType: "image/png" }) : req;
 }
 
 function login(server, email, password = PASSWORD) {
   return request(server).post("/api/users/login").send({ email, password });
 }
 
-function createScene(server, token, fields = {}) {
+function createScene(server, token, { fields = {}, image = PNG_1PX, filename = "a.png", contentType = "image/png" } = {}) {
   const body = { title: "Rangitoto", description: "The summit at sunrise.", address: "Rangitoto Island", ...fields };
   let req = request(server).post("/api/scenes");
   if (token) req = req.set("Authorization", `Bearer ${token}`);
   for (const [key, value] of Object.entries(body)) req = req.field(key, value);
-  return req.attach("image", PNG_1PX, { filename: "a.png", contentType: "image/png" });
+  return image ? req.attach("image", image, { filename, contentType }) : req;
+}
+
+function expectNoInternals(res) {
+  expect(JSON.stringify(res.body)).not.toMatch(/Cannot read properties|at .+\.js:\d+|Cast to ObjectId/);
 }
 
 describe("API with a database", () => {
@@ -41,6 +49,11 @@ describe("API with a database", () => {
   let owner; // { userId, token }
   let other;
   let sceneId;
+
+  async function expectAlive() {
+    const res = await request(server).get("/");
+    expect(res.status).toBe(200);
+  }
 
   beforeAll(async () => {
     server = await listen(buildApp({ env: { ...process.env, DB_URL: dbUrl("api") } }));
@@ -74,18 +87,15 @@ describe("API with a database", () => {
     it("refuses a second account with the same email", async () => {
       const res = await signup(server, { email: "owner@example.com" });
       expect(res.status).toBe(422);
-      expect(res.body.message).toEqual(expect.any(String));
+      expect(res.body.message).toBe("An account with this email already exists.");
     });
 
     it("maps a duplicate-key race to the same 422 (unique index, no plugin)", async () => {
       const User = require("../models/user.js");
       await User.init(); // index builds are asynchronous on a fresh database
       const email = "race@example.com";
-      const results = await Promise.all(
-        Array.from({ length: 4 }, () => signup(server, { email }))
-      );
-      const statuses = results.map((r) => r.status).sort();
-      expect(statuses).toEqual([201, 422, 422, 422]);
+      const results = await Promise.all(Array.from({ length: 4 }, () => signup(server, { email })));
+      expect(results.map((r) => r.status).sort()).toEqual([201, 422, 422, 422]);
       for (const r of results.filter((r) => r.status === 422)) {
         expect(r.body.message).toBe("An account with this email already exists.");
       }
@@ -100,9 +110,20 @@ describe("API with a database", () => {
       await expect(User.create(doc)).rejects.toMatchObject({ code: 11000 });
     });
 
-    it("refuses invalid sign-up input with 422", async () => {
+    it("refuses invalid sign-up input with a 422 that names the problem", async () => {
       const res = await signup(server, { email: "not-an-email" });
       expect(res.status).toBe(422);
+      expect(res.body.message).toBe("Enter a valid email address.");
+      const short = await signup(server, { email: "short@example.com", password: "12345" });
+      expect(short.status).toBe(422);
+      expect(short.body.message).toBe("Your password needs at least 6 characters.");
+    });
+
+    it("refuses sign-up without an image with 422 (the avatar becomes optional later)", async () => {
+      const res = await signup(server, { email: "noimage@example.com", image: null });
+      expect(res.status).toBe(422);
+      expect(res.body.message).toBe("Add a JPEG, PNG or WebP image.");
+      await expectAlive();
     });
 
     it("logs in with the email and password", async () => {
@@ -112,14 +133,13 @@ describe("API with a database", () => {
       expect(typeof res.body.token).toBe("string");
     });
 
-    it("refuses a wrong password without a token", async () => {
+    it("refuses a wrong password with 401 and no token", async () => {
       const res = await login(server, "owner@example.com", "wrong-password");
-      expect(res.status).toBeGreaterThanOrEqual(400);
-      expect(res.status).toBeLessThan(500);
+      expect(res.status).toBe(401);
       expect(res.body.token).toBeUndefined();
     });
 
-    it("refuses an unknown email without a token", async () => {
+    it("refuses an unknown email with 401 and no token", async () => {
       const res = await login(server, "nobody@example.com");
       expect(res.status).toBe(401);
       expect(res.body.token).toBeUndefined();
@@ -138,7 +158,8 @@ describe("API with a database", () => {
     it("creates a scene and links it to its creator in one transaction", async () => {
       const res = await createScene(server, owner.token);
       expect(res.status).toBe(201);
-      sceneId = res.body.scene._id || res.body.scene.id;
+      sceneId = res.body.scene.id;
+      expect(res.body.scene._id).toBe(sceneId);
       expect(res.body.scene.location).toEqual(STUB_COORDS);
       const User = require("../models/user.js");
       const user = await User.findById(owner.userId);
@@ -160,11 +181,6 @@ describe("API with a database", () => {
       expect(res.body.scene.address).toBe("Rangitoto Island");
     });
 
-    it("returns 404 for a well-formed id that doesn't exist", async () => {
-      const res = await request(server).get("/api/scenes/5f0000000000000000000000");
-      expect(res.status).toBe(404);
-    });
-
     it("lets the owner edit the title and description", async () => {
       const res = await request(server)
         .patch(`/api/scenes/${sceneId}`)
@@ -174,37 +190,236 @@ describe("API with a database", () => {
       expect(res.body.scene.title).toBe("Rangitoto summit");
     });
 
-    it("refuses invalid edits with 422", async () => {
+    it("refuses invalid edits with a 422 that names the problem", async () => {
       const res = await request(server)
         .patch(`/api/scenes/${sceneId}`)
         .set("Authorization", `Bearer ${owner.token}`)
-        .send({ title: "", description: "x" });
+        .send({ title: "", description: "Long enough." });
       expect(res.status).toBe(422);
+      expect(res.body.message).toBe("Add a title.");
     });
 
-    it("never lets another member edit or delete the scene", async () => {
+    it("refuses an edit with no JSON body with 422", async () => {
+      const res = await request(server)
+        .patch(`/api/scenes/${sceneId}`)
+        .set("Authorization", `Bearer ${owner.token}`)
+        .set("Content-Type", "text/plain")
+        .send("title=x");
+      expect(res.status).toBe(422);
+    });
+  });
+
+  describe("authentication and ownership", () => {
+    beforeAll(async () => {
       other = (await signup(server, { name: "Other", email: "other@example.com" })).body;
+    });
+
+    it("answers 403 when another member edits or deletes the scene, and changes nothing", async () => {
       const patch = await request(server)
         .patch(`/api/scenes/${sceneId}`)
         .set("Authorization", `Bearer ${other.token}`)
         .send({ title: "Hijacked", description: "Not my scene at all." });
-      expect(patch.status).toBeGreaterThanOrEqual(400);
+      expect(patch.status).toBe(403);
+      expect(patch.body.message).toBe("You can only change your own scenes.");
       const del = await request(server)
         .delete(`/api/scenes/${sceneId}`)
         .set("Authorization", `Bearer ${other.token}`);
-      expect(del.status).toBeGreaterThanOrEqual(400);
+      expect(del.status).toBe(403);
       const after = await request(server).get(`/api/scenes/${sceneId}`);
       expect(after.body.scene.title).toBe("Rangitoto summit");
     });
 
-    it("refuses to create a scene without a token", async () => {
+    it("answers 401 for a write without a token, and creates nothing", async () => {
       const res = await createScene(server, null);
-      expect(res.status).toBeGreaterThanOrEqual(400);
-      expect(res.status).toBeLessThan(500);
+      expect(res.status).toBe(401);
+      expect(res.body.message).toBe("Sign in to do that.");
       const Scene = require("../models/scene.js");
       expect(await Scene.countDocuments()).toBe(1);
     });
 
+    it("answers 401 for a garbage or wrongly signed token", async () => {
+      const garbage = await createScene(server, "not-a-jwt");
+      expect(garbage.status).toBe(401);
+      const jwt = require("jsonwebtoken");
+      const forged = jwt.sign({ userId: owner.userId }, "some-other-key");
+      const res = await request(server)
+        .delete(`/api/scenes/${sceneId}`)
+        .set("Authorization", `Bearer ${forged}`);
+      expect(res.status).toBe(401);
+    });
+
+    it("answers 401 with a clear message for an expired token", async () => {
+      const jwt = require("jsonwebtoken");
+      const expired = jwt.sign({ userId: owner.userId, exp: Math.floor(Date.now() / 1000) - 60 }, process.env.JWT_KEY);
+      const res = await request(server)
+        .delete(`/api/scenes/${sceneId}`)
+        .set("Authorization", `Bearer ${expired}`);
+      expect(res.status).toBe(401);
+      expect(res.body.message).toBe("Your session has expired. Sign in again.");
+    });
+  });
+
+  describe("ids", () => {
+    it.each([
+      ["a malformed scene id", "/api/scenes/not-an-id", "We couldn't find that scene."],
+      ["a 12-character scene id", "/api/scenes/abcdefghijkl", "We couldn't find that scene."],
+      ["a well-formed scene id that doesn't exist", `/api/scenes/${MISSING_ID}`, "We couldn't find that scene."],
+      ["a malformed member id", "/api/scenes/user/notanid", "We couldn't find that member."],
+      ["a well-formed member id that doesn't exist", `/api/scenes/user/${MISSING_ID}`, "We couldn't find that member."],
+    ])("GET with %s → 404", async (_label, path, message) => {
+      const res = await request(server).get(path);
+      expect(res.status).toBe(404);
+      expect(res.body.message).toBe(message);
+      expectNoInternals(res);
+    });
+
+    it("PATCH and DELETE on a well-formed id that doesn't exist → 404, process alive", async () => {
+      const patch = await request(server)
+        .patch(`/api/scenes/${MISSING_ID}`)
+        .set("Authorization", `Bearer ${owner.token}`)
+        .send({ title: "Ghost", description: "This scene does not exist." });
+      expect(patch.status).toBe(404);
+      const del = await request(server)
+        .delete(`/api/scenes/${MISSING_ID}`)
+        .set("Authorization", `Bearer ${owner.token}`);
+      expect(del.status).toBe(404);
+      await expectAlive();
+    });
+
+    it("PATCH on a malformed id → 404", async () => {
+      const res = await request(server)
+        .patch("/api/scenes/not-an-id")
+        .set("Authorization", `Bearer ${owner.token}`)
+        .send({ title: "Ghost", description: "This scene does not exist." });
+      expect(res.status).toBe(404);
+    });
+  });
+
+  describe("uploads", () => {
+    it("refuses a scene without an image with 422, process alive", async () => {
+      const res = await createScene(server, owner.token, { image: null });
+      expect(res.status).toBe(422);
+      expect(res.body.message).toBe("Add a JPEG, PNG or WebP image.");
+      await expectAlive();
+    });
+
+    it("refuses an image over 3 MB with 413, process alive", async () => {
+      const big = Buffer.concat([JPEG_1PX, Buffer.alloc(3.5 * 1024 * 1024)]);
+      const res = await createScene(server, owner.token, { image: big, filename: "big.jpg", contentType: "image/jpeg" });
+      expect(res.status).toBe(413);
+      expect(res.body.message).toBe("Images must be 3 MB or smaller.");
+      await expectAlive();
+    });
+
+    it("refuses a GIF with 422, process alive", async () => {
+      const res = await createScene(server, owner.token, { image: GIF_1PX, filename: "a.gif", contentType: "image/gif" });
+      expect(res.status).toBe(422);
+      await expectAlive();
+    });
+
+    it("refuses HTML labelled image/png with 422 (bytes are checked)", async () => {
+      const html = Buffer.from("<!doctype html><script>alert(1)</script>");
+      const res = await createScene(server, owner.token, { image: html });
+      expect(res.status).toBe(422);
+      expect(res.body.message).toBe("That file isn't a JPEG, PNG or WebP image.");
+      await expectAlive();
+    });
+
+    it("refuses a second file in the request with 422", async () => {
+      const res = await createScene(server, owner.token).attach("image", PNG_1PX, {
+        filename: "b.png",
+        contentType: "image/png",
+      });
+      expect(res.status).toBe(422);
+    });
+
+    it("stores the type found in the bytes, not the one the client claims", async () => {
+      const res = await createScene(server, owner.token, {
+        fields: { title: "Labelled JPEG, really PNG" },
+        image: PNG_1PX,
+        filename: "a.jpg",
+        contentType: "image/jpeg",
+      });
+      expect(res.status).toBe(201);
+      expect(res.body.scene.image.contentType).toBe("image/png");
+    });
+
+    it("accepts WebP and JPEG", async () => {
+      const webp = await createScene(server, owner.token, {
+        fields: { title: "WebP scene" },
+        image: WEBP_1PX,
+        filename: "a.webp",
+        contentType: "image/webp",
+      });
+      expect(webp.status).toBe(201);
+      expect(webp.body.scene.image.contentType).toBe("image/webp");
+      const jpeg = await createScene(server, owner.token, {
+        fields: { title: "JPEG scene" },
+        image: JPEG_1PX,
+        filename: "a.jpg",
+        contentType: "image/jpeg",
+      });
+      expect(jpeg.status).toBe(201);
+      expect(jpeg.body.scene.image.contentType).toBe("image/jpeg");
+    });
+  });
+
+  describe("error responses", () => {
+    it("answers malformed JSON with 400 and a JSON message", async () => {
+      const res = await request(server)
+        .post("/api/users/login")
+        .set("Content-Type", "application/json")
+        .send('{"email": "owner@example.com", ');
+      expect(res.status).toBe(400);
+      expect(res.body.message).toBe("We couldn't read that request.");
+    });
+
+    it("answers a JSON body over 100 KB with 413", async () => {
+      const res = await request(server)
+        .patch(`/api/scenes/${sceneId}`)
+        .set("Authorization", `Bearer ${owner.token}`)
+        .send({ title: "Big", description: "x".repeat(120 * 1024) });
+      expect(res.status).toBe(413);
+    });
+
+    it("answers an unknown route with a JSON 404", async () => {
+      const res = await request(server).get("/api/nothing-here");
+      expect(res.status).toBe(404);
+      expect(res.body.message).toBe("That API route doesn't exist.");
+    });
+
+    it("sends Cache-Control: no-store on every 4xx, and read caching on 200", async () => {
+      const ok = await request(server).get(`/api/scenes/${sceneId}`);
+      expect(ok.headers["cache-control"]).toBe("s-maxage=1, stale-while-revalidate=599");
+
+      const failures = await Promise.all([
+        request(server).post("/api/users/login").set("Content-Type", "application/json").send("{"), // 400
+        createScene(server, null), // 401
+        request(server).delete(`/api/scenes/${sceneId}`).set("Authorization", `Bearer ${other.token}`), // 403
+        request(server).get(`/api/scenes/${MISSING_ID}`), // 404
+        request(server).get("/api/nothing-here"), // 404 route
+        createScene(server, owner.token, { image: Buffer.concat([JPEG_1PX, Buffer.alloc(3.2 * 1024 * 1024)]) }), // 413
+        createScene(server, owner.token, { image: null }), // 422
+      ]);
+      expect(failures.map((r) => r.status)).toEqual([400, 401, 403, 404, 404, 413, 422]);
+      for (const res of failures) {
+        expect(res.headers["cache-control"]).toBe("no-store");
+        expect(res.body.message).toEqual(expect.any(String));
+        expectNoInternals(res);
+      }
+    });
+
+    it("answers a conditional GET with 304 and the same caching as the 200", async () => {
+      const first = await request(server).get(`/api/scenes/${sceneId}`);
+      const etag = first.headers.etag;
+      expect(etag).toBeTruthy();
+      const again = await request(server).get(`/api/scenes/${sceneId}`).set("If-None-Match", etag);
+      expect(again.status).toBe(304);
+      expect(again.headers["cache-control"]).toBe(first.headers["cache-control"]);
+    });
+  });
+
+  describe("delete", () => {
     it("lets the owner delete the scene and unlinks it from the member", async () => {
       const res = await request(server)
         .delete(`/api/scenes/${sceneId}`)
@@ -214,71 +429,12 @@ describe("API with a database", () => {
       const gone = await request(server).get(`/api/scenes/${sceneId}`);
       expect(gone.status).toBe(404);
       const User = require("../models/user.js");
-      expect((await User.findById(owner.userId)).scenes).toHaveLength(0);
+      const user = await User.findById(owner.userId);
+      expect(user.scenes.map(String)).not.toContain(sceneId);
     });
   });
 
-  describe("errors", () => {
-    it("survives a failing handler and hides its internals (Express 5)", async () => {
-      // Create without an image used to be an unhandled rejection that ended
-      // the process on Express 4.
-      const res = await request(server)
-        .post("/api/scenes")
-        .set("Authorization", `Bearer ${owner.token}`)
-        .field("title", "No image")
-        .field("description", "There is no image here.")
-        .field("address", "Nowhere");
-      expect(res.status).toBeGreaterThanOrEqual(400);
-      expect(JSON.stringify(res.body)).not.toMatch(/Cannot read properties|at .+\.js:\d+/);
-      const health = await request(server).get("/");
-      expect(health.status).toBe(200);
-    });
-  });
-
-  describe("known bugs (fixed in later commits)", () => {
-    // These ended the process on Express 4. Express 5 forwards the error, so
-    // they now answer 500 instead of crashing; the right status comes next.
-    it.fails("signup without an image returns 422", async () => {
-      const res = await signup(server, { email: "noimage@example.com", image: false });
-      expect(res.status).toBe(422);
-    });
-
-    it.fails("create scene without an image returns 422", async () => {
-      const res = await request(server)
-        .post("/api/scenes")
-        .set("Authorization", `Bearer ${owner.token}`)
-        .field("title", "No image")
-        .field("description", "There is no image here.")
-        .field("address", "Nowhere");
-      expect(res.status).toBe(422);
-    });
-
-    it.fails("PATCH on a well-formed id that doesn't exist returns 404", async () => {
-      const res = await request(server)
-        .patch("/api/scenes/5f0000000000000000000000")
-        .set("Authorization", `Bearer ${owner.token}`)
-        .send({ title: "Ghost", description: "This scene does not exist." });
-      expect(res.status).toBe(404);
-    });
-
-    it.fails("ownership failures return 403", async () => {
-      const res = await request(server)
-        .patch(`/api/scenes/${(await createScene(server, owner.token)).body.scene._id}`)
-        .set("Authorization", `Bearer ${other.token}`)
-        .send({ title: "Hijacked", description: "Not my scene at all." });
-      expect(res.status).toBe(403);
-    });
-
-    it.fails("missing token returns 401", async () => {
-      const res = await createScene(server, null);
-      expect(res.status).toBe(401);
-    });
-
-    it.fails("GET with a malformed id returns 404", async () => {
-      const res = await request(server).get("/api/scenes/not-an-id");
-      expect(res.status).toBe(404);
-    });
-
+  describe("known bugs (fixed in the next commit)", () => {
     it.fails("the members list does not expose email addresses", async () => {
       const res = await request(server).get("/api/users/users");
       for (const user of res.body.users) expect(user).not.toHaveProperty("email");
@@ -291,10 +447,12 @@ describe("API with a database", () => {
       expect(res.status).toBe(200);
     });
 
-    it.fails("an operator object as the login email is refused with 401 or 422", async () => {
+    it.fails("an operator object as the login email never logs anyone in", async () => {
+      // With a real member's password, { $ne: null } matches the first
+      // account and would hand out its token.
       const res = await request(server)
         .post("/api/users/login")
-        .send({ email: { $ne: null }, password: "x" });
+        .send({ email: { $ne: null }, password: PASSWORD });
       expect(res.body.token).toBeUndefined();
       expect([401, 422]).toContain(res.status);
     });

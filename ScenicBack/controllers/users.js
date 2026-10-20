@@ -1,139 +1,54 @@
-const { validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const HttpError = require("../models/http-error");
 const User = require("../models/user");
+const { assertValid } = require("../middleware/validate");
+const { readUploadedImage } = require("../middleware/upload");
+const { DUPLICATE_EMAIL } = require("../middleware/errors");
 
-const DUPLICATE_EMAIL = "An account with this email already exists.";
+const LOGIN_FAILED = "Logging in failed, please try again";
 
-const getUsers = async (req, res, next) => {
-  let users;
-  try {
-    users = await User.find({}, "-password");
-  } catch (err) {
-    const error = new HttpError("Couldn't fetch users", 500);
-    return next(error);
-  }
+function signToken(user, jwtKey) {
+  return jwt.sign({ userId: user.id, email: user.email }, jwtKey, { expiresIn: "1h" });
+}
 
+const getUsers = async (req, res) => {
+  const users = await User.find({}, "-password");
   res.json({ users: users.map((user) => user.toObject({ getters: true })) });
 };
 
-const signup = async (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return next(new HttpError("Invalid inputs, please try again", 422));
-  }
-
+const signup = async (req, res) => {
+  assertValid(req);
+  const image = readUploadedImage(req.file);
   const { name, email, password } = req.body;
 
-  let existingUser;
-  try {
-    existingUser = await User.findOne({ email: email });
-  } catch (err) {
-    const error = new HttpError("Signing up failed, please try again", 500);
-    return next(error);
-  }
+  if (await User.exists({ email })) throw new HttpError(DUPLICATE_EMAIL, 422);
 
-  if (existingUser) {
-    return next(new HttpError(DUPLICATE_EMAIL, 422));
-  }
-
-  let hashedPassword = bcrypt.hashSync(password, 8);
-
-  const encImage = req.file.buffer.toString("base64");
-
-  const createdUser = new User({
+  // A sign-up racing this one past the check above loses on the unique
+  // index; the error handler maps that duplicate key to the same 422.
+  const createdUser = await User.create({
     name,
     email,
-    password: hashedPassword,
-    image: {
-      data: encImage,
-      contentType: req.file.mimetype,
-    },
+    password: bcrypt.hashSync(password, 8),
+    image,
     scenes: [],
   });
 
-  try {
-    await createdUser.save();
-  } catch (err) {
-    // Two sign-ups racing past the findOne above: the unique index decides.
-    if (err && err.code === 11000) {
-      return next(new HttpError(DUPLICATE_EMAIL, 422));
-    }
-    const error = new HttpError(
-      "Signing up failed, please try again later.",
-      500
-    );
-    return next(error);
-  }
-
-  let token;
-  try {
-    token = jwt.sign(
-      { userId: createdUser.id, email: createdUser.email },
-      process.env.JWT_KEY,
-      { expiresIn: "1h" }
-    );
-  } catch (err) {
-    const error = new HttpError("Signing up failed, please try again", 500);
-
-    return next(error);
-  }
-
-  res.status(201).json({ userId: createdUser.id, token: token });
+  const token = signToken(createdUser, req.app.locals.env.JWT_KEY);
+  res.status(201).json({ userId: createdUser.id, token });
 };
 
-const login = async (req, res, next) => {
+const login = async (req, res) => {
   const { email, password } = req.body;
 
-  let existingUser;
+  const existingUser = await User.findOne({ email });
+  if (!existingUser) throw new HttpError(LOGIN_FAILED, 401);
 
-  try {
-    existingUser = await User.findOne({ email: email });
-  } catch (err) {
-    const error = new HttpError("Logging in failed, please try again", 500);
-    return next(error);
-  }
+  const validPassword = await bcrypt.compare(password, existingUser.password);
+  if (!validPassword) throw new HttpError(LOGIN_FAILED, 401);
 
-  if (!existingUser) {
-    const error = new HttpError("Logging in failed, please try again", 401);
-    return next(error);
-  }
-
-  let validPassword = false;
-  try {
-    validPassword = await bcrypt.compare(password, existingUser.password);
-  } catch (err) {
-    const error = new HttpError(
-      "Could not log in, please confirm your credentials",
-      500
-    );
-    return next(error);
-  }
-
-  if (!validPassword) {
-    const error = new HttpError("Logging in failed, please try again", 403);
-    return next(error);
-  }
-
-  let token;
-  try {
-    token = jwt.sign(
-      { userId: existingUser.id, email: existingUser.email },
-      process.env.JWT_KEY,
-      { expiresIn: "1h" }
-    );
-  } catch (err) {
-    const error = new HttpError("Logging in failed, please try again", 500);
-    return next(error);
-  }
-
-  res.json({
-    userId: existingUser.id,
-    token: token,
-  });
+  const token = signToken(existingUser, req.app.locals.env.JWT_KEY);
+  res.json({ userId: existingUser.id, token });
 };
 
-exports.getUsers = getUsers;
-exports.signup = signup;
-exports.login = login;
+module.exports = { getUsers, signup, login };
