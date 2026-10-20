@@ -33,7 +33,7 @@ describe("Edit scene", () => {
     const title = await screen.findByLabelText("Title");
     expect(title).toHaveValue("Old title");
     expect(screen.getByLabelText("Description")).toHaveValue("Old description.");
-    expect(document.title).toBe("Edit Old title · Scenic");
+    await waitFor(() => expect(document.title).toBe("Edit Old title · Scenic"));
 
     await userEvent.clear(title);
     await userEvent.type(title, "New title");

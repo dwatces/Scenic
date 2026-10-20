@@ -18,7 +18,7 @@ describe("Log in", () => {
       "POST /users/login": () => json({ userId: "u1", token: "fresh-token" }),
     });
     const { auth } = renderPage(<Login />, { path: "/login" });
-    expect(document.title).toBe("Log in · Scenic");
+    await waitFor(() => expect(document.title).toBe("Log in · Scenic"));
     await userEvent.type(screen.getByLabelText("Email"), "kiri@example.com");
     await userEvent.type(screen.getByLabelText("Password"), "secret123");
     await userEvent.click(screen.getByRole("button", { name: "Log in" }));
@@ -96,7 +96,7 @@ describe("Sign up", () => {
   it("signs up without a photo: multipart name, email and password, then the session starts", async () => {
     const calls = mockApi({ "POST /users/signup": () => json({ userId: "u2", token: "t2" }, 201) });
     const { auth } = renderPage(<Signup />, { path: "/signup" });
-    expect(document.title).toBe("Sign up · Scenic");
+    await waitFor(() => expect(document.title).toBe("Sign up · Scenic"));
     expect(screen.getByText("Add a profile photo (optional)")).toBeInTheDocument();
     await userEvent.type(screen.getByLabelText("Name"), "Mere");
     await userEvent.type(screen.getByLabelText("Email"), "mere@example.com");

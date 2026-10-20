@@ -1,7 +1,7 @@
 // The real route table: every page has its own title, unknown URLs get
 // Page not found, and the landing page shows the newest scenes.
 import { describe, it, expect, afterEach, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 
 import App from "./App";
 import { DEMO_DANIEL, json, mockApi, sceneFixture, userFixture } from "./test/api-mock";
@@ -35,7 +35,7 @@ describe("routes", () => {
     expect(
       await screen.findByRole("heading", { level: 1, name: "Page not found" }),
     ).toBeInTheDocument();
-    expect(document.title).toBe("Page not found · Scenic");
+    await waitFor(() => expect(document.title).toBe("Page not found · Scenic"));
     const main = screen.getByRole("main");
     expect(within(main).getByRole("link", { name: "Home" })).toHaveAttribute("href", "/");
     expect(within(main).getByRole("link", { name: "Explore scenes" })).toHaveAttribute(
@@ -57,7 +57,7 @@ describe("routes", () => {
       "GET /scenes": () => json({ scenes: [sceneFixture(1), sceneFixture(2)], nextCursor: null }),
     });
     visit("/");
-    expect(document.title).toBe("Scenic: share photos of the places you love");
+    await waitFor(() => expect(document.title).toBe("Scenic: share photos of the places you love"));
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
     expect(await screen.findByRole("heading", { level: 3, name: "Scene 2" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 2, name: "Recent scenes" })).toBeInTheDocument();

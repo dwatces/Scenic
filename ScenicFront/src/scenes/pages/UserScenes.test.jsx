@@ -38,7 +38,7 @@ describe("a member's page", () => {
     expect(
       await screen.findByRole("heading", { level: 1, name: "Scenes by Daniel (demo)" }),
     ).toBeInTheDocument();
-    expect(document.title).toBe("Scenes by Daniel (demo) · Scenic");
+    await waitFor(() => expect(document.title).toBe("Scenes by Daniel (demo) · Scenic"));
     expect(screen.getByText("2 scenes")).toBeInTheDocument();
     expect(screen.getByText("Demo account")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Back to members" })).toHaveAttribute("href", "/users");
@@ -67,7 +67,7 @@ describe("a member's page", () => {
     expect(
       screen.getByRole("heading", { level: 1, name: "We couldn't find that member" }),
     ).toBeInTheDocument();
-    expect(document.title).toBe("Member not found · Scenic");
+    await waitFor(() => expect(document.title).toBe("Member not found · Scenic"));
     expect(calls).toHaveLength(0);
   });
 
@@ -112,7 +112,7 @@ describe("your own scenes", () => {
     });
     renderPage(<UserScenes own />, { path: "/", auth: signedInAs(KIRI) });
     expect(await screen.findByRole("heading", { level: 1, name: "Your scenes" })).toBeVisible();
-    expect(document.title).toBe("Your scenes · Scenic");
+    await waitFor(() => expect(document.title).toBe("Your scenes · Scenic"));
     expect(await screen.findByText("You haven't posted any scenes yet.")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Add your first scene" })).toHaveAttribute(
       "href",

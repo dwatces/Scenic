@@ -46,7 +46,7 @@ describe("Add a scene", () => {
       auth: signedInAs(KIRI),
       routes: { "/scenes/:sceneId": <p>Scene page</p> },
     });
-    expect(document.title).toBe("Add a scene · Scenic");
+    await waitFor(() => expect(document.title).toBe("Add a scene · Scenic"));
 
     await fillIn();
     const original = new File(["x"], "IMG_0001.jpg", { type: "image/jpeg" });

@@ -33,7 +33,7 @@ describe("Scene page", () => {
 
     expect(screen.getByRole("status")).toHaveTextContent("Loading scene…");
     expect(await screen.findByRole("heading", { level: 1, name: "Lion Rock" })).toBeVisible();
-    expect(document.title).toBe("Lion Rock · Scenic");
+    await waitFor(() => expect(document.title).toBe("Lion Rock · Scenic"));
     expect(calls).toHaveLength(1);
 
     const photo = screen.getByRole("img", { name: "Lion Rock, Piha, Auckland" });
@@ -111,7 +111,7 @@ describe("Scene page", () => {
     expect(
       await screen.findByRole("heading", { level: 1, name: "We couldn't find that scene" }),
     ).toBeInTheDocument();
-    expect(document.title).toBe("Scene not found · Scenic");
+    await waitFor(() => expect(document.title).toBe("Scene not found · Scenic"));
     expect(screen.getByRole("link", { name: "Explore scenes" })).toHaveAttribute(
       "href",
       "/explore",

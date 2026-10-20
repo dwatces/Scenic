@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach, vi } from "vitest";
-import { screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import Users from "./Users";
@@ -25,7 +25,7 @@ describe("Members page", () => {
     const kiri = await screen.findByRole("link", { name: /Kiri/ });
     expect(kiri).toHaveAttribute("href", `/${KIRI.id}/scenes`);
     expect(kiri).toHaveTextContent("1 scene");
-    expect(document.title).toBe("Members · Scenic");
+    await waitFor(() => expect(document.title).toBe("Members · Scenic"));
 
     const daniel = screen.getByRole("link", { name: /Daniel \(demo\)/ });
     expect(daniel).toHaveTextContent("2 scenes");

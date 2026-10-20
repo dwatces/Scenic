@@ -36,7 +36,7 @@ describe("Explore", () => {
 
     expect(screen.getByRole("status")).toHaveTextContent("Loading scenes…");
     expect(await screen.findByRole("heading", { level: 2, name: "Scene 1" })).toBeInTheDocument();
-    expect(document.title).toBe("Explore · Scenic");
+    await waitFor(() => expect(document.title).toBe("Explore · Scenic"));
     expect(cardTitles()).toHaveLength(12);
     expect(calls[0].url.searchParams.get("limit")).toBe("12");
     expect(liveRegion()).toHaveTextContent("");
