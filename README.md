@@ -96,7 +96,10 @@ npm run preview   # serve that build locally
 ```bash
 cd ScenicBack && npm test    # API: Vitest + supertest against an in-memory MongoDB replica set
 cd ScenicFront && npm test   # client: Vitest + Testing Library
+cd ScenicFront && npm run test:e2e   # end to end: Playwright against a local API and a production build
 ```
+
+The end-to-end run starts its own API from `ScenicBack` (run `npm ci` there first) on an in-memory database seeded with the demo content, builds the client, serves it with `vite preview`, and blocks every request to a host other than this machine. Locally it uses the installed Google Chrome; in CI it uses the browser from `npx playwright install chromium`. Ports default to 7104 (client), 7105 (API) and 7108 (MongoDB) and can be changed with `PW_PREVIEW_PORT`, `PW_API_PORT` and `PW_DB_PORT`.
 
 The API tests start MongoDB 8.2.6 through `mongodb-memory-server` on port 7107 and never reach the network: a guard fails any request to a host other than this machine. The first run downloads the MongoDB binary once if it isn't cached (set `MONGOMS_RUNTIME_DOWNLOAD=true`).
 

@@ -15,3 +15,6 @@ test-results/
 
 # Vercel CLI link
 .vercel
+
+# generated e2e fixtures
+e2e/.fixtures/
