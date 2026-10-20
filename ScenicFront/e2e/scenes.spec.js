@@ -130,3 +130,37 @@ test.describe("owner and non-owner", () => {
     expect((await request.get(`${API_URL}/scenes/${scene.id}`)).status()).toBe(404);
   });
 });
+
+test.describe("demo labels", () => {
+  test("demo members, their scenes and the lists say they are demo content", async ({ page }) => {
+    const note =
+      "Sample accounts and photos show how Scenic works. Anyone can sign up and post their own.";
+    await page.goto("/users");
+    await expect(page.getByText(note)).toBeVisible();
+    const daniel = page.locator(".user-item", { hasText: "Daniel (demo)" });
+    await expect(daniel.getByText("Demo account")).toBeVisible();
+
+    await daniel.getByRole("link").click();
+    await expect(page.locator(".member-page__meta").getByText("Demo account")).toBeVisible();
+    const cards = page.locator(".scene-card");
+    await expect(cards).toHaveCount(2);
+    for (const card of await cards.all()) await expect(card.getByText("Demo scene")).toBeVisible();
+
+    await page.getByRole("link", { name: "Lake Tekapo" }).click();
+    await expect(page.locator(".scene-page__body").getByText("Demo scene")).toBeVisible();
+    await expect(page.locator(".scene-page__figure img")).toHaveAttribute(
+      "alt",
+      "Placeholder image for Lake Tekapo (demo content)",
+    );
+  });
+
+  test("a member who signed up gets no demo label", async ({ page, request }) => {
+    const member = await signUp(request, "Real member");
+    const scene = await postScene(request, member, "Not a demo");
+    await page.goto(`/scenes/${scene.id}`);
+    await expect(page.locator("h1")).toHaveText("Not a demo");
+    await expect(page.getByText("Demo scene")).toHaveCount(0);
+    await page.goto(`/${member.userId}/scenes`);
+    await expect(page.getByText("Demo account")).toHaveCount(0);
+  });
+});

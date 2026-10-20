@@ -72,6 +72,10 @@
   font-weight: 500;
 }
 
+.scene-card__badges {
+  margin-top: 0.6rem;
+}
+
 .scene-card__creator {
   position: relative;
   z-index: 1;

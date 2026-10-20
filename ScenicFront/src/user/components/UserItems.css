@@ -45,7 +45,7 @@ li.user-item {
 }
 
 .user-item__count {
-  margin: 0;
+  margin: 0 0 0.35rem;
   font-size: 0.9rem;
   font-weight: 500;
   color: var(--accent);

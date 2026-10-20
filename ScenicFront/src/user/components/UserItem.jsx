@@ -1,6 +1,7 @@
 import { Link } from "react-router";
 
 import Avatar from "../../shared/components/UIElements/Avatar";
+import { DemoBadge } from "../../shared/components/UIElements/Demo";
 import { apiAsset } from "../../config";
 import "./UserItems.css";
 
@@ -13,6 +14,7 @@ const UserItem = ({ user }) => (
         <p className="user-item__count">
           {user.sceneCount} {user.sceneCount === 1 ? "scene" : "scenes"}
         </p>
+        {user.isDemo && <DemoBadge kind="account" />}
       </div>
     </Link>
   </li>

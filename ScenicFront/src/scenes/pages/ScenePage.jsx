@@ -11,6 +11,7 @@ import {
   StatusLine,
 } from "../../shared/components/UIElements/LoadState";
 import DeleteSceneButton from "../components/DeleteSceneButton";
+import { DemoBadge } from "../../shared/components/UIElements/Demo";
 import { AuthContext } from "../../shared/context/auth-context";
 import { useApiResource } from "../../shared/hooks/resource-hook";
 import { useDocumentTitle } from "../../shared/hooks/use-document-title";
@@ -113,6 +114,11 @@ const ScenePage = () => {
       <div className="scene-page__body">
         <PageHeading className="scene-page__title">{scene.title}</PageHeading>
         <p className="scene-page__place">{scene.address}</p>
+        {scene.isDemo && (
+          <p className="scene-page__badges">
+            <DemoBadge kind="scene" />
+          </p>
+        )}
         <p className="scene-page__description">{scene.description}</p>
         <p className="scene-page__byline">
           <Avatar src={apiAsset(creator.avatarUrl)} name={creator.name} size={36} />

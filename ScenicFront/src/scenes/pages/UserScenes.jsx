@@ -4,6 +4,7 @@ import { Link, useParams } from "react-router";
 import Avatar from "../../shared/components/UIElements/Avatar";
 import Button from "../../shared/components/FormElements/Button";
 import PageHeading from "../../shared/components/UIElements/PageHeading";
+import { DemoBadge } from "../../shared/components/UIElements/Demo";
 import {
   ErrorPanel,
   NotFoundState,
@@ -80,7 +81,10 @@ const UserScenes = ({ own = false }) => {
         <Avatar src={apiAsset(user.avatarUrl)} name={user.name} size={72} />
         <div className="member-page__intro">
           <PageHeading>{isMe ? "Your scenes" : `Scenes by ${user.name}`}</PageHeading>
-          <p className="member-page__meta">{countLabel(user.sceneCount)}</p>
+          <p className="member-page__meta">
+            {countLabel(user.sceneCount)}
+            {user.isDemo && <DemoBadge kind="account" />}
+          </p>
         </div>
         <div className="member-page__links">
           {isMe ? (

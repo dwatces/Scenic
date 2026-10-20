@@ -23,6 +23,10 @@
 }
 
 .member-page__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
   margin-top: 0.3rem;
   color: var(--text-muted);
 }

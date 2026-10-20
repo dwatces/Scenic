@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import Avatar from "../../shared/components/UIElements/Avatar";
 import Button from "../../shared/components/FormElements/Button";
 import DeleteSceneButton from "./DeleteSceneButton";
+import { DemoBadge } from "../../shared/components/UIElements/Demo";
 import { apiAsset } from "../../config";
 import "./SceneCard.css";
 
@@ -33,6 +34,11 @@ const SceneCard = ({ scene, headingLevel = 2, showCreator = true, canEdit = fals
             <Link to={href}>{scene.title}</Link>
           </Heading>
           <p className="scene-card__place">{scene.address}</p>
+          {scene.isDemo && (
+            <p className="scene-card__badges">
+              <DemoBadge kind="scene" />
+            </p>
+          )}
           {showCreator && (
             <p className="scene-card__creator">
               <Avatar src={apiAsset(scene.creator.avatarUrl)} name={scene.creator.name} size={28} />

@@ -34,6 +34,10 @@
   font-weight: 500;
 }
 
+.scene-page__badges {
+  margin-top: 0.6rem;
+}
+
 .scene-page__description {
   max-width: 65ch;
   margin-top: 1rem;
