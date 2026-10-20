@@ -6,7 +6,8 @@ import "./PageHeading.css";
 /**
  * The page's one h1. After an in-app navigation (a link or a redirect, not
  * the first load, a reload or Back), focus moves here, so a screen reader
- * announces the new page instead of staying silent.
+ * announces the new page instead of staying silent. ScrollToTop has
+ * already put the page at the top, so the h1 is in view.
  */
 const PageHeading = ({ children, className = "", ...rest }) => {
   const ref = useRef(null);

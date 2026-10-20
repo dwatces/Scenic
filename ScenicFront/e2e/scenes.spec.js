@@ -108,6 +108,46 @@ test.describe("owner and non-owner", () => {
     expect(patches).toHaveLength(1);
   });
 
+  test("after Save changes on a phone, the scene page opens at the top with its photo in view", async ({
+    page,
+    request,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    const owner = await signUp(request, "Scroller");
+    const scene = await postScene(request, owner, "Scroll check");
+    await useSession(page, owner);
+
+    for (const via of ["mouse", "keyboard"]) {
+      await page.goto(`/scenes/${scene.id}/edit`);
+      await page.getByLabel("Description").fill(`Saved by ${via}.`);
+      await page.evaluate(() =>
+        window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" }),
+      );
+      // The form is long enough at 390 px to be scrolled when saving.
+      expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(100);
+
+      const save = page.getByRole("button", { name: "Save changes" });
+      if (via === "mouse") await save.click();
+      else {
+        await save.focus();
+        await page.keyboard.press("Enter");
+      }
+      await expect(page).toHaveURL(`/scenes/${scene.id}`);
+      await expect(page.locator(".scene-page__description")).toHaveText(`Saved by ${via}.`);
+      await expect(page.getByRole("heading", { level: 1, name: "Scroll check" })).toBeFocused();
+      await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+      const { photoTop, headerBottom } = await page.evaluate(() => ({
+        photoTop: document.querySelector(".scene-page__figure img").getBoundingClientRect().top,
+        headerBottom: document.querySelector(".main-header").getBoundingClientRect().bottom,
+      }));
+      expect(photoTop).toBeGreaterThanOrEqual(headerBottom);
+    }
+
+    // Back still returns to the edit page; the browser decides where.
+    await page.goBack();
+    await expect(page).toHaveURL(`/scenes/${scene.id}/edit`);
+  });
+
   test("deleting from the scene page asks first, then returns to Your scenes", async ({
     page,
     request,

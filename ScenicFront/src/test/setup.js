@@ -24,6 +24,9 @@ if (typeof HTMLDialogElement.prototype.showModal !== "function") {
     this.dispatchEvent(new Event("close"));
   };
 }
+// jsdom's window.scrollTo only reports "Not implemented". A no-op keeps
+// the output clean; tests that care spy on it (see ScrollToTop.test.jsx).
+window.scrollTo = () => {};
 if (typeof window.IntersectionObserver !== "function") {
   window.IntersectionObserver = class {
     observe() {}

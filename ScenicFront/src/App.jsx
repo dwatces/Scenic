@@ -2,6 +2,7 @@ import React, { Suspense } from "react";
 import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router";
 
 import MainNavigation from "./shared/components/Navigation/MainNavigation";
+import ScrollToTop from "./shared/components/Navigation/ScrollToTop";
 import SiteFooter from "./shared/components/Navigation/SiteFooter";
 import SkipLink from "./shared/components/Navigation/SkipLink";
 import { StatusLine } from "./shared/components/UIElements/LoadState";
@@ -30,6 +31,7 @@ const App = () => {
       value={{ isLoggedIn: !!token, token, userId, sessionEnded, login, logout }}
     >
       <Router>
+        <ScrollToTop />
         <SkipLink />
         <MainNavigation />
         <main id="main" tabIndex={-1}>
