@@ -45,8 +45,10 @@ export const useHttpClient = () => {
       if (err.status === 401 && sentToken(headers)) {
         const { auth: current, navigate: go, location: here } = latest.current;
         err.sessionEnded = true;
+        // Both carry the note: the redirect below, and the one RequireAuth
+        // makes if this is a members-only page (the logout lands first).
         go(loginPathFor(here), { replace: true, state: { notice: SESSION_ENDED } });
-        current.logout();
+        current.logout({ expired: true });
         throw err;
       }
       setError(err.message);

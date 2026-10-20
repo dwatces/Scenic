@@ -59,6 +59,7 @@ describe("useHttpClient", () => {
       "/login?next=%2Fscenes%2Fnew%3Fdraft%3D1 | Your session has ended. Log in again to carry on.",
     );
     expect(logout).toHaveBeenCalledTimes(1);
+    expect(logout).toHaveBeenCalledWith({ expired: true });
   });
 
   it("treats a 401 without a token (a wrong password) as an ordinary error", async () => {
