@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router";
 import Input from "../../shared/components/FormElements/Input";
 import Button from "../../shared/components/FormElements/Button";
 import {
@@ -13,6 +13,7 @@ import { useHttpClient } from "../../shared/hooks/http-hook";
 import { AuthContext } from "../../shared/context/auth-context";
 import { useForm } from "../../shared/hooks/form";
 import "./SceneForm.css";
+import { API_URL } from "../../config";
 
 const NewScene = () => {
   const auth = useContext(AuthContext);
@@ -39,7 +40,7 @@ const NewScene = () => {
     false
   );
 
-  const history = useHistory();
+  const navigate = useNavigate();
   const sceneSubmitHandler = async (event) => {
     event.preventDefault();
     try {
@@ -49,14 +50,14 @@ const NewScene = () => {
       formData.append("address", formState.inputs.address.value);
       formData.append("image", formState.inputs.image.value);
       await sendRequest(
-        `${process.env.REACT_APP_BACKEND_URL}/scenes`,
+        `${API_URL}/scenes`,
         "POST",
         formData,
         {
           Authorization: "Bearer " + auth.token,
         }
       );
-      history.push("/");
+      navigate("/");
     } catch (err) {}
   };
 

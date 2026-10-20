@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams } from "react-router";
 import SceneList from "../components/SceneList";
 import LoadingSpinner from "../../shared/components/UIElements/LoadingSpinner";
 import { useHttpClient } from "../../shared/hooks/http-hook";
+import { API_URL } from "../../config";
 
 const UserScenes = (props) => {
   const [loadedScenes, setLoadedScenes] = useState();
@@ -14,7 +15,7 @@ const UserScenes = (props) => {
     const fetchScenes = async () => {
       try {
         const responseData = await sendRequest(
-          `${process.env.REACT_APP_BACKEND_URL}/scenes/user/${userId}`
+          `${API_URL}/scenes/user/${userId}`
         );
         setLoadedScenes(responseData.scenes);
       } catch (err) {}

@@ -7,8 +7,8 @@ import ErrorModal from "../../shared/components/UIElements/ErrorModal";
 import LoadingSpinner from "../../shared/components/UIElements/LoadingSpinner";
 import { AuthContext } from "../../shared/context/auth-context";
 import { useHttpClient } from "../../shared/hooks/http-hook";
-import { fetchScenes } from "../pages/Reset";
 import "./SceneItem.css";
+import { API_URL } from "../../config";
 
 const SceneItem = (props) => {
   const { isLoading, error, sendRequest, clearError } = useHttpClient();
@@ -31,7 +31,7 @@ const SceneItem = (props) => {
     setShowConfirmModal(false);
     try {
       await sendRequest(
-        `${process.env.REACT_APP_BACKEND_URL}/scenes/${props.id}`,
+        `${API_URL}/scenes/${props.id}`,
         "DELETE",
         null,
         {
@@ -41,8 +41,6 @@ const SceneItem = (props) => {
       props.onDelete(props.id);
     } catch (err) {
       console.log(err);
-    } finally {
-      fetchScenes();
     }
   };
 

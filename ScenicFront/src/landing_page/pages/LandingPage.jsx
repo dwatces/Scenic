@@ -1,5 +1,5 @@
 import React, { useState, useContext } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink } from "react-router";
 import { AuthContext } from "../../shared/context/auth-context";
 import "./LandingPage.css";
 
@@ -53,14 +53,14 @@ const LandingPage = () => {
       </h2>
 
       {!auth.isLoggedIn && (
-        <NavLink activeClassName="active__link" to="/signup">
+        <NavLink className={({ isActive }) => (isActive ? "active__link" : undefined)} to="/signup">
           <button className="signup_button" tabIndex="-1">
             Sign up!
           </button>
         </NavLink>
       )}
       {auth.isLoggedIn && (
-        <NavLink activeClassName="active__link" to="/users">
+        <NavLink className={({ isActive }) => (isActive ? "active__link" : undefined)} to="/users">
           <button className="signup_button" tabIndex="-1">
             Our Community
           </button>

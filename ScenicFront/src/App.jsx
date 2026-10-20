@@ -1,10 +1,5 @@
 import React, { Suspense } from "react";
-import {
-  BrowserRouter as Router,
-  Route,
-  Redirect,
-  Switch,
-} from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router";
 
 import MainNavigation from "./shared/components/Navigation/MainNavigation";
 import LoadingSpinner from "./shared/components/UIElements/LoadingSpinner";
@@ -24,60 +19,26 @@ const Signup = React.lazy(() => import("./user/pages/SignUp"));
 const App = () => {
   const { token, login, logout, userId } = useAuth();
 
-  let routes;
-
-  if (token) {
-    routes = (
-      <Switch>
-        {!!token ? (
-          <Route path="/" exact>
-            <UserScenes id={userId} />
-          </Route>
-        ) : (
-          <Route path="/" exact>
-            <LandingPage />
-          </Route>
-        )}
-        <Route path="/landing" exact>
-          <LandingPage />
-        </Route>
-        <Route path="/users" exact>
-          <Users />
-        </Route>
-        <Route path="/:userId/scenes" exact>
-          <UserScenes />
-        </Route>
-        <Route path="/scenes/new" exact>
-          <NewScene />
-        </Route>
-        <Route path="/scenes/:sceneId">
-          <UpdateScene />
-        </Route>
-        <Redirect to="/" />
-      </Switch>
-    );
-  } else {
-    routes = (
-      <Switch>
-        <Route path="/" exact>
-          <LandingPage />
-        </Route>
-        <Route path="/users" exact>
-          <Users />
-        </Route>
-        <Route path="/:userId/scenes" exact>
-          <UserScenes />
-        </Route>
-        <Route path="/login">
-          <Login />
-        </Route>
-        <Route path="/signup">
-          <Signup />
-        </Route>
-        <Redirect to="/login" />
-      </Switch>
-    );
-  }
+  const routes = token ? (
+    <Routes>
+      <Route path="/" element={<UserScenes id={userId} />} />
+      <Route path="/landing" element={<LandingPage />} />
+      <Route path="/users" element={<Users />} />
+      <Route path="/:userId/scenes" element={<UserScenes />} />
+      <Route path="/scenes/new" element={<NewScene />} />
+      <Route path="/scenes/:sceneId" element={<UpdateScene />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  ) : (
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/users" element={<Users />} />
+      <Route path="/:userId/scenes" element={<UserScenes />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
+  );
 
   return (
     <AuthContext.Provider

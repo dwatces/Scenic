@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink } from "react-router";
 import Card from "../../shared/components/UIElements/Card";
 import Input from "../../shared/components/FormElements/Input";
 import Button from "../../shared/components/FormElements/Button";
@@ -13,6 +13,7 @@ import { useForm } from "../../shared/hooks/form";
 import { useHttpClient } from "../../shared/hooks/http-hook";
 import { AuthContext } from "../../shared/context/auth-context";
 import "./Auth.css";
+import { API_URL } from "../../config";
 
 const Login = () => {
   const auth = useContext(AuthContext);
@@ -37,7 +38,7 @@ const Login = () => {
 
     try {
       const responseData = await sendRequest(
-        `${process.env.REACT_APP_BACKEND_URL}/users/login`,
+        `${API_URL}/users/login`,
         "POST",
         JSON.stringify({
           email: formState.inputs.email.value,
@@ -80,7 +81,7 @@ const Login = () => {
             <Button type="submit" disabled={!formState.isValid}>
               Login
             </Button>
-            <NavLink activeClassName="active__link" to="/signup">
+            <NavLink className={({ isActive }) => (isActive ? "active__link" : undefined)} to="/signup">
               <Button inverse>Sign up</Button>
             </NavLink>
           </div>

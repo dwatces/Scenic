@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 
 import "./Button.css";
 
@@ -24,7 +24,7 @@ const Button = (props) => {
   }
   if (props.to) {
     return (
-      <Link to={props.to} exact={props.exact} className={classes}>
+      <Link to={props.to} className={classes}>
         {props.children}
       </Link>
     );

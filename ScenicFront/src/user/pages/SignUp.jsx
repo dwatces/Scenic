@@ -15,6 +15,7 @@ import { useForm } from "../../shared/hooks/form";
 import { useHttpClient } from "../../shared/hooks/http-hook";
 import { AuthContext } from "../../shared/context/auth-context";
 import "./Auth.css";
+import { API_URL } from "../../config";
 
 const Signup = () => {
   const auth = useContext(AuthContext);
@@ -47,7 +48,7 @@ const Signup = () => {
       formData.append("password", formState.inputs.password.value);
       formData.append("image", formState.inputs.image.value);
       const responseData = await sendRequest(
-        `${process.env.REACT_APP_BACKEND_URL}/users/signup`,
+        `${API_URL}/users/signup`,
         "POST",
         formData
       );

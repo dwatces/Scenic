@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from "react";
-import { useParams, useHistory } from "react-router-dom";
+import { useParams, useNavigate } from "react-router";
 import Input from "../../shared/components/FormElements/Input";
 import Button from "../../shared/components/FormElements/Button";
 import Card from "../../shared/components/UIElements/Card";
@@ -13,13 +13,14 @@ import { useForm } from "../../shared/hooks/form";
 import { useHttpClient } from "../../shared/hooks/http-hook";
 import { AuthContext } from "../../shared/context/auth-context";
 import "./SceneForm.css";
+import { API_URL } from "../../config";
 
 const UpdateScene = () => {
   const auth = useContext(AuthContext);
   const { isLoading, error, sendRequest, clearError } = useHttpClient();
   const [loadedScene, setLoadedScene] = useState();
   const sceneId = useParams().sceneId;
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const [formState, inputHandler, setFormData] = useForm(
     {
@@ -47,7 +48,7 @@ const UpdateScene = () => {
     const fetchScene = async () => {
       try {
         const responseData = await sendRequest(
-          `${process.env.REACT_APP_BACKEND_URL}/scenes/${sceneId}`
+          `${API_URL}/scenes/${sceneId}`
         );
         setLoadedScene(responseData.scene);
         setFormData(
@@ -80,7 +81,7 @@ const UpdateScene = () => {
     event.preventDefault();
     try {
       await sendRequest(
-        `${process.env.REACT_APP_BACKEND_URL}/scenes/${sceneId}`,
+        `${API_URL}/scenes/${sceneId}`,
         "PATCH",
         JSON.stringify({
           title: formState.inputs.title.value,
@@ -91,7 +92,7 @@ const UpdateScene = () => {
           Authorization: "Bearer " + auth.token,
         }
       );
-      history.push("/" + auth.userId + "/scenes");
+      navigate("/" + auth.userId + "/scenes");
     } catch (err) {}
   };
 
@@ -150,7 +151,7 @@ const UpdateScene = () => {
             initialValid={true}
           />
           <div className="update__button">
-            <Button inverse onClick={() => history.goBack()}>
+            <Button inverse onClick={() => navigate(-1)}>
               Return
             </Button>
             <Button type="submit" disabled={!formState.isValid}>

@@ -1,12 +1,12 @@
 import React, { useState, useContext } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink } from "react-router";
 
 import MainHeader from "./MainHeader";
 import NavLinks from "./NavLinks";
 import SideDrawer from "./SideDrawer";
 import Backdrop from "../UIElements/Backdrop";
 import { AuthContext } from "../../context/auth-context";
-import "./MainNavagation.css";
+import "./MainNavigation.css";
 
 const MainNavigation = (props) => {
   const [drawerOpen, setDrawerOpen] = useState(false);

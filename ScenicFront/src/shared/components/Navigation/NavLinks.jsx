@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink } from "react-router";
 import { AuthContext } from "../../context/auth-context";
 import "./NavLinks.css";
 
@@ -10,27 +10,27 @@ const NavLinks = () => {
   return (
     <ul className="nav-links">
       <li>
-        <NavLink activeClassName="active__link" to="/users" exact>
+        <NavLink className={({ isActive }) => (isActive ? "active__link" : undefined)} to="/users" end>
           All Users
         </NavLink>
       </li>
       {auth.isLoggedIn && (
         <li>
-          <NavLink activeClassName="active__link" to={`/${userId}/scenes`}>
+          <NavLink className={({ isActive }) => (isActive ? "active__link" : undefined)} to={`/${userId}/scenes`}>
             My Scenes
           </NavLink>
         </li>
       )}
       {auth.isLoggedIn && (
         <li>
-          <NavLink activeClassName="active__link" to="/scenes/new">
+          <NavLink className={({ isActive }) => (isActive ? "active__link" : undefined)} to="/scenes/new">
             Add Scene
           </NavLink>
         </li>
       )}
       {!auth.isLoggedIn && (
         <li>
-          <NavLink activeClassName="active__link" to="/login">
+          <NavLink className={({ isActive }) => (isActive ? "active__link" : undefined)} to="/login">
             Login
           </NavLink>
         </li>
