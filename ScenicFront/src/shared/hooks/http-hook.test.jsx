@@ -62,6 +62,31 @@ describe("useHttpClient", () => {
     expect(logout).toHaveBeenCalledWith({ expired: true });
   });
 
+  it("cancels a request still running when the page goes away, without an error", async () => {
+    let signal;
+    vi.spyOn(globalThis, "fetch").mockImplementation(
+      (url, init) =>
+        new Promise((resolve, reject) => {
+          signal = init.signal;
+          signal.addEventListener("abort", () =>
+            reject(new DOMException("The operation was aborted.", "AbortError")),
+          );
+        }),
+    );
+    const errors = vi.spyOn(console, "error");
+    const { unmount } = render(
+      <MemoryRouter>
+        <Poster />
+      </MemoryRouter>,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Post" }));
+    expect(signal.aborted).toBe(false);
+    unmount();
+    expect(signal.aborted).toBe(true);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(errors).not.toHaveBeenCalled();
+  });
+
   it("treats a 401 without a token (a wrong password) as an ordinary error", async () => {
     vi.spyOn(globalThis, "fetch").mockImplementation(async () => unauthorised());
     const { logout } = renderAt("/scenes/new", { headers: { "Content-Type": "application/json" } });
