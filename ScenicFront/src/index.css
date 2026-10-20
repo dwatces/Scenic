@@ -2,6 +2,45 @@
    Scenic — dark gallery design system
    ============================================================ */
 
+/* Until Inter and Space Grotesk arrive (font-display: swap), text is set in
+   the system's Arial (or the metric-identical Liberation Sans), scaled and
+   spaced to take the same room, so lines don't rewrap and the page doesn't
+   shift when the web fonts swap in. Values from each font's own metrics
+   (average lowercase width, ascender, descender) at the weights used. */
+@font-face {
+  font-family: "Inter fallback";
+  src: local("Arial"), local("ArialMT"), local("Liberation Sans"), local("LiberationSans");
+  font-weight: 100 500;
+  size-adjust: 107.48%;
+  ascent-override: 90.14%;
+  descent-override: 22.44%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Inter fallback";
+  src:
+    local("Arial Bold"), local("Arial-BoldMT"), local("Liberation Sans Bold"),
+    local("LiberationSans-Bold");
+  font-weight: 600 900;
+  size-adjust: 101.32%;
+  ascent-override: 95.61%;
+  descent-override: 23.81%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Space Grotesk fallback";
+  src:
+    local("Arial Bold"), local("Arial-BoldMT"), local("Liberation Sans Bold"),
+    local("LiberationSans-Bold");
+  font-weight: 100 900;
+  size-adjust: 102.74%;
+  ascent-override: 95.77%;
+  descent-override: 28.42%;
+  line-gap-override: 0%;
+}
+
 :root {
   /* surfaces */
   --bg: #0f0f11;
@@ -47,8 +86,10 @@
 
   /* type: self-hosted variable fonts (@fontsource-variable, imported in
      index.jsx); only the subsets a page's text needs are downloaded */
-  --font-body: "Inter Variable", "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --font-heading: "Space Grotesk Variable", "Space Grotesk", var(--font-body);
+  --font-body:
+    "Inter Variable", "Inter", "Inter fallback", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-heading:
+    "Space Grotesk Variable", "Space Grotesk", "Space Grotesk fallback", var(--font-body);
 
   /* layout */
   --header-h: 4.25rem;

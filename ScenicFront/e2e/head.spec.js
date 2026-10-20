@@ -31,7 +31,14 @@ test("fonts are self-hosted: no Google Fonts, no Nunito, both families load", as
     await document.fonts.ready;
     return [...document.fonts].filter((f) => f.status === "loaded").map((f) => f.family);
   });
-  expect(new Set(loaded)).toEqual(new Set(["Inter Variable", "Space Grotesk Variable"]));
+  // The two web fonts. The metric-matched fallbacks in index.css ("Inter
+  // fallback", "Space Grotesk fallback") are local() faces from the system's
+  // Arial or Liberation Sans, so they load only where those are installed.
+  const webFonts = loaded.filter((family) => !family.endsWith(" fallback"));
+  expect(new Set(webFonts)).toEqual(new Set(["Inter Variable", "Space Grotesk Variable"]));
+  for (const family of loaded.filter((name) => name.endsWith(" fallback"))) {
+    expect(["Inter fallback", "Space Grotesk fallback"]).toContain(family);
+  }
   expect(blockedHosts.filter((host) => /fonts\.(googleapis|gstatic)\.com/.test(host))).toEqual([]);
   expect(fontRequests.length).toBeGreaterThan(0);
   for (const url of fontRequests) {
