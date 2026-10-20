@@ -4,6 +4,7 @@ import { Link, useSearchParams } from "react-router";
 import Card from "../../shared/components/UIElements/Card";
 import Input from "../../shared/components/FormElements/Input";
 import Button from "../../shared/components/FormElements/Button";
+import ErrorSummary from "../../shared/components/FormElements/ErrorSummary";
 import ErrorModal from "../../shared/components/UIElements/ErrorModal";
 import ImageUpload from "../../shared/components/FormElements/ImageUpload";
 import PageHeading from "../../shared/components/UIElements/PageHeading";
@@ -12,12 +13,19 @@ import {
   VALIDATOR_MINLENGTH,
   VALIDATOR_REQUIRE,
 } from "../../shared/Util/validators";
-import { useForm } from "../../shared/hooks/form";
+import { useForm, useValidatedSubmit } from "../../shared/hooks/form";
 import { useHttpClient } from "../../shared/hooks/http-hook";
 import { useDocumentTitle } from "../../shared/hooks/use-document-title";
 import { AuthContext } from "../../shared/context/auth-context";
 import "./Auth.css";
 import { API_URL } from "../../config";
+
+const FIELDS = [
+  { id: "name", message: "Enter your name" },
+  { id: "image", message: "Wait for your photo to be ready" },
+  { id: "email", message: "Enter a valid email address" },
+  { id: "password", message: "Passwords need at least 6 characters" },
+];
 
 /** Sign up: name, email and password; a profile photo is optional. */
 const Signup = () => {
@@ -35,8 +43,7 @@ const Signup = () => {
     false,
   );
 
-  const authSubmitHandler = async (event) => {
-    event.preventDefault();
+  const signUp = async () => {
     const formData = new FormData();
     formData.append("name", formState.inputs.name.value);
     formData.append("email", formState.inputs.email.value);
@@ -47,63 +54,79 @@ const Signup = () => {
     try {
       data = await sendRequest(`${API_URL}/users/signup`, "POST", formData);
     } catch {
-      return; // shown in the error modal
+      return; // shown in the error dialog
     }
     auth.login(data.userId, data.token);
   };
+  const { attempted, errors, handleSubmit } = useValidatedSubmit(formState, FIELDS, signUp);
 
   const next = params.get("next");
   return (
     <React.Fragment>
       <ErrorModal error={error} onClear={clearError} />
-      <Card className="authentication">
-        <PageHeading className="authentication__heading">Sign up</PageHeading>
-        <hr />
-        <form onSubmit={authSubmitHandler}>
-          <Input
-            element="input"
-            id="name"
-            type="text"
-            label="Name"
-            validators={[VALIDATOR_REQUIRE()]}
-            errorText="Enter your name."
-            onInput={inputHandler}
-          />
-          <ImageUpload
-            id="image"
-            optional
-            round
-            onInput={inputHandler}
-            text="Add a profile photo (optional)"
-            uploadText="Choose a different photo"
-          />
-          <Input
-            element="input"
-            id="email"
-            type="email"
-            label="Email"
-            validators={[VALIDATOR_EMAIL()]}
-            errorText="Enter a valid email address."
-            onInput={inputHandler}
-          />
-          <Input
-            element="input"
-            id="password"
-            type="password"
-            label="Password"
-            validators={[VALIDATOR_MINLENGTH(6)]}
-            errorText="Passwords need at least 6 characters."
-            onInput={inputHandler}
-          />
-          <Button type="submit" disabled={!formState.isValid || isLoading} busy={isLoading}>
-            {isLoading ? "Signing up…" : "Sign up"}
-          </Button>
-        </form>
-        <p className="authentication__switch">
-          Already have an account?{" "}
-          <Link to={next ? `/login?next=${encodeURIComponent(next)}` : "/login"}>Log in</Link>
-        </p>
-      </Card>
+      <div className="auth-page">
+        <Card className="authentication">
+          <PageHeading className="authentication__heading">Sign up</PageHeading>
+          <hr />
+          <form onSubmit={handleSubmit} noValidate>
+            <ErrorSummary errors={errors} />
+            <Input
+              element="input"
+              id="name"
+              type="text"
+              label="Name"
+              autoComplete="name"
+              required
+              validators={[VALIDATOR_REQUIRE()]}
+              errorText={FIELDS[0].message}
+              onInput={inputHandler}
+              showErrors={attempted}
+            />
+            <ImageUpload
+              id="image"
+              optional
+              round
+              onInput={inputHandler}
+              text="Add a profile photo (optional)"
+              uploadText="Choose a different photo"
+            />
+            <Input
+              element="input"
+              id="email"
+              type="email"
+              label="Email"
+              autoComplete="email"
+              required
+              validators={[VALIDATOR_EMAIL()]}
+              errorText={FIELDS[2].message}
+              onInput={inputHandler}
+              showErrors={attempted}
+            />
+            <Input
+              element="input"
+              id="password"
+              type="password"
+              label="Password"
+              hint="At least 6 characters."
+              autoComplete="new-password"
+              required
+              validators={[VALIDATOR_MINLENGTH(6)]}
+              errorText={FIELDS[3].message}
+              onInput={inputHandler}
+              showErrors={attempted}
+            />
+            <div className="auth__button">
+              <Button type="submit" busy={isLoading}>
+                {isLoading ? "Signing up…" : "Sign up"}
+              </Button>
+            </div>
+          </form>
+          <p className="authentication__switch">
+            Already have an account?{" "}
+            <Link to={next ? `/login?next=${encodeURIComponent(next)}` : "/login"}>Log in</Link>
+          </p>
+        </Card>
+      </div>
     </React.Fragment>
   );
 };

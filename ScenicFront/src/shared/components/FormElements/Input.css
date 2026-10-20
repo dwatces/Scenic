@@ -2,7 +2,7 @@
   margin: 1.1rem 0;
 }
 
-.form-control label {
+.form-control > label {
   display: block;
   margin-bottom: 0.45rem;
   font-size: 0.85rem;
@@ -50,14 +50,21 @@
   box-shadow: 0 0 0 3px var(--accent-ring);
 }
 
-.form-control--invalid label,
-.form-control--invalid p {
-  color: var(--danger);
+.form-control__hint {
+  margin: -0.15rem 0 0.45rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
 }
 
-.form-control--invalid p {
+.form-control__error {
   margin-top: 0.4rem;
-  font-size: 0.82rem;
+  color: var(--danger);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.form-control--invalid label {
+  color: var(--danger);
 }
 
 .form-control--invalid input,

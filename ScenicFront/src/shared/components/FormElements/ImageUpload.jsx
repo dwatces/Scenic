@@ -1,25 +1,37 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
-import Button from "./Button";
 import { ImagePrepError, UNREADABLE, prepareImage } from "../../util/prepare-image";
+import "./Button.css";
 import "./ImageUpload.css";
 
 const HINT = "JPEG, PNG or WebP. Large photos are resized for you.";
 
 /**
- * Choose a photo. It is checked and prepared in the browser (see
- * prepareImage) before the form gets it, so an unsupported file shows a
- * message straight away and never reaches the server.
+ * Choose a photo. The visible control is the file input's <label>, styled
+ * as a button; the input itself is visually hidden but still in the tab
+ * order, so keyboard and screen reader users reach it with its label and
+ * hint. The photo is checked and prepared in the browser (prepareImage)
+ * before the form gets it, so an unsupported file shows a message straight
+ * away and never reaches the server.
  *
  * Reports through onInput(id, file, isValid): invalid while a photo is
- * being prepared; when `optional`, valid with no photo at all.
+ * being prepared; when `optional`, valid with no photo at all. With
+ * `showErrors` (after a submit), a missing photo shows `errorText`.
  */
-const ImageUpload = ({ id, onInput, text, uploadText, optional = false, round = false }) => {
+const ImageUpload = ({
+  id,
+  onInput,
+  text,
+  uploadText,
+  optional = false,
+  round = false,
+  showErrors = false,
+  errorText = "Choose a photo",
+}) => {
   const [preview, setPreview] = useState(null);
   const [preparing, setPreparing] = useState(false);
   const [message, setMessage] = useState("");
-  const chosen = useRef(null);
-  const picker = useRef(null);
+  const [chosen, setChosen] = useState(null);
 
   useEffect(() => () => preview && URL.revokeObjectURL(preview), [preview]);
 
@@ -33,46 +45,61 @@ const ImageUpload = ({ id, onInput, text, uploadText, optional = false, round = 
     onInput(id, null, false);
     try {
       const prepared = await prepareImage(file);
-      chosen.current = prepared;
+      setChosen(prepared);
       setPreview(URL.createObjectURL(prepared));
       onInput(id, prepared, true);
     } catch (err) {
       setMessage(err instanceof ImagePrepError ? err.message : UNREADABLE);
       // Keep the photo chosen before, if there was one.
-      onInput(id, chosen.current, Boolean(chosen.current) || optional);
+      onInput(id, chosen, Boolean(chosen) || optional);
     } finally {
       setPreparing(false);
     }
   };
 
+  const missing = showErrors && !optional && !chosen && !preparing;
+  const errorId = `${id}-error`;
+  const describedBy = [`${id}-hint`, message || missing ? errorId : null].filter(Boolean).join(" ");
+
   return (
-    <div className="form-control image-upload">
-      <input
-        id={id}
-        ref={picker}
-        className="image-upload__input"
-        type="file"
-        accept="image/jpeg,image/png,image/webp"
-        onChange={picked}
-      />
+    <div className={`image-upload${missing ? " image-upload--invalid" : ""}`}>
       {preview && (
         <div className={`image-upload__preview${round ? " image-upload__preview--round" : ""}`}>
           <img src={preview} alt="Preview of your upload" />
         </div>
       )}
-      <Button inverse onClick={() => picker.current.click()} disabled={preparing}>
+      <input
+        id={id}
+        className="image-upload__input visually-hidden"
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        onChange={picked}
+        disabled={preparing}
+        required={!optional || undefined}
+        aria-invalid={missing || Boolean(message) || undefined}
+        aria-describedby={describedBy}
+      />
+      <label htmlFor={id} className="button button--inverse image-upload__choose">
         {preview ? uploadText : text}
-      </Button>
-      <p className="image-upload__hint">{HINT}</p>
+      </label>
+      <p className="image-upload__hint" id={`${id}-hint`}>
+        {HINT}
+      </p>
       {preparing && (
         <p className="image-upload__status" role="status">
           Preparing your photo…
         </p>
       )}
-      {message && (
-        <p className="image-upload__error" role="alert">
+      {message ? (
+        <p className="image-upload__error" id={errorId} role="alert">
           {message}
         </p>
+      ) : (
+        missing && (
+          <p className="image-upload__error" id={errorId}>
+            {errorText}
+          </p>
+        )
       )}
     </div>
   );

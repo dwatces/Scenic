@@ -1,0 +1,28 @@
+.error-summary {
+  margin: 0.25rem 0 1.25rem;
+  padding: 1rem 1.15rem;
+  background: var(--danger-soft);
+  border: 1px solid var(--danger-text, #f0524d);
+  border-left-width: 4px;
+  border-radius: var(--radius-sm);
+}
+
+/* Two classes, so form-level "h2" sizes (.scene-form h2) don't win. */
+.error-summary .error-summary__title {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.error-summary ul {
+  margin-top: 0.35rem;
+}
+
+.error-summary a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

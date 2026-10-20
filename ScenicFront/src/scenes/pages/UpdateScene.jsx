@@ -3,6 +3,7 @@ import { Navigate, useNavigate, useParams } from "react-router";
 
 import Input from "../../shared/components/FormElements/Input";
 import Button from "../../shared/components/FormElements/Button";
+import ErrorSummary from "../../shared/components/FormElements/ErrorSummary";
 import ErrorModal from "../../shared/components/UIElements/ErrorModal";
 import PageHeading from "../../shared/components/UIElements/PageHeading";
 import {
@@ -11,7 +12,7 @@ import {
   StatusLine,
 } from "../../shared/components/UIElements/LoadState";
 import { VALIDATOR_REQUIRE, VALIDATOR_MINLENGTH } from "../../shared/Util/validators";
-import { useForm } from "../../shared/hooks/form";
+import { useForm, useValidatedSubmit } from "../../shared/hooks/form";
 import { useHttpClient } from "../../shared/hooks/http-hook";
 import { useApiResource } from "../../shared/hooks/resource-hook";
 import { useDocumentTitle } from "../../shared/hooks/use-document-title";
@@ -20,6 +21,11 @@ import { markWrite } from "../../shared/util/api";
 import { API_URL, apiAsset } from "../../config";
 import { imageAlt } from "./ScenePage";
 import "./SceneForm.css";
+
+const FIELDS = [
+  { id: "title", message: "Enter a title" },
+  { id: "description", message: "Descriptions need at least 5 characters" },
+];
 
 /** The edit form, shown once the scene has loaded. */
 const EditSceneForm = ({ scene }) => {
@@ -34,8 +40,7 @@ const EditSceneForm = ({ scene }) => {
     true,
   );
 
-  const submit = async (event) => {
-    event.preventDefault();
+  const save = async () => {
     let data;
     try {
       data = await sendRequest(
@@ -53,12 +58,14 @@ const EditSceneForm = ({ scene }) => {
     markWrite();
     navigate(`/scenes/${scene.id}`, { state: { scene: data.scene } });
   };
+  const { attempted, errors, handleSubmit } = useValidatedSubmit(formState, FIELDS, save);
 
   return (
     <React.Fragment>
       <ErrorModal error={error} onClear={clearError} />
-      <form className="scene-form" onSubmit={submit}>
+      <form className="scene-form" onSubmit={handleSubmit} noValidate>
         <PageHeading className="scene-form__heading">Edit scene</PageHeading>
+        <ErrorSummary errors={errors} />
         <div className="scene-form__preview">
           <img src={apiAsset(scene.imageUrl)} alt={imageAlt(scene)} width="600" height="400" />
         </div>
@@ -67,9 +74,11 @@ const EditSceneForm = ({ scene }) => {
           element="input"
           type="text"
           label="Title"
+          required
           validators={[VALIDATOR_REQUIRE()]}
-          errorText="Enter a title."
+          errorText={FIELDS[0].message}
           onInput={inputHandler}
+          showErrors={attempted}
           initialValue={scene.title}
           initialValid={true}
         />
@@ -77,9 +86,12 @@ const EditSceneForm = ({ scene }) => {
           id="description"
           element="textarea"
           label="Description"
+          hint="At least 5 characters."
+          required
           validators={[VALIDATOR_MINLENGTH(5)]}
-          errorText="The description needs at least 5 characters."
+          errorText={FIELDS[1].message}
           onInput={inputHandler}
+          showErrors={attempted}
           initialValue={scene.description}
           initialValid={true}
         />
@@ -87,7 +99,7 @@ const EditSceneForm = ({ scene }) => {
           <Button inverse to={`/scenes/${scene.id}`}>
             Cancel
           </Button>
-          <Button type="submit" disabled={!formState.isValid || isLoading} busy={isLoading}>
+          <Button type="submit" busy={isLoading}>
             {isLoading ? "Saving…" : "Save changes"}
           </Button>
         </div>

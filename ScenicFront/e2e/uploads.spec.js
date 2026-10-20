@@ -74,7 +74,7 @@ test("a 6 MB, 4000 x 3000 photo is resized to 1600 px and sent under 1 MB", asyn
   const posted = page.waitForRequest(
     (req) => req.method() === "POST" && req.url().endsWith("/api/scenes"),
   );
-  await page.getByRole("button", { name: "Add your Scene" }).click();
+  await page.getByRole("button", { name: "Add scene" }).click();
   const body = (await posted).postDataBuffer();
   expect(body.length).toBeLessThan(1024 * 1024);
 
@@ -93,7 +93,10 @@ test("a GIF is refused in the form and nothing is sent", async ({ page, request 
 
   await fillSceneForm(page, "A GIF", { name: "moving.gif", mimeType: "image/gif", buffer: GIF });
   await expect(page.getByRole("alert")).toHaveText("Use a JPEG, PNG or WebP image.");
-  await expect(page.getByRole("button", { name: "Add your Scene" })).toBeDisabled();
+  // Submit stays enabled; it lists what to fix and goes to the photo control.
+  await page.getByRole("button", { name: "Add scene" }).click();
+  await expect(page.locator(".error-summary")).toContainText("Choose a photo");
+  await expect(page.locator("input[type=file]")).toBeFocused();
   expect(posts).toEqual([]);
 });
 
@@ -105,7 +108,7 @@ test("a photo's GPS metadata never reaches the server", async ({ page, request }
 
   await fillSceneForm(page, "Somewhere private", GPS_JPEG);
   await expect(page.locator(".image-upload__preview img")).toBeVisible();
-  await page.getByRole("button", { name: "Add your Scene" }).click();
+  await page.getByRole("button", { name: "Add scene" }).click();
   await expect(page).toHaveURL(/\/scenes\/[0-9a-f]{24}$/);
 
   const sceneId = page.url().split("/").pop();

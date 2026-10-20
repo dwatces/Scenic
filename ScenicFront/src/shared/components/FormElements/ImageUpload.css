@@ -3,11 +3,7 @@
   flex-direction: column;
   align-items: center;
   gap: 0.6rem;
-}
-
-/* The visible control is the button; the file input stays hidden. */
-.form-control .image-upload__input {
-  display: none;
+  margin: 1.1rem 0;
 }
 
 .image-upload__preview {
@@ -35,8 +31,26 @@
   object-fit: cover;
 }
 
-.image-upload .button {
+/* The label is the visible control (styled by .button); the input is
+   visually hidden but focusable, so its focus shows on the label. */
+.image-upload__choose {
   min-height: 44px;
+}
+
+.image-upload__input:focus-visible + .image-upload__choose {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.image-upload__input:disabled + .image-upload__choose {
+  color: var(--text-disabled, #6f6f7a);
+  border-color: transparent;
+  background: var(--surface-3);
+  cursor: progress;
+}
+
+.image-upload--invalid .image-upload__choose {
+  border-color: var(--danger);
 }
 
 .image-upload__hint,

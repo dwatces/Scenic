@@ -26,7 +26,7 @@ test("a 401 while posting sends the member to log in, then back to the form", as
     buffer: SAMPLE_IMAGE,
   });
   await expect(page.locator(".image-upload__preview img")).toBeVisible();
-  await page.getByRole("button", { name: "Add your Scene" }).click();
+  await page.getByRole("button", { name: "Add scene" }).click();
 
   await expect(page).toHaveURL("/login?next=%2Fscenes%2Fnew");
   await expect(page.getByText(ENDED)).toBeVisible();
@@ -107,7 +107,7 @@ test("a new scene opens straight away, and Your scenes lists it fresh", async ({
   });
   await expect(page.locator(".image-upload__preview img")).toBeVisible();
   reads.length = 0;
-  await page.getByRole("button", { name: "Add your Scene" }).click();
+  await page.getByRole("button", { name: "Add scene" }).click();
 
   await expect(page).toHaveURL(/\/scenes\/[0-9a-f]{24}$/);
   await expect(page.locator("h1")).toHaveText("Fresh off the press");

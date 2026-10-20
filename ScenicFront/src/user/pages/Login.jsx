@@ -4,15 +4,21 @@ import { Link, useLocation, useSearchParams } from "react-router";
 import Card from "../../shared/components/UIElements/Card";
 import Input from "../../shared/components/FormElements/Input";
 import Button from "../../shared/components/FormElements/Button";
+import ErrorSummary from "../../shared/components/FormElements/ErrorSummary";
 import ErrorModal from "../../shared/components/UIElements/ErrorModal";
 import PageHeading from "../../shared/components/UIElements/PageHeading";
 import { VALIDATOR_EMAIL, VALIDATOR_REQUIRE } from "../../shared/Util/validators";
-import { useForm } from "../../shared/hooks/form";
+import { useForm, useValidatedSubmit } from "../../shared/hooks/form";
 import { useHttpClient } from "../../shared/hooks/http-hook";
 import { useDocumentTitle } from "../../shared/hooks/use-document-title";
 import { AuthContext } from "../../shared/context/auth-context";
 import "./Auth.css";
 import { API_URL } from "../../config";
+
+const FIELDS = [
+  { id: "email", message: "Enter a valid email address" },
+  { id: "password", message: "Enter your password" },
+];
 
 /**
  * Log in. After logging in, GuestOnly (App.jsx) sends the visitor on to
@@ -33,8 +39,7 @@ const Login = () => {
     false,
   );
 
-  const authSubmitHandler = async (event) => {
-    event.preventDefault();
+  const logIn = async () => {
     let data;
     try {
       data = await sendRequest(
@@ -47,54 +52,64 @@ const Login = () => {
         { "Content-Type": "application/json" },
       );
     } catch {
-      return; // shown in the error modal
+      return; // shown in the error dialog
     }
     auth.login(data.userId, data.token);
   };
+  const { attempted, errors, handleSubmit } = useValidatedSubmit(formState, FIELDS, logIn);
 
   const notice = location.state && location.state.notice;
   const next = params.get("next");
   return (
     <React.Fragment>
       <ErrorModal error={error} onClear={clearError} />
-      <Card className="authentication">
-        <PageHeading className="authentication__heading">Log in</PageHeading>
-        {notice && (
-          <p className="authentication__notice" role="status">
-            {notice}
+      <div className="auth-page">
+        <Card className="authentication">
+          <PageHeading className="authentication__heading">Log in</PageHeading>
+          {notice && (
+            <p className="authentication__notice" role="status">
+              {notice}
+            </p>
+          )}
+          <hr />
+          <form onSubmit={handleSubmit} noValidate>
+            <ErrorSummary errors={errors} />
+            <Input
+              element="input"
+              id="email"
+              type="email"
+              label="Email"
+              autoComplete="email"
+              required
+              validators={[VALIDATOR_EMAIL()]}
+              errorText={FIELDS[0].message}
+              onInput={inputHandler}
+              showErrors={attempted}
+            />
+            <Input
+              element="input"
+              id="password"
+              type="password"
+              label="Password"
+              autoComplete="current-password"
+              required
+              validators={[VALIDATOR_REQUIRE()]}
+              errorText={FIELDS[1].message}
+              onInput={inputHandler}
+              showErrors={attempted}
+            />
+            <div className="auth__button">
+              <Button type="submit" busy={isLoading}>
+                {isLoading ? "Logging in…" : "Log in"}
+              </Button>
+            </div>
+          </form>
+          <p className="authentication__switch">
+            New to Scenic?{" "}
+            <Link to={next ? `/signup?next=${encodeURIComponent(next)}` : "/signup"}>Sign up</Link>
           </p>
-        )}
-        <hr />
-        <form onSubmit={authSubmitHandler}>
-          <Input
-            element="input"
-            id="email"
-            type="email"
-            label="Email"
-            validators={[VALIDATOR_EMAIL()]}
-            errorText="Enter a valid email address."
-            onInput={inputHandler}
-          />
-          <Input
-            element="input"
-            id="password"
-            type="password"
-            label="Password"
-            validators={[VALIDATOR_REQUIRE()]}
-            errorText="Enter your password."
-            onInput={inputHandler}
-          />
-          <div className="auth__button">
-            <Button type="submit" disabled={!formState.isValid || isLoading} busy={isLoading}>
-              {isLoading ? "Logging in…" : "Log in"}
-            </Button>
-          </div>
-        </form>
-        <p className="authentication__switch">
-          New to Scenic?{" "}
-          <Link to={next ? `/signup?next=${encodeURIComponent(next)}` : "/signup"}>Sign up</Link>
-        </p>
-      </Card>
+        </Card>
+      </div>
     </React.Fragment>
   );
 };
