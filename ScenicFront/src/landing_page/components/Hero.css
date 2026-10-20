@@ -1,0 +1,208 @@
+/* The hero sits under the fixed, translucent header and fills most of the
+   first screen; a sliver of "Recent scenes" shows below it. */
+.hero {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  min-height: clamp(34rem, 92svh, 60rem);
+  margin-top: calc(-1 * var(--header-h));
+  padding: calc(var(--header-h) + 2.5rem) 1.25rem 5.5rem;
+  overflow: hidden;
+  background: var(--bg);
+  text-align: center;
+}
+
+.hero__frames {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+}
+
+.hero__frame img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 1.2s var(--ease);
+}
+
+.hero__frame.is-active img {
+  opacity: 1;
+}
+
+/* Darkest behind the headline band and at the bottom edge, where the hero
+   meets the page; tuned with notes/scenic/tools/design-hero-contrast.mjs. */
+.hero__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 50%, rgba(15, 15, 17, 0.4), rgba(15, 15, 17, 0) 75%),
+    linear-gradient(
+      180deg,
+      rgba(15, 15, 17, 0.6) 0%,
+      rgba(15, 15, 17, 0.3) 22%,
+      rgba(15, 15, 17, 0.35) 62%,
+      rgba(15, 15, 17, 0.75) 86%,
+      var(--bg) 100%
+    );
+}
+
+.hero__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.35rem;
+  width: 100%;
+  max-width: 60rem;
+}
+
+.hero__title {
+  max-width: 22ch;
+  color: #fff;
+  font-size: clamp(2.3rem, 6.2vw, 4.75rem);
+  font-weight: 700;
+  line-height: 1.06;
+  letter-spacing: -0.03em;
+  text-shadow: 0 2px 32px rgba(0, 0, 0, 0.6);
+  text-wrap: balance;
+}
+
+.hero__lead-in {
+  display: block;
+}
+
+/* All the words share one cell: the cell is as big as the longest, so the
+   swap never changes the headline's size. */
+.hero__words {
+  display: grid;
+  justify-items: center;
+  align-items: center;
+  margin-top: 0.12em;
+}
+
+.hero__word {
+  grid-area: 1 / 1;
+  visibility: hidden;
+  opacity: 0;
+  transition:
+    opacity 0.6s var(--ease),
+    visibility 0.6s;
+}
+
+.hero__word.is-active {
+  visibility: visible;
+  opacity: 1;
+}
+
+.hero__word-text {
+  padding-bottom: 0.04em;
+  background: linear-gradient(transparent 62%, rgba(16, 185, 129, 0.22) 62%);
+  border-bottom: 4px solid var(--accent);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+.hero__lede {
+  max-width: 38ch;
+  color: #ececee;
+  font-size: clamp(1.05rem, 2vw, 1.3rem);
+  line-height: 1.55;
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.7);
+  text-wrap: pretty;
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 0.35rem;
+}
+
+.hero__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 11.5rem;
+  min-height: 3.25rem;
+  padding: 0 1.75rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  transition:
+    background 0.2s var(--ease),
+    border-color 0.2s var(--ease),
+    transform 0.2s var(--ease),
+    box-shadow 0.2s var(--ease);
+}
+
+.hero__cta--primary {
+  color: #06130d;
+  background: var(--accent);
+  box-shadow: 0 12px 32px rgba(16, 185, 129, 0.3);
+}
+
+.hero__cta--primary:hover {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 18px 44px rgba(16, 185, 129, 0.42);
+}
+
+.hero__cta--secondary {
+  color: #fff;
+  background: rgba(15, 15, 17, 0.55);
+  border-color: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.hero__cta--secondary:hover {
+  background: rgba(15, 15, 17, 0.75);
+  border-color: #fff;
+  transform: translateY(-2px);
+}
+
+.hero__cta:focus-visible,
+.hero__pause:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+
+/* After both calls to action in the tab order; bottom right on screen. */
+.hero__pause {
+  position: absolute;
+  right: clamp(1rem, 3vw, 2rem);
+  bottom: clamp(1rem, 3vw, 2rem);
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  color: #fff;
+  background: rgba(15, 15, 17, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 50%;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition:
+    background 0.2s var(--ease),
+    border-color 0.2s var(--ease);
+}
+
+.hero__pause:hover {
+  background: rgba(15, 15, 17, 0.85);
+  border-color: #fff;
+}
+
+@media (max-width: 480px) {
+  .hero__actions {
+    flex-direction: column;
+    align-items: stretch;
+    width: min(100%, 20rem);
+  }
+}

@@ -177,3 +177,22 @@ ul {
   white-space: nowrap;
   border: 0;
 }
+
+/* Less motion when the visitor's system asks for it: no transitions,
+   animations or smooth scrolling (the hero also stops rotating). Focus
+   styles are unaffected. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}

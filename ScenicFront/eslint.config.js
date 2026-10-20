@@ -27,7 +27,7 @@ export default [
     },
   },
   {
-    files: ["*.config.js", "e2e/**/*.{js,mjs}"],
+    files: ["*.config.js", "e2e/**/*.{js,mjs}", "scripts/**/*.{js,mjs}"],
     languageOptions: { globals: { ...globals.node } },
   },
   {

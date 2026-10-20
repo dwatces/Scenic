@@ -6,8 +6,10 @@ import { StatusLine } from "./shared/components/UIElements/LoadState";
 import { GuestOnly, RequireAuth } from "./shared/components/RouteGuards";
 import { AuthContext } from "./shared/context/auth-context";
 import { useAuth } from "./shared/hooks/auth-hook";
+// Not lazy: the hero photo is the landing page's largest paint, so it has to
+// be in the first render rather than wait for another chunk.
+import LandingPage from "./landing_page/pages/LandingPage";
 
-const LandingPage = React.lazy(() => import("./landing_page/pages/LandingPage"));
 const Users = React.lazy(() => import("./user/pages/Users"));
 const Explore = React.lazy(() => import("./scenes/pages/Explore"));
 const NewScene = React.lazy(() => import("./scenes/pages/NewScene"));

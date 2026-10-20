@@ -7,7 +7,7 @@ test.describe("smoke", () => {
     const errors = [];
     page.on("pageerror", (err) => errors.push(err.message));
     await page.goto("/");
-    await expect(page.locator(".subheader")).toContainText("Scenic is your first choice");
+    await expect(page.locator(".hero__lede")).toContainText("Share them on Scenic.");
     expect(errors).toEqual([]);
   });
 

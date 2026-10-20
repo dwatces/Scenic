@@ -119,6 +119,14 @@ The end-to-end run starts its own API from `ScenicBack` (run `npm ci` there firs
 
 The API tests start MongoDB 8.2.6 through `mongodb-memory-server-core` on port 7107 and never reach the network: a guard fails any request to a host other than this machine. The first run downloads the MongoDB binary once if it isn't cached (set `MONGOMS_RUNTIME_DOWNLOAD=true`).
 
+## Hero photos
+
+The landing page's four photos are served as AVIF (and one WebP fallback per crop), in a wide 16:10 crop for landscape screens and a tall 9:16 crop for phones, each file under 200 KB. Only the first photo loads with the page; the other three wait for the load event and never load when the visitor prefers reduced motion. The 18-megapixel originals (10.8 MB) used to sit in `ScenicFront/public/assets/` and were all preloaded on every page. They are no longer in the working tree but stay in git history (for example `git show a92484bb:ScenicFront/public/assets/Street.jpg`), and `scripts/hero/build-hero.mjs` reads them from there:
+
+```
+cd ScenicFront/scripts/hero && npm ci && node build-hero.mjs   # about 8 minutes
+```
+
 ## Project structure
 
 ```
@@ -136,7 +144,9 @@ ScenicFront/
   index.html        Vite entry
   vercel.json       build settings, SPA rewrite and asset caching for Vercel
   src/config.js     API base URL
-  src/landing_page/ landing page: rotating hero images and the newest scenes
+  src/landing_page/ landing page: rotating hero photos and the newest scenes
+  src/assets/hero/  the hero photos as AVIF and WebP (made by scripts/hero/build-hero.mjs)
+  scripts/hero/     re-encodes the hero photos; has its own package.json (sharp), run by hand
   src/user/         sign-up, login and the members list
   src/scenes/       Explore, scene page, member pages, add and edit forms, the feed hook
   src/shared/       HTTP client, route guards, form elements, modals, map, avatar, auth context and hooks
