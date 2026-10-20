@@ -1,0 +1,4 @@
+# Formatting-only commits. Use with:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+# Prettier pass over both packages
+7cdcc9f05fa1296936bce8b86c1c55a810cce267
