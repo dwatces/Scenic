@@ -61,7 +61,9 @@ describe("demo mode (no database configured)", () => {
       .post("/api/users/login")
       .send({ email: "a@b.co", password: "secret1" });
     expect(login.status).toBe(503);
-    expect(login.body.message).toMatch(/Demo mode/);
+    expect(login.body.message).toBe(
+      "Scenic isn't connected to its database, so signing up, logging in and posting are turned off. You can still browse the demo scenes.",
+    );
     expect(login.headers["cache-control"]).toBe("no-store");
 
     const create = await request(server)
@@ -69,6 +71,7 @@ describe("demo mode (no database configured)", () => {
       .field("title", "x")
       .attach("image", PNG_1PX, { filename: "a.png", contentType: "image/png" });
     expect(create.status).toBe(503);
+    expect(create.body.message).toBe(login.body.message);
 
     const del = await request(server).delete("/api/scenes/6ad72233e7b2b3491f9be98d");
     expect(del.status).toBe(503);

@@ -15,8 +15,10 @@ const {
 const { sendStoredImage } = require("../util/send-image");
 const demo = require("../util/demoData");
 
+// True in both cases that lead here (no DB_URL, or the database can't be
+// reached), and promises nothing about when that will change.
 const DEMO_WRITE =
-  "Demo mode: the live database is being provisioned. Browsing works; sign-up and posting return shortly.";
+  "Scenic isn't connected to its database, so signing up, logging in and posting are turned off. You can still browse the demo scenes.";
 
 const router = express.Router();
 
