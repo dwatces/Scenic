@@ -42,9 +42,13 @@ async function measure(page, url, { settleMs = 2000 } = {}) {
     requests.set(e.requestId, { url: e.request.url, type: e.type });
     if (navStart === null && e.type === "Document") navStart = e.timestamp;
   });
+  // Only this machine's responses count. The guard blocks every other host,
+  // and Chrome then reports its own error page (about 180 KB, for the map
+  // embed's frame) under the blocked request's id.
   cdp.on("Network.loadingFinished", (e) => {
     const request = requests.get(e.requestId);
-    if (request) finished.push({ ...request, bytes: e.encodedDataLength, at: e.timestamp });
+    if (!request || !/^https?:\/\/(127\.0\.0\.1|localhost)[:/]/.test(request.url)) return;
+    finished.push({ ...request, bytes: e.encodedDataLength, at: e.timestamp });
   });
 
   await page.addInitScript(() => {
