@@ -5,10 +5,7 @@ import Input from "../../shared/components/FormElements/Input";
 import Button from "../../shared/components/FormElements/Button";
 import ErrorModal from "../../shared/components/UIElements/ErrorModal";
 import LoadingSpinner from "../../shared/components/UIElements/LoadingSpinner";
-import {
-  VALIDATOR_EMAIL,
-  VALIDATOR_MINLENGTH,
-} from "../../shared/Util/validators";
+import { VALIDATOR_EMAIL, VALIDATOR_MINLENGTH } from "../../shared/Util/validators";
 import { useForm } from "../../shared/hooks/form";
 import { useHttpClient } from "../../shared/hooks/http-hook";
 import { AuthContext } from "../../shared/context/auth-context";
@@ -30,7 +27,7 @@ const Login = () => {
         isValid: false,
       },
     },
-    false
+    false,
   );
 
   const authSubmitHandler = async (event) => {
@@ -46,7 +43,7 @@ const Login = () => {
         }),
         {
           "Content-Type": "application/json",
-        }
+        },
       );
       auth.login(responseData.userId, responseData.token);
     } catch (err) {}
@@ -81,7 +78,10 @@ const Login = () => {
             <Button type="submit" disabled={!formState.isValid}>
               Login
             </Button>
-            <NavLink className={({ isActive }) => (isActive ? "active__link" : undefined)} to="/signup">
+            <NavLink
+              className={({ isActive }) => (isActive ? "active__link" : undefined)}
+              to="/signup"
+            >
               <Button inverse>Sign up</Button>
             </NavLink>
           </div>

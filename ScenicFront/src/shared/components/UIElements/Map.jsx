@@ -6,14 +6,11 @@ import "./Map.css";
 const Map = (props) => {
   const { center, zoom } = props;
   const span = 0.02 / Math.max(1, (zoom || 16) / 8);
-  const bbox = [
-    center.lng - span,
-    center.lat - span,
-    center.lng + span,
-    center.lat + span,
-  ].join(",");
+  const bbox = [center.lng - span, center.lat - span, center.lng + span, center.lat + span].join(
+    ",",
+  );
   const src = `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(
-    bbox
+    bbox,
   )}&layer=mapnik&marker=${center.lat},${center.lng}`;
 
   return (

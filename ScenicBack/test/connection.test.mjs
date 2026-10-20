@@ -15,7 +15,7 @@ describe("boot", () => {
     const out = execFileSync(
       process.execPath,
       ["-e", "require('./api/index.js'); setTimeout(() => process.exit(0), 50)"],
-      { cwd: apiDir, env, encoding: "utf8" }
+      { cwd: apiDir, env, encoding: "utf8" },
     );
     expect(out).toBe("");
   });
@@ -41,6 +41,8 @@ describe("DB_URL set but the database is unreachable", () => {
     expect(res.status).toBe(200);
     expect(res.body.mode).toBe("demo");
     const logged = errors.mock.calls.map((args) => args.join(" ")).join("\n");
-    expect(logged).toMatch(/MongoDB connection failed, serving demo content until it connects: .*ECONNREFUSED|MongoDB connection failed, serving demo content until it connects: .+/);
+    expect(logged).toMatch(
+      /MongoDB connection failed, serving demo content until it connects: .*ECONNREFUSED|MongoDB connection failed, serving demo content until it connects: .+/,
+    );
   }, 20000);
 });

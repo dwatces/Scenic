@@ -76,14 +76,23 @@ describe("DB and demo responses have the same shape", () => {
 
   it("GET /api/scenes/user/:userId (seeded member and a member who signed up)", async () => {
     const demoUserId = String(demo.IDS.daniel);
-    const [seeded, fromDemo] = await both(`/api/scenes/user/${seededUserId}`, `/api/scenes/user/${demoUserId}`);
+    const [seeded, fromDemo] = await both(
+      `/api/scenes/user/${seededUserId}`,
+      `/api/scenes/user/${demoUserId}`,
+    );
     expect(sorted(deepKeys(seeded))).toEqual(sorted(deepKeys(fromDemo)));
-    const [signedUp] = await both(`/api/scenes/user/${member.userId}`, `/api/scenes/user/${demoUserId}`);
+    const [signedUp] = await both(
+      `/api/scenes/user/${member.userId}`,
+      `/api/scenes/user/${demoUserId}`,
+    );
     expect(sorted(deepKeys(signedUp))).toEqual(sorted(deepKeys(fromDemo)));
   });
 
   it("GET /api/scenes/:sceneId", async () => {
-    const [fromDb, fromDemo] = await both(`/api/scenes/${memberSceneId}`, `/api/scenes/${demo.IDS.milford}`);
+    const [fromDb, fromDemo] = await both(
+      `/api/scenes/${memberSceneId}`,
+      `/api/scenes/${demo.IDS.milford}`,
+    );
     expect(sorted(deepKeys(fromDb))).toEqual(sorted(deepKeys(fromDemo)));
   });
 
@@ -99,7 +108,12 @@ describe("DB and demo responses have the same shape", () => {
 
   it("labels an account on the demo domain even without the flag", async () => {
     const User = require("../models/user.js");
-    await User.collection.insertOne({ name: "Legacy demo", email: "old@scenic.example", password: "x", scenes: [] });
+    await User.collection.insertOne({
+      name: "Legacy demo",
+      email: "old@scenic.example",
+      password: "x",
+      scenes: [],
+    });
     const users = (await request(db).get("/api/users/users")).body.users;
     expect(users.find((u) => u.name === "Legacy demo").isDemo).toBe(true);
   });

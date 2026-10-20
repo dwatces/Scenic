@@ -19,14 +19,14 @@ router.post(
       .isLength({ min: 6 })
       .withMessage("Your password needs at least 6 characters."),
   ],
-  usersControllers.signup
+  usersControllers.signup,
 );
 
 router.post(
   "/login",
   requireJwtKey,
   [emailField(), body("password").isString().notEmpty().withMessage("Enter your password.")],
-  usersControllers.login
+  usersControllers.login,
 );
 
 module.exports = router;

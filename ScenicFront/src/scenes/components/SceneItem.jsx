@@ -30,14 +30,9 @@ const SceneItem = (props) => {
   const confirmDeleteHandler = async () => {
     setShowConfirmModal(false);
     try {
-      await sendRequest(
-        `${API_URL}/scenes/${props.id}`,
-        "DELETE",
-        null,
-        {
-          Authorization: "Bearer " + auth.token,
-        }
-      );
+      await sendRequest(`${API_URL}/scenes/${props.id}`, "DELETE", null, {
+        Authorization: "Bearer " + auth.token,
+      });
       props.onDelete(props.id);
     } catch (err) {
       console.log(err);
@@ -83,10 +78,7 @@ const SceneItem = (props) => {
         <Card className="scene-item__content">
           {isLoading && <LoadingSpinner asOverlay />}
           <div className="scene-item__image">
-            <img
-              src={`data:image/${props.content};base64,${props.image}`}
-              alt={props.title}
-            />
+            <img src={`data:image/${props.content};base64,${props.image}`} alt={props.title} />
           </div>
           <div className="scene-item__info">
             <h2>{props.title}</h2>
@@ -98,9 +90,7 @@ const SceneItem = (props) => {
               View on the Map
             </Button>
 
-            {auth.userId === props.creatorId && (
-              <Button to={`/scenes/${props.id}`}>Edit</Button>
-            )}
+            {auth.userId === props.creatorId && <Button to={`/scenes/${props.id}`}>Edit</Button>}
 
             {auth.userId === props.creatorId && (
               <Button danger onClick={showDeleteWarningHandler}>

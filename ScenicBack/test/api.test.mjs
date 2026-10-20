@@ -21,7 +21,10 @@ import {
 const PASSWORD = "secret123";
 const MISSING_ID = "5f0000000000000000000000";
 
-function signup(server, { name = "Test Member", email, password = PASSWORD, image = PNG_1PX } = {}) {
+function signup(
+  server,
+  { name = "Test Member", email, password = PASSWORD, image = PNG_1PX } = {},
+) {
   const req = request(server)
     .post("/api/users/signup")
     .field("name", name)
@@ -34,8 +37,17 @@ function login(server, email, password = PASSWORD) {
   return request(server).post("/api/users/login").send({ email, password });
 }
 
-function createScene(server, token, { fields = {}, image = PNG_1PX, filename = "a.png", contentType = "image/png" } = {}) {
-  const body = { title: "Rangitoto", description: "The summit at sunrise.", address: "Rangitoto Island", ...fields };
+function createScene(
+  server,
+  token,
+  { fields = {}, image = PNG_1PX, filename = "a.png", contentType = "image/png" } = {},
+) {
+  const body = {
+    title: "Rangitoto",
+    description: "The summit at sunrise.",
+    address: "Rangitoto Island",
+    ...fields,
+  };
   let req = request(server).post("/api/scenes");
   if (token) req = req.set("Authorization", `Bearer ${token}`);
   for (const [key, value] of Object.entries(body)) req = req.field(key, value);
@@ -43,7 +55,9 @@ function createScene(server, token, { fields = {}, image = PNG_1PX, filename = "
 }
 
 function expectNoInternals(res) {
-  expect(JSON.stringify(res.body)).not.toMatch(/Cannot read properties|at .+\.js:\d+|Cast to ObjectId/);
+  expect(JSON.stringify(res.body)).not.toMatch(
+    /Cannot read properties|at .+\.js:\d+|Cast to ObjectId/,
+  );
 }
 
 describe("API with a database", () => {
@@ -107,7 +121,12 @@ describe("API with a database", () => {
     it("has a unique index on email that rejects a direct double insert", async () => {
       const User = require("../models/user.js");
       await User.init();
-      const doc = { name: "Twice", email: "twice@example.com", password: "x".repeat(60), scenes: [] };
+      const doc = {
+        name: "Twice",
+        email: "twice@example.com",
+        password: "x".repeat(60),
+        scenes: [],
+      };
       await User.create(doc);
       await expect(User.create(doc)).rejects.toMatchObject({ code: 11000 });
     });
@@ -252,7 +271,10 @@ describe("API with a database", () => {
 
     it("answers 401 with a clear message for an expired token", async () => {
       const jwt = require("jsonwebtoken");
-      const expired = jwt.sign({ userId: owner.userId, exp: Math.floor(Date.now() / 1000) - 60 }, process.env.JWT_KEY);
+      const expired = jwt.sign(
+        { userId: owner.userId, exp: Math.floor(Date.now() / 1000) - 60 },
+        process.env.JWT_KEY,
+      );
       const res = await request(server)
         .delete(`/api/scenes/${sceneId}`)
         .set("Authorization", `Bearer ${expired}`);
@@ -265,9 +287,17 @@ describe("API with a database", () => {
     it.each([
       ["a malformed scene id", "/api/scenes/not-an-id", "We couldn't find that scene."],
       ["a 12-character scene id", "/api/scenes/abcdefghijkl", "We couldn't find that scene."],
-      ["a well-formed scene id that doesn't exist", `/api/scenes/${MISSING_ID}`, "We couldn't find that scene."],
+      [
+        "a well-formed scene id that doesn't exist",
+        `/api/scenes/${MISSING_ID}`,
+        "We couldn't find that scene.",
+      ],
       ["a malformed member id", "/api/scenes/user/notanid", "We couldn't find that member."],
-      ["a well-formed member id that doesn't exist", `/api/scenes/user/${MISSING_ID}`, "We couldn't find that member."],
+      [
+        "a well-formed member id that doesn't exist",
+        `/api/scenes/user/${MISSING_ID}`,
+        "We couldn't find that member.",
+      ],
     ])("GET with %s → 404", async (_label, path, message) => {
       const res = await request(server).get(path);
       expect(res.status).toBe(404);
@@ -307,14 +337,22 @@ describe("API with a database", () => {
 
     it("refuses an image over 3 MB with 413, process alive", async () => {
       const big = Buffer.concat([JPEG_1PX, Buffer.alloc(3.5 * 1024 * 1024)]);
-      const res = await createScene(server, owner.token, { image: big, filename: "big.jpg", contentType: "image/jpeg" });
+      const res = await createScene(server, owner.token, {
+        image: big,
+        filename: "big.jpg",
+        contentType: "image/jpeg",
+      });
       expect(res.status).toBe(413);
       expect(res.body.message).toBe("Images must be 3 MB or smaller.");
       await expectAlive();
     });
 
     it("refuses a GIF with 422, process alive", async () => {
-      const res = await createScene(server, owner.token, { image: GIF_1PX, filename: "a.gif", contentType: "image/gif" });
+      const res = await createScene(server, owner.token, {
+        image: GIF_1PX,
+        filename: "a.gif",
+        contentType: "image/gif",
+      });
       expect(res.status).toBe(422);
       await expectAlive();
     });
@@ -400,10 +438,14 @@ describe("API with a database", () => {
       const failures = await Promise.all([
         request(server).post("/api/users/login").set("Content-Type", "application/json").send("{"), // 400
         createScene(server, null), // 401
-        request(server).delete(`/api/scenes/${sceneId}`).set("Authorization", `Bearer ${other.token}`), // 403
+        request(server)
+          .delete(`/api/scenes/${sceneId}`)
+          .set("Authorization", `Bearer ${other.token}`), // 403
         request(server).get(`/api/scenes/${MISSING_ID}`), // 404
         request(server).get("/api/nothing-here"), // 404 route
-        createScene(server, owner.token, { image: Buffer.concat([JPEG_1PX, Buffer.alloc(3.2 * 1024 * 1024)]) }), // 413
+        createScene(server, owner.token, {
+          image: Buffer.concat([JPEG_1PX, Buffer.alloc(3.2 * 1024 * 1024)]),
+        }), // 413
         createScene(server, owner.token, { image: null }), // 422
       ]);
       expect(failures.map((r) => r.status)).toEqual([400, 401, 403, 404, 404, 413, 422]);
@@ -498,7 +540,7 @@ describe("API with a database", () => {
       // Wrapped in $eq, the object is a value to compare, not an operator:
       // it can't be cast to the string email, so nothing can match.
       await expect(
-        User.findOne({ email: { $ne: null } }).setOptions({ sanitizeFilter: true })
+        User.findOne({ email: { $ne: null } }).setOptions({ sanitizeFilter: true }),
       ).rejects.toThrow(/Cast to string failed/);
       expect(await User.findOne({ email: { $ne: null } })).not.toBeNull(); // the hazard without it
       // Not global: it would rewrite app-built operator filters (feed cursors).
@@ -516,7 +558,10 @@ describe("API with a database", () => {
 
     it.each([
       ["no body", (r) => r],
-      ["a text/plain body", (r) => r.set("Content-Type", "text/plain").send("email=a@b.co&password=x")],
+      [
+        "a text/plain body",
+        (r) => r.set("Content-Type", "text/plain").send("email=a@b.co&password=x"),
+      ],
       ["a missing password", (r) => r.send({ email: "owner@example.com" })],
     ])("answers a login with %s with a JSON 422", async (_label, shape) => {
       const res = await shape(request(server).post("/api/users/login"));
@@ -530,14 +575,20 @@ describe("API with a database", () => {
       const { header, payload } = jwt.decode(res.body.token, { complete: true });
       expect(header.alg).toBe("HS256");
       expect(Object.keys(payload).sort()).toEqual(["exp", "iat", "userId"]);
-      expect(() => jwt.verify(res.body.token, process.env.JWT_KEY, { algorithms: ["HS256"] })).not.toThrow();
+      expect(() =>
+        jwt.verify(res.body.token, process.env.JWT_KEY, { algorithms: ["HS256"] }),
+      ).not.toThrow();
     });
 
     it("still accepts an unexpired token that carries the email (issued before this change)", async () => {
       const jwt = require("jsonwebtoken");
-      const legacy = jwt.sign({ userId: owner.userId, email: "owner@example.com" }, process.env.JWT_KEY, {
-        expiresIn: "1h",
-      });
+      const legacy = jwt.sign(
+        { userId: owner.userId, email: "owner@example.com" },
+        process.env.JWT_KEY,
+        {
+          expiresIn: "1h",
+        },
+      );
       const res = await createScene(server, legacy, { fields: { title: "Legacy token" } });
       expect(res.status).toBe(201);
     });

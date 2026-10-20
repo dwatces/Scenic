@@ -2,43 +2,46 @@ const mongoose = require("mongoose");
 
 const Schema = mongoose.Schema;
 
-const SceneSchema = new Schema({
-  title: {
-    type: String,
-    required: true,
-  },
-  description: {
-    type: String,
-    required: true,
-  },
-  image: {
-    data: String,
-    contentType: String,
-  },
-  address: {
-    type: String,
-    required: true,
-  },
-  location: {
-    lat: {
-      type: Number,
+const SceneSchema = new Schema(
+  {
+    title: {
+      type: String,
       required: true,
     },
-    lng: {
-      type: Number,
+    description: {
+      type: String,
       required: true,
     },
+    image: {
+      data: String,
+      contentType: String,
+    },
+    address: {
+      type: String,
+      required: true,
+    },
+    location: {
+      lat: {
+        type: Number,
+        required: true,
+      },
+      lng: {
+        type: Number,
+        required: true,
+      },
+    },
+    creator: {
+      type: mongoose.Types.ObjectId,
+      required: true,
+      ref: "User",
+    },
+    // Optional photo credit, shown with the scene when set.
+    credit: {
+      text: String,
+      url: String,
+    },
   },
-  creator: {
-    type: mongoose.Types.ObjectId,
-    required: true,
-    ref: "User",
-  },
-  // Optional photo credit, shown with the scene when set.
-  credit: {
-    text: String,
-    url: String,
-  },
-}, { timestamps: true });
+  { timestamps: true },
+);
 
 module.exports = mongoose.model("Scene", SceneSchema);

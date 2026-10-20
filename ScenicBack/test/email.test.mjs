@@ -40,9 +40,12 @@ async function normalise(email) {
 }
 
 describe("email normalisation", () => {
-  it.each(Object.entries(STORED_BY_V6))("%s → %s, as stored by the old API", async (typed, stored) => {
-    expect(await normalise(typed)).toBe(stored);
-  });
+  it.each(Object.entries(STORED_BY_V6))(
+    "%s → %s, as stored by the old API",
+    async (typed, stored) => {
+      expect(await normalise(typed)).toBe(stored);
+    },
+  );
 
   it("is idempotent, so a stored address normalises to itself", async () => {
     for (const stored of Object.values(STORED_BY_V6)) {

@@ -32,7 +32,8 @@ export function buildApp(options = {}) {
 
 /** Every key path in a JSON value whose last segment is one of `names`. */
 export function findKeys(value, names, path = "$") {
-  if (Array.isArray(value)) return value.flatMap((item, i) => findKeys(item, names, `${path}[${i}]`));
+  if (Array.isArray(value))
+    return value.flatMap((item, i) => findKeys(item, names, `${path}[${i}]`));
   if (value && typeof value === "object") {
     return Object.entries(value).flatMap(([key, child]) => [
       ...(names.includes(key) ? [`${path}.${key}`] : []),
@@ -57,7 +58,7 @@ export async function close(server) {
 /** Smallest valid PNG (1 x 1 px). */
 export const PNG_1PX = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
-  "base64"
+  "base64",
 );
 
 /** An unsigned `alg: none` token, the shape an attacker would forge. */
@@ -80,13 +81,16 @@ export async function ownListeningPorts() {
 /** Tiny real images (1 x 1 px), made with Pillow. */
 export const JPEG_1PX = Buffer.from(
   "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQgJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDh6KKKwPIP/9k=",
-  "base64"
+  "base64",
 );
 export const WEBP_1PX = Buffer.from(
   "UklGRjAAAABXRUJQVlA4ICQAAABwAQCdASoBAAEAAUAmJYgCdAF1AAD+9IhzSIQf8b/Vr5MhwAA=",
-  "base64"
+  "base64",
 );
-export const GIF_1PX = Buffer.from("R0lGODdhAQABAIEAAChaPAAAAAAAAAAAACwAAAAAAQABAAAIBAABBAQAOw==", "base64");
+export const GIF_1PX = Buffer.from(
+  "R0lGODdhAQABAIEAAChaPAAAAAAAAAAAACwAAAAAAQABAAAIBAABBAQAOw==",
+  "base64",
+);
 
 /** The set of key paths in a JSON value, with array items collapsed to "[]". */
 export function deepKeys(value, path = "") {

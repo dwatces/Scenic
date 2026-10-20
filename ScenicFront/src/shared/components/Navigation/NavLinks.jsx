@@ -10,27 +10,40 @@ const NavLinks = () => {
   return (
     <ul className="nav-links">
       <li>
-        <NavLink className={({ isActive }) => (isActive ? "active__link" : undefined)} to="/users" end>
+        <NavLink
+          className={({ isActive }) => (isActive ? "active__link" : undefined)}
+          to="/users"
+          end
+        >
           All Users
         </NavLink>
       </li>
       {auth.isLoggedIn && (
         <li>
-          <NavLink className={({ isActive }) => (isActive ? "active__link" : undefined)} to={`/${userId}/scenes`}>
+          <NavLink
+            className={({ isActive }) => (isActive ? "active__link" : undefined)}
+            to={`/${userId}/scenes`}
+          >
             My Scenes
           </NavLink>
         </li>
       )}
       {auth.isLoggedIn && (
         <li>
-          <NavLink className={({ isActive }) => (isActive ? "active__link" : undefined)} to="/scenes/new">
+          <NavLink
+            className={({ isActive }) => (isActive ? "active__link" : undefined)}
+            to="/scenes/new"
+          >
             Add Scene
           </NavLink>
         </li>
       )}
       {!auth.isLoggedIn && (
         <li>
-          <NavLink className={({ isActive }) => (isActive ? "active__link" : undefined)} to="/login">
+          <NavLink
+            className={({ isActive }) => (isActive ? "active__link" : undefined)}
+            to="/login"
+          >
             Login
           </NavLink>
         </li>

@@ -2,7 +2,16 @@
 // writes answer 503, and an unsigned (alg: none) token is never accepted.
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import request from "supertest";
-import { require, mongoose, buildApp, listen, close, dbUrl, PNG_1PX, algNoneToken } from "./helpers.mjs";
+import {
+  require,
+  mongoose,
+  buildApp,
+  listen,
+  close,
+  dbUrl,
+  PNG_1PX,
+  algNoneToken,
+} from "./helpers.mjs";
 
 describe("JWT_KEY unset", () => {
   let server;
@@ -54,7 +63,9 @@ describe("JWT_KEY unset", () => {
   });
 
   it("answers sign-up, login and writes with 503", async () => {
-    const login = await request(server).post("/api/users/login").send({ email: "fixture@example.com", password: "secret123" });
+    const login = await request(server)
+      .post("/api/users/login")
+      .send({ email: "fixture@example.com", password: "secret123" });
     expect(login.status).toBe(503);
     expect(login.body.message).toBe("Sign-in isn't set up on this server yet.");
     const signup = await request(server).post("/api/users/signup").field("name", "x");

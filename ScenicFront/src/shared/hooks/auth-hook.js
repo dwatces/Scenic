@@ -33,7 +33,7 @@ export const useAuth = () => {
     try {
       localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ userId, token, expiration: expiration.toISOString() })
+        JSON.stringify({ userId, token, expiration: expiration.toISOString() }),
       );
     } catch {
       // Storage unavailable: the session still lasts for this tab.

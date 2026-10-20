@@ -88,20 +88,37 @@ describe("serializeUser and serializeScene", () => {
   it("builds the public scene shape with a creator summary", () => {
     const out = serializeScene(scene, { creator: member });
     expect(Object.keys(out).sort()).toEqual(
-      ["address", "createdAt", "creator", "credit", "description", "id", "imageType", "imageUrl", "isDemo", "location", "title"].sort()
+      [
+        "address",
+        "createdAt",
+        "creator",
+        "credit",
+        "description",
+        "id",
+        "imageType",
+        "imageUrl",
+        "isDemo",
+        "location",
+        "title",
+      ].sort(),
     );
     expect(out.imageType).toBe("image/webp");
     expect(out.imageUrl).toBe(`/api/scenes/${sceneId}/image?v=${sceneId.getTimestamp().getTime()}`);
     expect(out.createdAt).toBe(sceneId.getTimestamp().toISOString()); // no stored timestamp: the id's time
     expect(out.credit).toBeNull();
-    expect(out.creator).toEqual({ id: String(userId), name: "Kiri", avatarUrl: expect.any(String), isDemo: false });
+    expect(out.creator).toEqual({
+      id: String(userId),
+      name: "Kiri",
+      avatarUrl: expect.any(String),
+      isDemo: false,
+    });
     expect(findKeys(out, ["email", "password", "__v", "data"])).toEqual([]);
   });
 
   it("uses a stored createdAt and a credit when present", () => {
     const out = serializeScene(
       { ...scene, createdAt: new Date("2026-06-20T09:10:00Z"), credit: { text: "Photo: Kiri" } },
-      { creator: { ...member, demo: true } }
+      { creator: { ...member, demo: true } },
     );
     expect(out.createdAt).toBe("2026-06-20T09:10:00.000Z");
     expect(out.credit).toEqual({ text: "Photo: Kiri", url: null });

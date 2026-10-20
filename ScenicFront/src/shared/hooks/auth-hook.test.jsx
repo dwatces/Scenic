@@ -19,7 +19,11 @@ describe("readStoredAuth", () => {
   it("returns an unexpired session", () => {
     const expiration = new Date(Date.now() + HOUR).toISOString();
     store({ userId: "u1", token: "t1", expiration });
-    expect(readStoredAuth()).toEqual({ userId: "u1", token: "t1", expiration: new Date(expiration) });
+    expect(readStoredAuth()).toEqual({
+      userId: "u1",
+      token: "t1",
+      expiration: new Date(expiration),
+    });
   });
 
   it("ignores an expired, incomplete or unreadable session", () => {
@@ -50,7 +54,10 @@ describe("useAuth", () => {
     const { result } = renderHook(() => useAuth());
     act(() => result.current.login("u2", "t2"));
     expect(result.current).toMatchObject({ userId: "u2", token: "t2" });
-    expect(JSON.parse(localStorage.getItem("userData"))).toMatchObject({ userId: "u2", token: "t2" });
+    expect(JSON.parse(localStorage.getItem("userData"))).toMatchObject({
+      userId: "u2",
+      token: "t2",
+    });
     act(() => result.current.logout());
     expect(result.current).toMatchObject({ userId: null, token: null });
     expect(localStorage.getItem("userData")).toBeNull();

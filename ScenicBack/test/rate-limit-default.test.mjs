@@ -14,7 +14,9 @@ describe("the exported app", () => {
     server = await listen(require("../app.js"), SPARE_PORT);
     let last;
     for (let i = 0; i < 11; i++) {
-      last = await request(server).post("/api/users/login").send({ email: "nobody@example.com", password: "x" });
+      last = await request(server)
+        .post("/api/users/login")
+        .send({ email: "nobody@example.com", password: "x" });
     }
     expect(last.status).toBe(429);
   });

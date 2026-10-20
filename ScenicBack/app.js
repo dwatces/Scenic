@@ -25,8 +25,8 @@ function startConnection(dbUrl) {
   // an unreachable cluster shows up in the function log.
   connecting = connection(dbUrl).catch((err) =>
     console.error(
-      `MongoDB connection failed, serving demo content until it connects: ${err.message}`
-    )
+      `MongoDB connection failed, serving demo content until it connects: ${err.message}`,
+    ),
   );
   return connecting;
 }
@@ -62,7 +62,7 @@ function checkConfig(env) {
   if (!env.JWT_KEY && !warnedNoJwtKey) {
     warnedNoJwtKey = true;
     console.error(
-      "JWT_KEY is not set: sign-up, login and posting answer 503 until it is. Reads still work."
+      "JWT_KEY is not set: sign-up, login and posting answer 503 until it is. Reads still work.",
     );
   }
 }
@@ -109,8 +109,7 @@ function waitAtMost(promise, ms) {
  */
 function createApp({
   env = process.env,
-  geocode = (address) =>
-    getCoordinatesForAddress(address, { apiKey: env.GOOGLE_API_KEY }),
+  geocode = (address) => getCoordinatesForAddress(address, { apiKey: env.GOOGLE_API_KEY }),
   rateLimit = true,
 } = {}) {
   checkConfig(env);
@@ -135,7 +134,7 @@ function createApp({
         directives: { defaultSrc: ["'none'"], frameAncestors: ["'none'"] },
       },
       crossOriginResourcePolicy: { policy: "cross-origin" },
-    })
+    }),
   );
 
   // CORS answers preflight requests itself (204), before the database gate,
@@ -146,7 +145,7 @@ function createApp({
       methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
       allowedHeaders: ["Content-Type", "Authorization"],
       maxAge: 600,
-    })
+    }),
   );
 
   // JSON only: the client posts JSON (login, edits) or multipart (uploads,
@@ -204,9 +203,7 @@ const app = createApp();
 if (require.main === module) {
   const port = process.env.PORT || 5000;
   if (process.env.DB_URL) startConnection(process.env.DB_URL);
-  app.listen(port, () =>
-    console.log(`Scenic backend listening on port ${port}`)
-  );
+  app.listen(port, () => console.log(`Scenic backend listening on port ${port}`));
 }
 
 module.exports = app;

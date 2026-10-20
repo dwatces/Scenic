@@ -7,11 +7,7 @@ const UserItem = (props) => {
     <li className="user-item">
       <Link to={`/${props.id}/scenes`}>
         <div className="user-item__image">
-          <Avatar
-            content={props.content}
-            image={props.image}
-            alt={props.name}
-          />
+          <Avatar content={props.content} image={props.image} alt={props.name} />
         </div>
         <div className="user-item__info">
           <h2>{props.name}</h2>

@@ -14,9 +14,7 @@ const UserScenes = (props) => {
   useEffect(() => {
     const fetchScenes = async () => {
       try {
-        const responseData = await sendRequest(
-          `${API_URL}/scenes/user/${userId}`
-        );
+        const responseData = await sendRequest(`${API_URL}/scenes/user/${userId}`);
         setLoadedScenes(responseData.scenes);
       } catch (err) {}
     };
@@ -24,9 +22,7 @@ const UserScenes = (props) => {
   }, [sendRequest, userId]);
 
   const sceneDeletedHandler = (deletedsceneId) => {
-    setLoadedScenes((prevScenes) =>
-      prevScenes.filter((scene) => scene.id !== deletedsceneId)
-    );
+    setLoadedScenes((prevScenes) => prevScenes.filter((scene) => scene.id !== deletedsceneId));
   };
 
   return (
@@ -37,11 +33,7 @@ const UserScenes = (props) => {
         </div>
       )}
       {!isLoading && loadedScenes && (
-        <SceneList
-          auth={userId}
-          items={loadedScenes}
-          onDeleteScene={sceneDeletedHandler}
-        />
+        <SceneList auth={userId} items={loadedScenes} onDeleteScene={sceneDeletedHandler} />
       )}
     </React.Fragment>
   );

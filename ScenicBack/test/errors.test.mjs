@@ -6,7 +6,12 @@ import { require, listen, close } from "./helpers.mjs";
 
 const express = require("express");
 const HttpError = require("../models/http-error.js");
-const { errorHandler, notFound, noStoreOnErrors, GENERIC_MESSAGE } = require("../middleware/errors.js");
+const {
+  errorHandler,
+  notFound,
+  noStoreOnErrors,
+  GENERIC_MESSAGE,
+} = require("../middleware/errors.js");
 
 describe("error handler", () => {
   let server;
@@ -52,7 +57,7 @@ describe("error handler", () => {
       expect(res.status).toBe(500);
       expect(res.body).toEqual({ message: GENERIC_MESSAGE });
       expect(res.headers["cache-control"]).toBe("no-store");
-    }
+    },
   );
 
   it("logs what it hides", async () => {

@@ -67,7 +67,9 @@
   letter-spacing: 0.01em;
   cursor: pointer;
   box-shadow: 0 12px 32px rgba(16, 185, 129, 0.3);
-  transition: background 0.2s var(--ease), transform 0.2s var(--ease),
+  transition:
+    background 0.2s var(--ease),
+    transform 0.2s var(--ease),
     box-shadow 0.2s var(--ease);
 }
 

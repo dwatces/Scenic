@@ -33,7 +33,9 @@ const getSceneById = async (req, res) => {
 // GET /api/scenes/user/:userId. DEPRECATED legacy shape, kept for the
 // deployed client.
 const getScenesByUserId = async (req, res) => {
-  const user = await User.findById(req.params.userId, `${CREATOR_FIELDS} scenes`).populate("scenes");
+  const user = await User.findById(req.params.userId, `${CREATOR_FIELDS} scenes`).populate(
+    "scenes",
+  );
   if (!user) throw new HttpError(MEMBER_NOT_FOUND, 404);
   res.json({ scenes: user.scenes.map((scene) => legacyScene(scene, { creator: user })) });
 };
@@ -53,11 +55,7 @@ const createScene = async (req, res) => {
   // The scene and the creator's list change together or not at all.
   await mongoose.connection.transaction(async (session) => {
     await createdScene.save({ session });
-    await User.updateOne(
-      { _id: userId },
-      { $addToSet: { scenes: createdScene._id } },
-      { session }
-    );
+    await User.updateOne({ _id: userId }, { $addToSet: { scenes: createdScene._id } }, { session });
   });
 
   res.status(201).json({ scene: legacyScene(createdScene, { creator }) });

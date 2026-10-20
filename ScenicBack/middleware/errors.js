@@ -56,4 +56,11 @@ function errorHandler(err, req, res, next) {
   res.status(500).json({ message: GENERIC_MESSAGE });
 }
 
-module.exports = { errorHandler, notFound, noStoreOnErrors, knownError, DUPLICATE_EMAIL, GENERIC_MESSAGE };
+module.exports = {
+  errorHandler,
+  notFound,
+  noStoreOnErrors,
+  knownError,
+  DUPLICATE_EMAIL,
+  GENERIC_MESSAGE,
+};

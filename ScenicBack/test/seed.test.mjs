@@ -18,7 +18,10 @@ describe("seed()", () => {
     const result = await seed({ password: process.env.SEED_PASSWORD });
     expect(result).toEqual({ created: 5, users: 2, scenes: 3 });
     const users = await User.find({}, "email demo scenes").lean();
-    expect(users.map((u) => u.email).sort()).toEqual(["aroha@scenic.example", "daniel@scenic.example"]);
+    expect(users.map((u) => u.email).sort()).toEqual([
+      "aroha@scenic.example",
+      "daniel@scenic.example",
+    ]);
     expect(users.every((u) => u.demo === true)).toBe(true);
     const scenes = await Scene.find({}, "creator image").lean();
     for (const scene of scenes) {
@@ -30,6 +33,10 @@ describe("seed()", () => {
   });
 
   it("is idempotent", async () => {
-    expect(await seed({ password: process.env.SEED_PASSWORD })).toEqual({ created: 0, users: 2, scenes: 3 });
+    expect(await seed({ password: process.env.SEED_PASSWORD })).toEqual({
+      created: 0,
+      users: 2,
+      scenes: 3,
+    });
   });
 });

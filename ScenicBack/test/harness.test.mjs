@@ -14,10 +14,10 @@ describe("test harness", () => {
 
   it("blocks http(s) requests and fetch to other hosts", async () => {
     expect(() => https.request("https://nominatim.openstreetmap.org/search?q=x")).toThrow(
-      /Network guard: blocked a request to nominatim\.openstreetmap\.org/
+      /Network guard: blocked a request to nominatim\.openstreetmap\.org/,
     );
     await expect(fetch("https://nominatim.openstreetmap.org/search?q=x")).rejects.toThrow(
-      /Network guard/
+      /Network guard/,
     );
   });
 

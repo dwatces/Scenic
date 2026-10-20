@@ -26,10 +26,7 @@ async function googleGeocode(address, apiKey) {
     data = await getJson(url);
   } catch (err) {
     console.error("Google geocoding unreachable:", err.message);
-    throw new HttpError(
-      "The location service is temporarily unavailable, please try again",
-      502
-    );
+    throw new HttpError("The location service is temporarily unavailable, please try again", 502);
   }
 
   if (!data || data.status !== "OK" || !data.results.length) {
@@ -75,10 +72,7 @@ async function keylessGeocode(address) {
   }
   if (lastNetworkError) {
     console.error("Geocoding providers unreachable:", lastNetworkError.message);
-    throw new HttpError(
-      "The location service is temporarily unavailable, please try again",
-      502
-    );
+    throw new HttpError("The location service is temporarily unavailable, please try again", 502);
   }
   throw new HttpError("Could not find the location for this address", 422);
 }
@@ -88,10 +82,7 @@ async function keylessGeocode(address) {
  * otherwise Nominatim, then Photon. The key is read per call, so the
  * caller (createApp's env) decides, not whatever was set at import time.
  */
-async function getCoordinatesForAddress(
-  address,
-  { apiKey = process.env.GOOGLE_API_KEY } = {}
-) {
+async function getCoordinatesForAddress(address, { apiKey = process.env.GOOGLE_API_KEY } = {}) {
   return apiKey ? googleGeocode(address, apiKey) : keylessGeocode(address);
 }
 

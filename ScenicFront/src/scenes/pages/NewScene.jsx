@@ -2,10 +2,7 @@ import React, { useContext } from "react";
 import { useNavigate } from "react-router";
 import Input from "../../shared/components/FormElements/Input";
 import Button from "../../shared/components/FormElements/Button";
-import {
-  VALIDATOR_REQUIRE,
-  VALIDATOR_MINLENGTH,
-} from "../../shared/Util/validators";
+import { VALIDATOR_REQUIRE, VALIDATOR_MINLENGTH } from "../../shared/Util/validators";
 import ErrorModal from "../../shared/components/UIElements/ErrorModal";
 import LoadingSpinner from "../../shared/components/UIElements/LoadingSpinner";
 import ImageUpload from "../../shared/components/FormElements/ImageUpload";
@@ -37,7 +34,7 @@ const NewScene = () => {
         isValid: false,
       },
     },
-    false
+    false,
   );
 
   const navigate = useNavigate();
@@ -49,14 +46,9 @@ const NewScene = () => {
       formData.append("description", formState.inputs.description.value);
       formData.append("address", formState.inputs.address.value);
       formData.append("image", formState.inputs.image.value);
-      await sendRequest(
-        `${API_URL}/scenes`,
-        "POST",
-        formData,
-        {
-          Authorization: "Bearer " + auth.token,
-        }
-      );
+      await sendRequest(`${API_URL}/scenes`, "POST", formData, {
+        Authorization: "Bearer " + auth.token,
+      });
       navigate("/");
     } catch (err) {}
   };
@@ -64,11 +56,7 @@ const NewScene = () => {
   return (
     <React.Fragment>
       <ErrorModal error={error} onClear={clearError} />
-      <form
-        className="scene-form"
-        onSubmit={sceneSubmitHandler}
-        encType="multipart/form-data"
-      >
+      <form className="scene-form" onSubmit={sceneSubmitHandler} encType="multipart/form-data">
         <h2 className="center">Add Scene</h2>
         <Input
           id="title"
@@ -105,11 +93,7 @@ const NewScene = () => {
           errorText="Please enter the location of this scene"
           onInput={inputHandler}
         />
-        <Button
-          className="scene__submit"
-          type="submit"
-          disabled={!formState.isValid}
-        >
+        <Button className="scene__submit" type="submit" disabled={!formState.isValid}>
           Add your Scene
         </Button>
       </form>

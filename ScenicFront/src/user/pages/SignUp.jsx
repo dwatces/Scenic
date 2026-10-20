@@ -35,7 +35,7 @@ const Signup = () => {
         isValid: false,
       },
     },
-    false
+    false,
   );
 
   const authSubmitHandler = async (event) => {
@@ -47,11 +47,7 @@ const Signup = () => {
       formData.append("name", formState.inputs.name.value);
       formData.append("password", formState.inputs.password.value);
       formData.append("image", formState.inputs.image.value);
-      const responseData = await sendRequest(
-        `${API_URL}/users/signup`,
-        "POST",
-        formData
-      );
+      const responseData = await sendRequest(`${API_URL}/users/signup`, "POST", formData);
       auth.login(responseData.userId, responseData.token);
     } catch (err) {}
   };

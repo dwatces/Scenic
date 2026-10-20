@@ -24,7 +24,12 @@ const toId = (value) => String(value && value._id ? value._id : value);
  * @returns {"image/jpeg" | "image/png" | "image/webp"}
  */
 function normaliseContentType(label, base64Data) {
-  const known = TYPE_BY_LABEL[String(label || "").trim().toLowerCase()];
+  const known =
+    TYPE_BY_LABEL[
+      String(label || "")
+        .trim()
+        .toLowerCase()
+    ];
   if (known) return known;
   if (typeof base64Data === "string" && base64Data.length > 0) {
     const sniffed = sniffImageType(Buffer.from(base64Data.slice(0, 24), "base64"));
@@ -89,7 +94,10 @@ function serializeScene(scene, { creator }) {
     address: scene.address,
     location: { lat: scene.location.lat, lng: scene.location.lng },
     imageUrl: imagePath("scenes", scene),
-    imageType: normaliseContentType(scene.image && scene.image.contentType, scene.image && scene.image.data),
+    imageType: normaliseContentType(
+      scene.image && scene.image.contentType,
+      scene.image && scene.image.data,
+    ),
     createdAt: createdAtOf(scene),
     credit: credit ? { text: credit.text, url: credit.url || null } : null,
     isDemo: isDemoUser(creator),

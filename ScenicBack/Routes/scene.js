@@ -28,8 +28,11 @@ router.use(checkAuth);
 router.post(
   "/",
   upload.single("image"),
-  [...titleAndDescription, body("address").isString().trim().notEmpty().withMessage("Add a location.")],
-  sceneControllers.createScene
+  [
+    ...titleAndDescription,
+    body("address").isString().trim().notEmpty().withMessage("Add a location."),
+  ],
+  sceneControllers.createScene,
 );
 
 router.patch("/:sceneId", titleAndDescription, sceneControllers.updateScene);

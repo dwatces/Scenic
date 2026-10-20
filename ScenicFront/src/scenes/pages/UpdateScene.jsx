@@ -3,10 +3,7 @@ import { useParams, useNavigate } from "react-router";
 import Input from "../../shared/components/FormElements/Input";
 import Button from "../../shared/components/FormElements/Button";
 import Card from "../../shared/components/UIElements/Card";
-import {
-  VALIDATOR_REQUIRE,
-  VALIDATOR_MINLENGTH,
-} from "../../shared/Util/validators";
+import { VALIDATOR_REQUIRE, VALIDATOR_MINLENGTH } from "../../shared/Util/validators";
 import LoadingSpinner from "../../shared/components/UIElements/LoadingSpinner";
 import ErrorModal from "../../shared/components/UIElements/ErrorModal";
 import { useForm } from "../../shared/hooks/form";
@@ -41,15 +38,13 @@ const UpdateScene = () => {
         isValid: false,
       },
     },
-    false
+    false,
   );
 
   useEffect(() => {
     const fetchScene = async () => {
       try {
-        const responseData = await sendRequest(
-          `${API_URL}/scenes/${sceneId}`
-        );
+        const responseData = await sendRequest(`${API_URL}/scenes/${sceneId}`);
         setLoadedScene(responseData.scene);
         setFormData(
           {
@@ -70,7 +65,7 @@ const UpdateScene = () => {
               isValid: true,
             },
           },
-          true
+          true,
         );
       } catch (e) {}
     };
@@ -90,7 +85,7 @@ const UpdateScene = () => {
         {
           "Content-Type": "application/json",
           Authorization: "Bearer " + auth.token,
-        }
+        },
       );
       navigate("/" + auth.userId + "/scenes");
     } catch (err) {}

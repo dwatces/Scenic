@@ -9,7 +9,7 @@ const mongoose = require("mongoose");
 module.exports = async function connection(dbUrl) {
   if (!dbUrl) {
     throw new Error(
-      "DB_URL is not set: create a .env file (see .env.example) with your MongoDB connection string."
+      "DB_URL is not set: create a .env file (see .env.example) with your MongoDB connection string.",
     );
   }
 

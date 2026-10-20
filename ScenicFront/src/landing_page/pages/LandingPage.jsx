@@ -3,22 +3,12 @@ import { NavLink } from "react-router";
 import { AuthContext } from "../../shared/context/auth-context";
 import "./LandingPage.css";
 
-const headers = [
-  "street scenes",
-  "landscape scenes",
-  "family memories",
-  "portraits",
-];
+const headers = ["street scenes", "landscape scenes", "family memories", "portraits"];
 
 const LandingPage = () => {
   const auth = useContext(AuthContext);
   const [index, setIndex] = useState(0);
-  const [imgarray] = useState([
-    "Street.jpg",
-    "Landscape.jpg",
-    "Family.jpg",
-    "Portrait.jpg",
-  ]);
+  const [imgarray] = useState(["Street.jpg", "Landscape.jpg", "Family.jpg", "Portrait.jpg"]);
 
   React.useEffect(() => {
     const interval = setInterval(() => {
@@ -48,8 +38,7 @@ const LandingPage = () => {
       <h2 className="subheader">
         Scenic is your first choice for sharing your most precious images.
         <br />
-        Create a free account and upload your favourite images to share with the
-        community.
+        Create a free account and upload your favourite images to share with the community.
       </h2>
 
       {!auth.isLoggedIn && (

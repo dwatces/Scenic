@@ -19,7 +19,9 @@ li.user-item {
   border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
   text-decoration: none;
-  transition: transform 0.2s var(--ease), border-color 0.2s var(--ease),
+  transition:
+    transform 0.2s var(--ease),
+    border-color 0.2s var(--ease),
     background 0.2s var(--ease);
 }
 

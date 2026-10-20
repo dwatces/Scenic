@@ -14,7 +14,7 @@ describe("NavLinks", () => {
     render(
       <MemoryRouter initialEntries={["/users"]}>
         <NavLinks />
-      </MemoryRouter>
+      </MemoryRouter>,
     );
     expect(screen.getByRole("link", { name: "Login" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "All Users" })).toHaveClass("active__link");
@@ -26,7 +26,7 @@ describe("NavLinks", () => {
         <MemoryRouter initialEntries={["/u1/scenes"]}>
           <NavLinks />
         </MemoryRouter>
-      </AuthContext.Provider>
+      </AuthContext.Provider>,
     );
     expect(screen.getByRole("link", { name: "My Scenes" })).toHaveAttribute("href", "/u1/scenes");
     expect(screen.getByRole("link", { name: "My Scenes" })).toHaveClass("active__link");
@@ -45,7 +45,7 @@ describe("MainNavigation", () => {
         <MemoryRouter>
           <MainNavigation />
         </MemoryRouter>
-      </AuthContext.Provider>
+      </AuthContext.Provider>,
     );
     await userEvent.click(document.querySelector(".main-navigation__menu-btn"));
     expect(document.querySelector(".side-drawer")).toBeInTheDocument();

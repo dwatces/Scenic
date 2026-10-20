@@ -6,9 +6,7 @@ import LoadingSpinner from "./shared/components/UIElements/LoadingSpinner";
 import { AuthContext } from "./shared/context/auth-context";
 import { useAuth } from "./shared/hooks/auth-hook";
 
-const LandingPage = React.lazy(() =>
-  import("./landing_page/pages/LandingPage")
-);
+const LandingPage = React.lazy(() => import("./landing_page/pages/LandingPage"));
 const Users = React.lazy(() => import("./user/pages/Users"));
 const NewScene = React.lazy(() => import("./scenes/pages/NewScene"));
 const UserScenes = React.lazy(() => import("./scenes/pages/UserScenes"));

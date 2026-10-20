@@ -19,7 +19,8 @@ const demo = require("../util/demoData.js");
 
 const MAGIC = {
   jpeg: (b) => b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff,
-  png: (b) => b.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])),
+  png: (b) =>
+    b.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])),
   webp: (b) => b.toString("ascii", 0, 4) === "RIFF" && b.toString("ascii", 8, 12) === "WEBP",
 };
 
@@ -74,12 +75,17 @@ describe("deployed client compatibility", () => {
         .field("password", "secret123")
         .attach("image", JPEG_1PX, { filename: "a.jpg", contentType: "image/jpeg" });
       expect(res.status).toBe(201);
-      expect(res.body).toEqual({ userId: expect.stringMatching(/^[0-9a-f]{24}$/), token: expect.any(String) });
+      expect(res.body).toEqual({
+        userId: expect.stringMatching(/^[0-9a-f]{24}$/),
+        token: expect.any(String),
+      });
       member = res.body;
     });
 
     it("login → 200", async () => {
-      const res = await request(db).post("/api/users/login").send({ email: "kiri@example.com", password: "secret123" });
+      const res = await request(db)
+        .post("/api/users/login")
+        .send({ email: "kiri@example.com", password: "secret123" });
       expect(res.status).toBe(200);
       expect(res.body).toEqual({ userId: member.userId, token: expect.any(String) });
     });
@@ -129,7 +135,8 @@ describe("deployed client compatibility", () => {
       try {
         const users = (await request(demoServer).get("/api/users/users")).body.users;
         users.forEach(expectOldClientUser);
-        const scenes = (await request(demoServer).get(`/api/scenes/user/${demo.IDS.daniel}`)).body.scenes;
+        const scenes = (await request(demoServer).get(`/api/scenes/user/${demo.IDS.daniel}`)).body
+          .scenes;
         scenes.forEach((scene) => expectOldClientScene(scene, String(demo.IDS.daniel)));
       } finally {
         await close(demoServer);
@@ -155,8 +162,10 @@ describe("deployed client compatibility", () => {
       ).body;
       await expectJsonError(await request(db).delete(`/api/scenes/${sceneId}`), 401);
       await expectJsonError(
-        await request(db).delete(`/api/scenes/${sceneId}`).set("Authorization", `Bearer ${other.token}`),
-        403
+        await request(db)
+          .delete(`/api/scenes/${sceneId}`)
+          .set("Authorization", `Bearer ${other.token}`),
+        403,
       );
       await expectJsonError(await request(db).get("/api/scenes/5f0000000000000000000000"), 404);
       await expectJsonError(
@@ -170,13 +179,16 @@ describe("deployed client compatibility", () => {
             filename: "big.jpg",
             contentType: "image/jpeg",
           }),
-        413
+        413,
       );
       await expectJsonError(await request(db).post("/api/users/login").send({ email: "x" }), 422);
     });
 
     it("429 from the rate limiter", async () => {
-      const limited = await listen(buildApp({ env: { JWT_KEY: "x" }, rateLimit: { limit: 1 } }), SPARE_PORT);
+      const limited = await listen(
+        buildApp({ env: { JWT_KEY: "x" }, rateLimit: { limit: 1 } }),
+        SPARE_PORT,
+      );
       try {
         await request(limited).post("/api/users/login").send({});
         await expectJsonError(await request(limited).post("/api/users/login").send({}), 429);

@@ -67,7 +67,9 @@ async function main() {
 
   const password = process.env.SEED_PASSWORD || crypto.randomBytes(9).toString("base64url");
   const { created, users, scenes } = await seed({ password });
-  console.log(`Seed done: ${created} documents created. DB now has ${users} users, ${scenes} scenes.`);
+  console.log(
+    `Seed done: ${created} documents created. DB now has ${users} users, ${scenes} scenes.`,
+  );
   if (created > 0 && !process.env.SEED_PASSWORD) {
     console.log(`Generated login password for seeded users: ${password}`);
   }
