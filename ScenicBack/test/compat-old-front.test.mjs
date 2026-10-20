@@ -1,6 +1,5 @@
 // Everything the deployed (older) client relies on, in one place. The API
-// deploys before the new client, so these must hold at every commit.
-// See README "Deploying" for the order.
+// is deployed before the new client, so these must hold at every commit.
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import request from "supertest";
 import {
