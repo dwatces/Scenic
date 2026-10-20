@@ -8,7 +8,10 @@
   },
   "scripts": {
     "test": "vitest run",
-    "start": "node app.js"
+    "start": "node app.js",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "author": "Daniel Olliver",
   "license": "ISC",
@@ -26,7 +29,12 @@
   },
   "keywords": [],
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.39.5",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.13.0",
     "mongodb-memory-server-core": "^11.3.0",
+    "prettier": "^3.9.10",
     "supertest": "^7.3.1",
     "vitest": "^4.1.12"
   }
