@@ -159,7 +159,7 @@ test.describe("the menu at 390 px", () => {
 
     // The header (and its logo) sits behind the menu now: a click there
     // doesn't go home. A click on the backdrop beside the panel closes it.
-    await expectHeaderBlocked(page, "Scenic");
+    await expectHeaderBlocked(page, "Scenic, home");
     await expect(drawer).toBeVisible();
     await page.mouse.click(350, 600);
     await expect(drawer).toHaveCount(0);

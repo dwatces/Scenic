@@ -2,11 +2,14 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: center;
   gap: 0.35rem;
-  width: 2.6rem;
-  height: 2.6rem;
+  width: 48px;
+  height: 48px;
+  margin-left: -0.6rem;
   background: transparent;
   border: none;
+  border-radius: var(--radius-sm);
   cursor: pointer;
 }
 
@@ -31,7 +34,12 @@
 }
 
 .main-navigation__title a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 0.25rem;
   color: var(--text);
+  border-radius: var(--radius-sm);
   transition: color 0.2s var(--ease);
 }
 

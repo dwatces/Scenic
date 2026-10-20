@@ -2,6 +2,8 @@ import React, { Suspense } from "react";
 import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router";
 
 import MainNavigation from "./shared/components/Navigation/MainNavigation";
+import SiteFooter from "./shared/components/Navigation/SiteFooter";
+import SkipLink from "./shared/components/Navigation/SkipLink";
 import { StatusLine } from "./shared/components/UIElements/LoadState";
 import { GuestOnly, RequireAuth } from "./shared/components/RouteGuards";
 import { AuthContext } from "./shared/context/auth-context";
@@ -28,8 +30,9 @@ const App = () => {
       value={{ isLoggedIn: !!token, token, userId, sessionEnded, login, logout }}
     >
       <Router>
+        <SkipLink />
         <MainNavigation />
-        <main>
+        <main id="main" tabIndex={-1}>
           <Suspense fallback={<StatusLine>Loading…</StatusLine>}>
             <Routes>
               {/* Signed in, home is "Your scenes"; signed out, the landing page. */}
@@ -75,6 +78,7 @@ const App = () => {
             </Routes>
           </Suspense>
         </main>
+        <SiteFooter />
       </Router>
     </AuthContext.Provider>
   );

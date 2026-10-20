@@ -78,10 +78,22 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* The footer sits at the bottom of short pages. */
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
 /* clear the fixed header on content pages (landing hero pulls back up) */
 main {
+  flex: 1 0 auto;
   padding-top: var(--header-h);
-  min-height: 100vh;
+}
+
+/* The skip link's target: focus lands here, no ring around the page. */
+main:focus {
+  outline: none;
 }
 
 h1,

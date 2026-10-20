@@ -46,7 +46,9 @@ const MainNavigation = () => {
         </button>
         {/* The logo is a plain link home: each page has its own h1. */}
         <div className="main-navigation__title">
-          <Link to="/">Scenic</Link>
+          <Link to="/" aria-label="Scenic, home">
+            Scenic
+          </Link>
         </div>
         <nav className="main-navigation__header-nav" aria-label="Main">
           <NavLinks member={member} />
