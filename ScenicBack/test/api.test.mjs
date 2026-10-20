@@ -23,14 +23,21 @@ const MISSING_ID = "5f0000000000000000000000";
 
 function signup(
   server,
-  { name = "Test Member", email, password = PASSWORD, image = PNG_1PX } = {},
+  {
+    name = "Test Member",
+    email,
+    password = PASSWORD,
+    image = PNG_1PX,
+    filename = "a.png",
+    contentType = "image/png",
+  } = {},
 ) {
   const req = request(server)
     .post("/api/users/signup")
     .field("name", name)
     .field("email", email)
     .field("password", password);
-  return image ? req.attach("image", image, { filename: "a.png", contentType: "image/png" }) : req;
+  return image ? req.attach("image", image, { filename, contentType }) : req;
 }
 
 function login(server, email, password = PASSWORD) {
@@ -140,11 +147,43 @@ describe("API with a database", () => {
       expect(short.body.message).toBe("Your password needs at least 6 characters.");
     });
 
-    it("refuses sign-up without an image with 422 (the avatar becomes optional later)", async () => {
+    it("signs up without an avatar: nothing stored, avatarUrl null, the image route 404s", async () => {
       const res = await signup(server, { email: "noimage@example.com", image: null });
+      expect(res.status).toBe(201);
+      expect(res.body).toEqual({ userId: expect.any(String), token: expect.any(String) });
+      const User = require("../models/user.js");
+      const stored = await User.collection.findOne({ email: "noimage@example.com" });
+      expect(stored).not.toHaveProperty("image");
+      const profile = await request(server).get(`/api/users/${res.body.userId}`);
+      expect(profile.body.user.avatarUrl).toBeNull();
+      expect((await request(server).get(`/api/users/${res.body.userId}/image`)).status).toBe(404);
+      expect((await login(server, "noimage@example.com")).status).toBe(200);
+    });
+
+    it("still checks an avatar that is sent: a GIF is refused with 422", async () => {
+      const res = await signup(server, {
+        email: "gif-avatar@example.com",
+        image: GIF_1PX,
+        filename: "a.gif",
+        contentType: "image/gif",
+      });
       expect(res.status).toBe(422);
-      expect(res.body.message).toBe("Add a JPEG, PNG or WebP image.");
+      expect(res.body.message).toBe("That file isn't a JPEG, PNG or WebP image.");
       await expectAlive();
+    });
+
+    it("accepts a WebP avatar by its bytes", async () => {
+      const res = await signup(server, {
+        email: "webp-avatar@example.com",
+        image: WEBP_1PX,
+        filename: "avatar.webp",
+        contentType: "image/webp",
+      });
+      expect(res.status).toBe(201);
+      const avatar = await request(server)
+        .get(`/api/users/${res.body.userId}/image`)
+        .responseType("blob");
+      expect(avatar.headers["content-type"]).toBe("image/webp");
     });
 
     it("logs in with the email and password", async () => {

@@ -52,7 +52,10 @@ const getUserImage = async (req, res) => {
 
 const signup = async (req, res) => {
   assertValid(req);
-  const image = readUploadedImage(req.file);
+  // The avatar is optional: without one the member has no stored image and
+  // clients show their initial instead. A file that is sent must be a real
+  // JPEG, PNG or WebP.
+  const image = req.file && req.file.size > 0 ? readUploadedImage(req.file) : undefined;
   const { name, email, password } = req.body;
 
   if (await User.exists({ email })) throw new HttpError(DUPLICATE_EMAIL, 422);
@@ -63,7 +66,7 @@ const signup = async (req, res) => {
     name,
     email,
     password: await bcrypt.hash(password, BCRYPT_COST),
-    image,
+    ...(image && { image }),
     scenes: [],
   });
 
