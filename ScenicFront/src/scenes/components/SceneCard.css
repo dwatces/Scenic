@@ -28,8 +28,12 @@
   border-color: var(--accent);
 }
 
+/* overflow: hidden also drops the automatic minimum height an aspect-ratio
+   box (and a flex item) gets from its content, so a portrait photo is
+   cropped to 3:2 instead of stretching its card and the whole row. */
 .scene-card__image {
   aspect-ratio: 3 / 2;
+  overflow: hidden;
   background: var(--surface-2);
 }
 
