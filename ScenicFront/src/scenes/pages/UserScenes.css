@@ -59,3 +59,14 @@
   text-align: center;
   color: var(--text-muted);
 }
+
+.member-page__avatar-skeleton {
+  width: 72px;
+  height: 72px;
+}
+
+.member-page--loading .load-status {
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}

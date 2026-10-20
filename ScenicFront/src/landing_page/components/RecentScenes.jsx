@@ -2,7 +2,7 @@ import { Link } from "react-router";
 
 import SceneGrid from "../../scenes/components/SceneGrid";
 import { DemoNote } from "../../shared/components/UIElements/Demo";
-import { ErrorPanel, StatusLine } from "../../shared/components/UIElements/LoadState";
+import { ErrorPanel, SkeletonGrid, StatusLine } from "../../shared/components/UIElements/LoadState";
 import { useSceneFeed } from "../../scenes/hooks/feed-hook";
 import "./RecentScenes.css";
 
@@ -16,7 +16,12 @@ const RecentScenes = () => {
         <h2 id="recent-scenes-heading">Recent scenes</h2>
         <DemoNote show={feed.scenes.some((scene) => scene.isDemo)} />
       </header>
-      {feed.status === "loading" && <StatusLine>Loading scenes…</StatusLine>}
+      {feed.status === "loading" && (
+        <>
+          <StatusLine compact>Loading scenes…</StatusLine>
+          <SkeletonGrid count={3} />
+        </>
+      )}
       {feed.status === "error" && (
         <ErrorPanel
           title="We couldn't load the latest scenes"

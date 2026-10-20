@@ -1,6 +1,6 @@
 import PageHeading from "../../shared/components/UIElements/PageHeading";
 import { DemoNote } from "../../shared/components/UIElements/Demo";
-import { ErrorPanel, StatusLine } from "../../shared/components/UIElements/LoadState";
+import { ErrorPanel, SkeletonGrid, StatusLine } from "../../shared/components/UIElements/LoadState";
 import SceneGrid from "../components/SceneGrid";
 import LoadMore from "../components/LoadMore";
 import { useSceneFeed } from "../hooks/feed-hook";
@@ -19,7 +19,12 @@ const Explore = () => {
         <p className="explore-page__intro">The newest places members have shared.</p>
         <DemoNote show={feed.scenes.some((scene) => scene.isDemo)} />
       </header>
-      {feed.status === "loading" && <StatusLine>Loading scenes…</StatusLine>}
+      {feed.status === "loading" && (
+        <>
+          <StatusLine compact>Loading scenes…</StatusLine>
+          <SkeletonGrid count={6} />
+        </>
+      )}
       {feed.status === "error" && (
         <ErrorPanel
           title="We couldn't load the scenes"

@@ -104,3 +104,19 @@
     grid-row: span 2;
   }
 }
+
+.scene-page__photo-skeleton {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.scene-page--loading .scene-page__body {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.scene-page--loading .load-status {
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}

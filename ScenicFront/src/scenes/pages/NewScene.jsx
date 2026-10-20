@@ -4,7 +4,6 @@ import Input from "../../shared/components/FormElements/Input";
 import Button from "../../shared/components/FormElements/Button";
 import { VALIDATOR_REQUIRE, VALIDATOR_MINLENGTH } from "../../shared/Util/validators";
 import ErrorModal from "../../shared/components/UIElements/ErrorModal";
-import LoadingSpinner from "../../shared/components/UIElements/LoadingSpinner";
 import ImageUpload from "../../shared/components/FormElements/ImageUpload";
 import { useHttpClient } from "../../shared/hooks/http-hook";
 import { AuthContext } from "../../shared/context/auth-context";
@@ -99,11 +98,15 @@ const NewScene = () => {
           errorText="Please enter the location of this scene"
           onInput={inputHandler}
         />
-        <Button className="scene__submit" type="submit" disabled={!formState.isValid}>
-          Add your Scene
+        <Button
+          className="scene__submit"
+          type="submit"
+          disabled={!formState.isValid}
+          busy={isLoading}
+        >
+          {isLoading ? "Posting…" : "Add your Scene"}
         </Button>
       </form>
-      {isLoading && <LoadingSpinner asOverlay />}
     </React.Fragment>
   );
 };

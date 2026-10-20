@@ -6,6 +6,86 @@
   text-align: center;
 }
 
+.load-status--compact {
+  margin: 0 auto 1.25rem;
+  font-size: 0.95rem;
+}
+
+/* Skeletons: the grid classes come from the real lists, so the boxes sit
+   exactly where the cards will. */
+.skeleton {
+  display: block;
+  background: linear-gradient(
+    100deg,
+    var(--surface-2) 30%,
+    var(--surface-3) 50%,
+    var(--surface-2) 70%
+  );
+  background-size: 300% 100%;
+  border-radius: var(--radius-sm);
+  animation: skeleton-shimmer 1.6s linear infinite;
+}
+
+@keyframes skeleton-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+
+.skeleton-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.skeleton--image {
+  aspect-ratio: 3 / 2;
+  border-radius: 0;
+}
+
+.skeleton-card__body {
+  display: grid;
+  gap: 0.6rem;
+  padding: 1.1rem 1.25rem 1.4rem;
+}
+
+.skeleton--line {
+  height: 0.95rem;
+}
+
+.skeleton--short {
+  width: 55%;
+}
+
+.skeleton-member {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.skeleton--circle {
+  flex: 0 0 auto;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+}
+
+.skeleton-member__lines {
+  display: grid;
+  flex: 1;
+  gap: 0.55rem;
+}
+
 .load-panel {
   display: flex;
   flex-direction: column;

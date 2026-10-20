@@ -79,7 +79,21 @@ const ScenePage = () => {
         />
       );
     }
-    return <StatusLine>Loading scene…</StatusLine>;
+    return (
+      <div className="scene-page scene-page--loading">
+        <div className="scene-page__figure">
+          <span
+            className="skeleton skeleton--image scene-page__photo-skeleton"
+            aria-hidden="true"
+          />
+        </div>
+        <div className="scene-page__body">
+          <StatusLine compact>Loading scene…</StatusLine>
+          <span className="skeleton skeleton--line" aria-hidden="true" />
+          <span className="skeleton skeleton--line skeleton--short" aria-hidden="true" />
+        </div>
+      </div>
+    );
   }
 
   const { creator } = scene;

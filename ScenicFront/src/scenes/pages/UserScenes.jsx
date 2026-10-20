@@ -8,6 +8,7 @@ import { DemoBadge } from "../../shared/components/UIElements/Demo";
 import {
   ErrorPanel,
   NotFoundState,
+  SkeletonGrid,
   StatusLine,
 } from "../../shared/components/UIElements/LoadState";
 import SceneGrid from "../components/SceneGrid";
@@ -58,15 +59,36 @@ const UserScenes = ({ own = false }) => {
     );
   }
   if (profile.status === "error") {
+    // One "Try again" retries both requests: the scenes failed too, most
+    // likely, and a second error panel straight after would be a surprise.
+    const retryBoth = () => {
+      profile.retry();
+      if (feed.status === "error") feed.retry();
+    };
     return (
       <ErrorPanel
         title="We couldn't load this member"
         message={profile.error.message}
-        onRetry={profile.retry}
+        onRetry={retryBoth}
       />
     );
   }
-  if (!user) return <StatusLine>Loading scenes…</StatusLine>;
+  if (!user) {
+    return (
+      <div className="member-page member-page--loading">
+        <div className="member-page__header">
+          <span
+            className="skeleton skeleton--circle member-page__avatar-skeleton"
+            aria-hidden="true"
+          />
+          <div className="member-page__intro">
+            <StatusLine compact>Loading scenes…</StatusLine>
+          </div>
+        </div>
+        <SkeletonGrid count={3} />
+      </div>
+    );
+  }
 
   const onDeleted = (id) => {
     const deleted = feed.scenes.find((scene) => scene.id === id);
@@ -102,7 +124,12 @@ const UserScenes = ({ own = false }) => {
         </div>
       </header>
 
-      {feed.status === "loading" && <StatusLine>Loading scenes…</StatusLine>}
+      {feed.status === "loading" && (
+        <>
+          <StatusLine compact>Loading scenes…</StatusLine>
+          <SkeletonGrid count={3} />
+        </>
+      )}
       {feed.status === "error" && (
         <ErrorPanel
           title="We couldn't load these scenes"
