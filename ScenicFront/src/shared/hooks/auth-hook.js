@@ -26,10 +26,14 @@ export const useAuth = () => {
   // reloads a members-only page (e.g. /scenes/new) stays on it instead of
   // being sent to /login and then /.
   const [session, setSession] = useState(readStoredAuth);
+  // True after the session ran out (rather than the visitor logging out),
+  // so a members-only page can say why it sent them to log in.
+  const [sessionEnded, setSessionEnded] = useState(false);
 
   const login = useCallback((userId, token, expirationDate) => {
     const expiration = expirationDate || new Date(Date.now() + SESSION_MS);
     setSession({ userId, token, expiration });
+    setSessionEnded(false);
     try {
       localStorage.setItem(
         STORAGE_KEY,
@@ -40,8 +44,9 @@ export const useAuth = () => {
     }
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(({ expired = false } = {}) => {
     setSession(null);
+    setSessionEnded(expired === true);
     try {
       localStorage.removeItem(STORAGE_KEY);
     } catch {
@@ -52,13 +57,17 @@ export const useAuth = () => {
   // Sign out when the token expires.
   useEffect(() => {
     if (!session) return undefined;
-    const timer = setTimeout(logout, session.expiration.getTime() - Date.now());
+    const timer = setTimeout(
+      () => logout({ expired: true }),
+      session.expiration.getTime() - Date.now(),
+    );
     return () => clearTimeout(timer);
   }, [session, logout]);
 
   return {
     token: session ? session.token : null,
     userId: session ? session.userId : null,
+    sessionEnded,
     login,
     logout,
   };
