@@ -141,3 +141,94 @@ test("keyboard only: from the landing page to a scene and its map, with focus al
   expect(await focusVisible(page)).toBe(true);
   await expect(link).toHaveAttribute("href", /^https:\/\/www\.openstreetmap\.org\/\?mlat=/);
 });
+
+/** Submit the form on `path` with its required field(s) empty, so every error shows. */
+async function showFormErrors(page, { path, button, clear }) {
+  await settle(page, path);
+  if (clear) await page.locator(clear).fill("");
+  await page.locator("form").getByRole("button", { name: button }).click();
+  await expect(page.locator(".error-summary")).toBeVisible();
+}
+
+test("every form in its error state: no serious axe violations at 390 and 1440 px, no sideways scroll at 320 px", async ({
+  page,
+  request,
+}) => {
+  const member = await signUp(request, "Error states");
+  const scenes = [await postScene(request, member, "Error state check")];
+  const signedOut = [
+    { path: "/login", button: "Log in" },
+    { path: "/signup", button: "Sign up" },
+  ];
+  const signedIn = [
+    { path: "/scenes/new", button: "Add scene" },
+    { path: `/scenes/${scenes[0].id}/edit`, button: "Save changes", clear: "#title" },
+  ];
+  const wide = [];
+  const check = async (forms) => {
+    for (const width of [320, 390, 1440]) {
+      await page.setViewportSize({ width, height: width < 760 ? 844 : 900 });
+      for (const form of forms) {
+        await showFormErrors(page, form);
+        if (width === 320) {
+          const overflow = await page.evaluate(
+            () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+          );
+          if (overflow > 0) wide.push(`${form.path} at 320: ${overflow}px`);
+        } else {
+          await expectNoSeriousViolations(page);
+        }
+      }
+    }
+  };
+  await check(signedOut);
+  await useSession(page, member);
+  await check(signedIn);
+  expect(wide).toEqual([]);
+  await deleteScenes(request, member, scenes);
+});
+
+test("signed in: no sideways scroll at 320 px, and no tap target under 44 x 44 px at 390 px", async ({
+  page,
+  request,
+}) => {
+  const member = await signUp(request, "Signed-in layout");
+  const scenes = [await postScene(request, member, "A scene with a fairly long title to wrap")];
+  await useSession(page, member);
+  const paths = ["/", `/scenes/${scenes[0].id}`, `/scenes/${scenes[0].id}/edit`, "/scenes/new"];
+  const wide = [];
+  const small = {};
+  for (const width of [320, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    for (const path of paths) {
+      await settle(page, path);
+      if (width === 320) {
+        const overflow = await page.evaluate(
+          () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        );
+        if (overflow > 0) wide.push(`${path} at 320: ${overflow}px`);
+      } else {
+        const found = await page.evaluate(() =>
+          [...document.querySelectorAll("main a, main button, main input, main textarea")]
+            .filter((el) => {
+              if (el.matches("input[type=file]") || el.closest(".visually-hidden")) return false;
+              if (el.tagName === "A") {
+                const sentence = el.closest("p");
+                if (sentence && sentence.textContent.trim() !== el.textContent.trim()) return false;
+              }
+              const target = el.closest(".scene-card__title")
+                ? el.closest(".scene-card__inner")
+                : el;
+              const box = target.getBoundingClientRect();
+              return box.width > 0 && box.height > 0 && (box.width < 44 || box.height < 44);
+            })
+            .map((el) => `${el.tagName} "${el.textContent.trim().slice(0, 30)}"`),
+        );
+        if (found.length) small[path] = found;
+      }
+    }
+  }
+  expect(wide).toEqual([]);
+  expect(small).toEqual({});
+  await deleteScenes(request, member, scenes);
+});
