@@ -4,7 +4,7 @@ import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 import request from "supertest";
 import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { buildApp, listen, close, mongoose } from "./helpers.mjs";
+import { buildApp, listen, close, mongoose, require } from "./helpers.mjs";
 
 const apiDir = fileURLToPath(new URL("..", import.meta.url));
 
@@ -18,6 +18,14 @@ describe("boot", () => {
       { cwd: apiDir, env, encoding: "utf8" },
     );
     expect(out).toBe("");
+  });
+});
+
+describe("the connection helper", () => {
+  it("says how to fix a missing DB_URL instead of connecting to nothing", async () => {
+    const connection = require("../middleware/mongo.js");
+    await expect(connection(undefined)).rejects.toThrow(/DB_URL is not set: create a \.env file/);
+    expect(mongoose.connection.readyState).toBe(0);
   });
 });
 

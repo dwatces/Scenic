@@ -13,5 +13,15 @@ export default defineConfig({
     fileParallelism: false,
     testTimeout: 30000,
     hookTimeout: 90000,
+    // npm run test:coverage. The app is loaded with Node's own require, which
+    // V8's coverage still sees. Demo fixtures are data, not logic.
+    coverage: {
+      provider: "v8",
+      include: ["app.js", "controllers/**", "middleware/**", "Routes/**", "util/**", "models/**"],
+      exclude: ["util/demoData.js"],
+      reporter: ["text", "html", "json-summary"],
+      reportsDirectory: "coverage",
+      thresholds: { lines: 85 },
+    },
   },
 });
