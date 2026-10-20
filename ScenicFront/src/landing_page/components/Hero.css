@@ -1,6 +1,5 @@
 /* The hero sits under the fixed, translucent header and fills the first
-   screen, so no part of "Recent scenes" is cut off along its bottom edge
-   (at 92svh the top of that heading showed on most screens). */
+   screen, so the next heading is never half cut off along its bottom edge. */
 .hero {
   position: relative;
   isolation: isolate;
@@ -36,7 +35,7 @@
 }
 
 /* Darkest behind the headline band and at the bottom edge, where the hero
-   meets the page; tuned with notes/scenic/tools/design-hero-contrast.mjs. */
+   meets the page. */
 .hero__scrim {
   position: absolute;
   inset: 0;

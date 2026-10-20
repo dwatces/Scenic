@@ -2,17 +2,12 @@ import { useLayoutEffect } from "react";
 import { useLocation, useNavigationType } from "react-router";
 
 /**
- * A new page opens at the top. The browser only does this on a full page
- * load; in the app the last page's scroll position would carry over, so
- * after "Save changes" at the bottom of a long form the next page opened
- * part-way down, its photo under the fixed header. Links, redirects and
- * forms that navigate (PUSH and REPLACE) scroll to the top; Back and
- * Forward (POP) are left alone, so the browser can put the visitor back
- * where they were.
+ * Opens each new page at the top, which the browser only does on a full page
+ * load. PUSH and REPLACE scroll to the top; Back and Forward (POP) are left
+ * to the browser's own scroll restoration.
  *
- * A layout effect, so it runs before the page paints and before
- * PageHeading moves focus to the new h1. "instant" because the html element
- * scrolls smoothly for in-page jumps.
+ * A layout effect, so it runs before paint and before PageHeading focuses the
+ * new h1. "instant" overrides the smooth scrolling set on <html>.
  */
 const ScrollToTop = () => {
   const { key } = useLocation();

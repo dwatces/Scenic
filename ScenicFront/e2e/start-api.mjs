@@ -1,7 +1,7 @@
 // The API for end-to-end tests, from ../ScenicBack (run `npm ci` there
-// first): an in-memory MongoDB replica set, the real seeder (2 demo members,
-// 3 scenes) plus an optional 30-scene fixture, a stub geocoder, no rate
-// limit. Never touches a real database or the network.
+// first): an in-memory MongoDB replica set, the real seeder plus an optional
+// 30-scene fixture, a stub geocoder and no rate limit. Never touches a real
+// database or the network.
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 

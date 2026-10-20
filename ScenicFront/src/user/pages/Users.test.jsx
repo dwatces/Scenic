@@ -38,8 +38,6 @@ describe("Members page", () => {
     expect(screen.getByText(/Sample accounts and photos/)).toBeInTheDocument();
   });
 
-  // The members page used to sit behind an error dialog that came back
-  // forever; now it is a panel in the page with one "Try again".
   it("shows a plain error panel when the API can't be reached, and Try again loads the list", async () => {
     const calls = mockApi({
       "GET /users": [

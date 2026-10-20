@@ -1,7 +1,6 @@
-// Talking to the Scenic API: one place that turns every kind of failure
-// (no connection, a timeout page from the host, an error from the API) into
-// a short, plain message a visitor can act on. Raw text such as "Failed to
-// fetch" or a JSON parse error never reaches the screen.
+// Requests to the Scenic API. Every failure (no connection, a host's timeout
+// page, an API error) becomes a short message a visitor can act on; raw text
+// such as "Failed to fetch" never reaches the screen.
 
 export const MESSAGES = {
   network: "We couldn't reach Scenic. Check your connection and try again.",
@@ -97,10 +96,9 @@ export const sentToken = (headers = {}) =>
     ([name, value]) => name.toLowerCase() === "authorization" && /^Bearer\s+\S/i.test(value),
   );
 
-// After a change (new, edited or deleted scene), list reads add
-// ?fresh=<time of the change> for a while, so the CDN, which may keep a
-// read for up to 10 minutes while it refreshes in the background, can't
-// answer with the list from before the change.
+// After a change (a new, edited or deleted scene), list reads add
+// ?fresh=<time of the change> for 10 minutes. The CDN may serve a stale read
+// for that long while it revalidates, and a new URL skips its cache.
 const WRITE_KEY = "scenic:lastWrite";
 const FRESH_FOR_MS = 10 * 60 * 1000;
 let lastWrite = 0;

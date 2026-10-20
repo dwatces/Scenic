@@ -7,16 +7,13 @@ import "./ImageUpload.css";
 const HINT = "JPEG, PNG or WebP. Large photos are resized for you.";
 
 /**
- * Choose a photo. The visible control is the file input's <label>, styled
- * as a button; the input itself is visually hidden but still in the tab
- * order, so keyboard and screen reader users reach it with its label and
- * hint. The photo is checked and prepared in the browser (prepareImage)
- * before the form gets it, so an unsupported file shows a message straight
- * away and never reaches the server.
+ * Photo picker. The visible control is the input's <label>, styled as a
+ * button; the input is visually hidden but stays in the tab order. The photo
+ * is checked and prepared in the browser (prepareImage), so an unsupported
+ * file is refused before it reaches the server.
  *
- * Reports through onInput(id, file, isValid): invalid while a photo is
- * being prepared; when `optional`, valid with no photo at all. With
- * `showErrors` (after a submit), a missing photo shows `errorText`.
+ * Reports onInput(id, file, isValid): invalid while a photo is being
+ * prepared, and valid with no photo when `optional`.
  */
 const ImageUpload = ({
   id,

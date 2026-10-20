@@ -52,8 +52,6 @@ describe("NavLinks", () => {
 });
 
 describe("MainNavigation", () => {
-  // The drawer used to crash on React 19 (react-transition-group needed
-  // findDOMNode); it is now a native modal <dialog>.
   it("opens the menu as a dialog and closes it when a link is chosen", async () => {
     render(
       <AuthContext.Provider value={signedIn}>

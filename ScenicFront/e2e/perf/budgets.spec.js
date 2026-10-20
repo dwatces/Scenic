@@ -1,8 +1,8 @@
-// Payload and layout budgets on a throttled phone connection (150 ms round
-// trip, 1.6 Mbps down, 750 kbps up, 4x slower CPU, no cache), against a
-// production build and the local API. Bytes, image sizes, hero requests,
-// layout shift and bundle size are gated; FCP and LCP are only reported
-// (test-results/perf/results.jsonl), because timings vary with machine load.
+// Payload and layout budgets on a throttled phone connection and CPU with a
+// cold cache, against a production build and the local API. Bytes, image
+// sizes, hero requests, layout shift and bundle size are gated; FCP and LCP
+// are only reported (test-results/perf/results.jsonl), because timings vary
+// with machine load.
 import fs from "node:fs";
 import path from "node:path";
 import zlib from "node:zlib";
@@ -144,10 +144,9 @@ test.describe("phone, 390 px", () => {
   });
 
   for (const name of ["Explore", "Members", "a member page", "a scene page", "Log in"]) {
-    // Layout shift 0.001 or less, not exactly 0: when the web fonts swap in,
-    // Chrome still reports a 0.0002 shift on some headings even though the
-    // metric-matched fallback fonts (index.css) keep every box the same size.
-    // Without those fallbacks Explore measured 0.024 and Members 0.020.
+    // Not exactly 0: when the web fonts swap in, Chrome still reports a tiny
+    // shift on some headings, even though the metric-matched fallback fonts
+    // (index.css) keep every box the same size.
     test(`${name}: no hero photo, images 250 KB or less, layout shift 0.001 or less`, async ({
       page,
     }) => {

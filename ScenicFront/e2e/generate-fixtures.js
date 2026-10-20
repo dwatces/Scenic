@@ -5,8 +5,8 @@ import fs from "node:fs";
 const DIR = new URL("./.fixtures/", import.meta.url);
 
 /**
- * Draw a gradient with grain on a canvas in the test browser and save it as
- * a JPEG in e2e/.fixtures/ (once per checkout).
+ * Draw a grainy gradient on a canvas in the test browser and save it as a
+ * JPEG in e2e/.fixtures/.
  * @param {import("@playwright/test").Browser} browser
  * @param {string} name file name inside e2e/.fixtures/
  * @param {{ width: number, height: number, grain: number, quality: number }} options

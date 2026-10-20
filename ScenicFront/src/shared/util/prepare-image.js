@@ -1,11 +1,7 @@
-// Photos are prepared in the browser before they are uploaded: checked,
-// turned upright, scaled down to 1600 px on the long edge and re-encoded
-// (WebP, or JPEG where the browser can't encode WebP), aiming for 600 KB.
-//
-// Every image is re-encoded, even a small one. That keeps uploads well
-// under the API's 3 MB limit, and it drops the photo's metadata (EXIF),
-// including any GPS position: where a scene is comes from the Location the
-// member types, never from coordinates hidden in the file.
+// Photos are prepared in the browser before upload: checked, turned upright,
+// scaled down and re-encoded as WebP (JPEG where the browser can't encode
+// WebP). Every image is re-encoded, even a small one: that keeps uploads under
+// the API's 3 MB limit and strips EXIF metadata, including any GPS position.
 
 export const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 export const WRONG_TYPE = "Use a JPEG, PNG or WebP image.";

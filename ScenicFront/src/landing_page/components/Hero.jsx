@@ -54,21 +54,16 @@ const HeroFrame = ({ frame, first, active, onLoaded }) => {
 };
 
 /**
- * The landing page's opening (signed out only: signed in, / is "Your
- * scenes"): a full-bleed photo behind the headline "What
- * should I do with my <street scenes>?", whose last words change with the
- * photo.
+ * The signed-out landing hero: a full-bleed photo behind "What should I do
+ * with my <street scenes>?", whose last words change with the photo.
  *
- * - The first photo is in the first render (the page's largest paint). The
- *   other three load only after the window's load event, and never when the
- *   visitor prefers reduced motion; the rotation only moves to a photo that
- *   has loaded.
- * - The rotation pauses with the Pause button, while the hero is off screen
- *   and while the tab is hidden. With reduced motion it doesn't run at all.
- * - Screen readers get the headline as one plain question; the changing
- *   words are hidden from them, so nothing is re-announced.
- * - Every word sits in the same grid cell, so the headline's height is set
- *   by the longest and swapping words never moves the page.
+ * - The first photo is in the first render (it is the largest paint). The
+ *   others load after the window's load event, and never with reduced motion.
+ * - The rotation only moves to a photo that has loaded, and pauses with the
+ *   Pause button, off screen and in a hidden tab.
+ * - Screen readers get the headline as one plain question, so the changing
+ *   words are never re-announced.
+ * - All the words share one grid cell, so swapping them never moves the page.
  */
 const Hero = () => {
   const section = useRef(null);
