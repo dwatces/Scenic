@@ -87,3 +87,57 @@ test("the owner's Edit and Delete sit on one row at 390 px", async ({ page, requ
   expect(Math.abs(edit.y - del.y)).toBeLessThanOrEqual(1);
   await deleteScenes(request, member, scenes);
 });
+
+/** Press Tab until the focused element matches `test` (at most `max` presses); returns the count. */
+async function tabUntil(page, test, max = 40) {
+  for (let presses = 1; presses <= max; presses++) {
+    await page.keyboard.press("Tab");
+    if (await page.evaluate(test)) return presses;
+  }
+  throw new Error(`Never reached the element after ${max} Tabs`);
+}
+
+/**
+ * The focused element shows a focus indicator: an outline of 2 px or more
+ * or a ring (box-shadow), on itself or on the card it sits in (a card's
+ * title link outlines the whole card).
+ */
+const focusVisible = (page) =>
+  page.evaluate(() => {
+    const shows = (el) => {
+      const style = getComputedStyle(el);
+      const outline = style.outlineStyle !== "none" && parseFloat(style.outlineWidth) >= 2;
+      return outline || style.boxShadow !== "none";
+    };
+    const el = document.activeElement;
+    const card = el.closest(".scene-card__inner");
+    return shows(el) || Boolean(card && shows(card));
+  });
+
+test("keyboard only: from the landing page to a scene and its map, with focus always visible", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/");
+  await tabUntil(page, () => document.activeElement.textContent.trim() === "Browse scenes", 10);
+  expect(await focusVisible(page)).toBe(true);
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL("/explore");
+  await expect(page.getByRole("heading", { level: 1, name: "Explore scenes" })).toBeFocused();
+
+  // The first card's title link, then Enter.
+  await tabUntil(page, () => Boolean(document.activeElement.closest(".scene-card__title")));
+  expect(await focusVisible(page)).toBe(true);
+  const title = await page.evaluate(() => document.activeElement.textContent);
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("heading", { level: 1, name: title })).toBeFocused();
+
+  // On to the map: the embed has a name, and the link to the full map is reachable.
+  await expect(page.locator("iframe.map")).toHaveAttribute("title", /^Map of /);
+  await tabUntil(page, () => document.activeElement.textContent.trim() === "Open in OpenStreetMap");
+  const link = page.getByRole("link", { name: "Open in OpenStreetMap" });
+  await expect(link).toBeFocused();
+  await expect(link).toBeInViewport();
+  expect(await focusVisible(page)).toBe(true);
+  await expect(link).toHaveAttribute("href", /^https:\/\/www\.openstreetmap\.org\/\?mlat=/);
+});
