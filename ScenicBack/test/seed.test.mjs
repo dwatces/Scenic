@@ -1,6 +1,7 @@
 // The seeder copies exactly the demo content, labelled as demo, once.
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { require, mongoose, dbUrl } from "./helpers.mjs";
+import request from "supertest";
+import { require, mongoose, dbUrl, buildApp, listen, close, findKeys } from "./helpers.mjs";
 
 const { seed } = require("../util/seedAtlas.js");
 const demo = require("../util/demoData.js");
@@ -53,5 +54,30 @@ describe("seed()", () => {
       users: 2,
       scenes: 3,
     });
+  });
+
+  it("never lets a seeded email or password out through any GET route", async () => {
+    const server = await listen(buildApp({ env: { ...process.env, DB_URL: dbUrl("seed") } }));
+    try {
+      const users = (await request(server).get("/api/users")).body.users;
+      const scenes = (await request(server).get("/api/scenes")).body.scenes;
+      expect(users).toHaveLength(2);
+      expect(scenes).toHaveLength(3);
+      const paths = [
+        "/api/users",
+        "/api/users/users",
+        "/api/scenes",
+        ...users.flatMap((u) => [`/api/users/${u.id}`, `/api/scenes/user/${u.id}`]),
+        ...scenes.map((s) => `/api/scenes/${s.id}`),
+      ];
+      for (const path of paths) {
+        const res = await request(server).get(path);
+        expect(res.status, path).toBe(200);
+        expect(findKeys(res.body, ["email", "password", "__v"]), path).toEqual([]);
+        expect(JSON.stringify(res.body), path).not.toMatch(/@scenic\.example|\$2[aby]\$/);
+      }
+    } finally {
+      await close(server);
+    }
   });
 });
