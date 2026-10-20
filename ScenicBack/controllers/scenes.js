@@ -1,7 +1,6 @@
 const { validationResult } = require("express-validator");
 const mongoose = require("mongoose");
 const HttpError = require("../models/http-error");
-const getCoordinatesForAddress = require("../util/location");
 const Scene = require("../models/scene");
 const User = require("../models/user");
 
@@ -61,7 +60,7 @@ const createScene = async (req, res, next) => {
 
   let coordinates;
   try {
-    coordinates = await getCoordinatesForAddress(address);
+    coordinates = await req.app.locals.geocode(address);
   } catch (error) {
     return next(error);
   }

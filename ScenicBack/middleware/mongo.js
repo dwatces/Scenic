@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
-module.exports = async function connection() {
-  if (!process.env.DB_URL) {
+module.exports = async function connection(dbUrl) {
+  if (!dbUrl) {
     throw new Error(
       "DB_URL is not set — create a .env file (see .env.example) with your MongoDB connection string."
     );
@@ -16,6 +16,6 @@ module.exports = async function connection() {
     serverSelectionTimeoutMS: 6000,
   };
 
-  await mongoose.connect(process.env.DB_URL, connectionParams);
+  await mongoose.connect(dbUrl, connectionParams);
   console.log("Connected to database");
 };
