@@ -1,5 +1,10 @@
 const HttpError = require("../models/http-error");
 
+// Shown to the member in the client when posting a scene fails.
+const UNAVAILABLE = "We couldn't look up that place just now. Please try again in a minute.";
+const NOT_FOUND =
+  "We couldn't find that place. Try a town or place and its region, e.g. Hahei, Coromandel.";
+
 // Every geocoder call gives up after 5 s, so a slow provider can't hold a
 // serverless request open.
 const TIMEOUT_MS = 5000;
@@ -26,11 +31,11 @@ async function googleGeocode(address, apiKey) {
     data = await getJson(url);
   } catch (err) {
     console.error("Google geocoding unreachable:", err.message);
-    throw new HttpError("The location service is temporarily unavailable, please try again", 502);
+    throw new HttpError(UNAVAILABLE, 502);
   }
 
   if (!data || data.status !== "OK" || !data.results.length) {
-    throw new HttpError("Could not find the location for this address", 422);
+    throw new HttpError(NOT_FOUND, 422);
   }
 
   return data.results[0].geometry.location;
@@ -72,9 +77,9 @@ async function keylessGeocode(address) {
   }
   if (lastNetworkError) {
     console.error("Geocoding providers unreachable:", lastNetworkError.message);
-    throw new HttpError("The location service is temporarily unavailable, please try again", 502);
+    throw new HttpError(UNAVAILABLE, 502);
   }
-  throw new HttpError("Could not find the location for this address", 422);
+  throw new HttpError(NOT_FOUND, 422);
 }
 
 /**

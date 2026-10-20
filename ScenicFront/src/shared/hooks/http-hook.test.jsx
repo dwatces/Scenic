@@ -7,7 +7,7 @@ import { useHttpClient } from "./http-hook";
 import { AuthContext } from "../context/auth-context";
 
 const unauthorised = () =>
-  new Response(JSON.stringify({ message: "Your session has expired. Sign in again." }), {
+  new Response(JSON.stringify({ message: "Your session has expired. Log in again." }), {
     status: 401,
     headers: { "Content-Type": "application/json" },
   });
@@ -67,7 +67,7 @@ describe("useHttpClient", () => {
     const { logout } = renderAt("/scenes/new", { headers: { "Content-Type": "application/json" } });
     await userEvent.click(screen.getByRole("button", { name: "Post" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Your session has expired. Sign in again.",
+      "Your session has expired. Log in again.",
     );
     expect(logout).not.toHaveBeenCalled();
   });

@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 const HttpError = require("../models/http-error");
 
 const SIGN_IN = "Sign in to do that.";
-const EXPIRED = "Your session has expired. Sign in again.";
+const EXPIRED = "Your session has expired. Log in again.";
 const NOT_CONFIGURED = "Sign-in isn't set up on this server yet.";
 
 // Tokens are HS256 only: signed and checked with JWT_KEY.

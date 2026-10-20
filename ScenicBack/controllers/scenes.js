@@ -101,7 +101,7 @@ const createScene = async (req, res) => {
   const { userId } = req.userData;
 
   const creator = await User.findById(userId, CREATOR_SUMMARY_FIELDS).lean();
-  if (!creator) throw new HttpError("We couldn't find your account. Sign in again.", 404);
+  if (!creator) throw new HttpError("We couldn't find your account. Log in again.", 404);
 
   const location = await req.app.locals.geocode(address);
   const createdScene = new Scene({ title, description, image, address, location, creator: userId });

@@ -330,7 +330,7 @@ describe("API with a database", () => {
         .delete(`/api/scenes/${sceneId}`)
         .set("Authorization", `Bearer ${expired}`);
       expect(res.status).toBe(401);
-      expect(res.body.message).toBe("Your session has expired. Sign in again.");
+      expect(res.body.message).toBe("Your session has expired. Log in again.");
     });
   });
 
