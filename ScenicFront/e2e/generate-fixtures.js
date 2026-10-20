@@ -1,4 +1,4 @@
-// Test-time fixtures that are too big to commit. Generated with a canvas in
+// Test-time fixtures that are too big to commit. Drawn on a canvas in
 // the test browser into e2e/.fixtures/ (gitignored), once per checkout.
 import fs from "node:fs";
 
