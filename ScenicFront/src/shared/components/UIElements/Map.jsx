@@ -1,5 +1,3 @@
-import React from "react";
-
 import "./Map.css";
 
 /* Keyless map: OpenStreetMap embed centered on the scene marker.

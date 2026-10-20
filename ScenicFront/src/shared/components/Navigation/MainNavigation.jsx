@@ -8,7 +8,7 @@ import Backdrop from "../UIElements/Backdrop";
 import { AuthContext } from "../../context/auth-context";
 import "./MainNavigation.css";
 
-const MainNavigation = (props) => {
+const MainNavigation = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const auth = useContext(AuthContext);
 

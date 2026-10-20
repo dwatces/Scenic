@@ -13,7 +13,7 @@ const SceneList = (props) => {
       <div className="scene-error center fallback__scene">
         <Card>
           <h2 className="upload__header">
-            You haven't uploaded any scenes yet!
+            You haven&apos;t uploaded any scenes yet!
           </h2>
           <Button to="/scenes/new">Add Scene</Button>
         </Card>
