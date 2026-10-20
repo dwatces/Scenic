@@ -54,9 +54,15 @@ function hasImage(doc) {
   return Boolean(doc.image && (doc.image.data || doc.image.contentType));
 }
 
-/** Image URL, relative to the API origin, versioned so it can be cached for good. */
+/**
+ * Image URL, relative to the API origin, versioned so it can be cached for
+ * good: by the image's content hash where one is set (demo documents), else
+ * by when the document last changed (a new photo changes updatedAt).
+ */
 function imagePath(kind, doc) {
-  const version = (doc.updatedAt ? new Date(doc.updatedAt) : doc._id.getTimestamp()).getTime();
+  const version =
+    doc.imageVersion ||
+    (doc.updatedAt ? new Date(doc.updatedAt) : doc._id.getTimestamp()).getTime();
   return `/api/${kind}/${toId(doc)}/image?v=${version}`;
 }
 
