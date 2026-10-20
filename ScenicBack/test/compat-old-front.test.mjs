@@ -122,12 +122,9 @@ describe("deployed client compatibility", () => {
     });
 
     it("GET /api/scenes/:id (edit page): title, description and image fields, no bytes", async () => {
-      // The old edit page reads scene.image.contentType and scene.image.data
-      // inside one try block before it fills its form; if `image` were
-      // missing, the throw would leave Save disabled. With an empty data
-      // string the form works and only its preview <img> breaks (it shows
-      // the alt text): the one accepted degradation until the new client
-      // is deployed.
+      // The old edit page reads image.contentType and image.data before it
+      // fills its form; without `image` it throws and Save stays disabled. An
+      // empty data string keeps the form working; only its preview breaks.
       const res = await request(db).get(`/api/scenes/${sceneId}`);
       expect(res.status).toBe(200);
       expect(res.body.scene.id).toBe(sceneId);

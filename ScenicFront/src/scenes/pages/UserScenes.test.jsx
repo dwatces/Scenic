@@ -124,7 +124,6 @@ describe("your own scenes", () => {
     );
   });
 
-  // Deleting a card used to reload the whole page (and drop loaded pages).
   it("deletes a card in place: the rest stay, the count drops, and it says so", async () => {
     const scenes = [sceneFixture(1, { title: "Keep me" }), sceneFixture(2, { title: "Bin me" })];
     const calls = mockApi({

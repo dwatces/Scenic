@@ -1,8 +1,6 @@
-// Shared test fixture: every page only talks to this machine. Requests to
-// any other host are aborted before they leave and recorded (the
-// OpenStreetMap embed just fails quietly), so a test can never reach a live
-// site. After each test the attempts are checked: the app may only ever try
-// the hosts in `allowedHosts` (the map embed), and each run lists them in
+// Shared fixtures. Pages only ever talk to this machine: requests to any other
+// host are aborted and recorded, and after each test the app may only have
+// tried the hosts in `allowedHosts` (the map embed). Each run lists them in
 // test-results/blocked-hosts.log.
 import fs from "node:fs";
 import path from "node:path";

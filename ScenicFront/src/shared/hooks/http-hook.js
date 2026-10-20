@@ -9,15 +9,12 @@ export const loginPathFor = (location) =>
   `/login?next=${encodeURIComponent(location.pathname + location.search)}`;
 
 /**
- * Requests for actions (log in, post, edit, delete). Failures become a
- * plain `error` message; requests still running when the component goes
- * away are cancelled.
+ * Requests for actions (log in, post, edit, delete). Failures become a plain
+ * `error` message, and requests still running on unmount are cancelled.
  *
- * If a request that carried the session token gets a 401, the session has
- * ended (the token expired or was revoked): the visitor is logged out and
- * sent to /login?next=<this page> with a note, and comes back here after
- * logging in. A 401 for a request without a token (a wrong password) is an
- * ordinary error.
+ * A 401 on a request that carried the token means the session has ended: the
+ * visitor is logged out and sent to /login?next=<this page>. A 401 without a
+ * token (a wrong password) is an ordinary error.
  */
 export const useHttpClient = () => {
   const [isLoading, setIsLoading] = useState(false);

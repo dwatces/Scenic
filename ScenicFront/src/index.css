@@ -1,6 +1,4 @@
-/* ============================================================
-   Scenic — dark gallery design system
-   ============================================================ */
+/* Scenic's dark gallery theme: design tokens, base styles and helpers. */
 
 /* Until Inter and Space Grotesk arrive (font-display: swap), text is set in
    the system's Arial (or the metric-identical Liberation Sans), scaled and
@@ -52,7 +50,7 @@
   --border: #2a2a31;
   --border-strong: #3a3a45;
 
-  /* text (contrast checked by notes/scenic/tools/design-tokens-contrast.mjs) */
+  /* text */
   --text: #f4f4f5;
   --text-muted: #a8a8b3;
   --text-dim: #9090a0; /* placeholders and hints: at least 4.6:1 on every surface */

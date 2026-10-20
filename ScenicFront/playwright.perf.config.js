@@ -1,8 +1,7 @@
 // Performance and payload budgets (npm run test:perf), kept apart from the
-// end-to-end run because throttled timings are noisy on a busy machine.
-// Its own ports (7102 API, 7106 preview, 7109 MongoDB), so it never clashes
-// with test:e2e (7104, 7105, 7108); both build into build/, so run them one
-// after the other.
+// end-to-end run because throttled timings are noisy on a busy machine. Its
+// ports differ from test:e2e's, but both build into build/, so run them one
+// at a time.
 import { defineConfig, devices } from "@playwright/test";
 
 const PREVIEW_PORT = Number(process.env.PERF_PREVIEW_PORT || 7106);

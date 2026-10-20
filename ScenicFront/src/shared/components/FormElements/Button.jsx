@@ -28,10 +28,9 @@ const Button = (props) => {
       </Link>
     );
   }
-  // While busy (saving, deleting, logging in) the button keeps focus, so
-  // whatever happens next (an error dialog, say) can hand focus back to it.
-  // It is marked aria-disabled and ignores clicks (and so a second submit)
-  // instead of becoming disabled, which would drop focus to the page.
+  // While busy the button is aria-disabled and ignores clicks rather than
+  // being disabled, which would drop focus to the page: it keeps focus, so an
+  // error dialog that follows can hand focus back to it.
   const busy = Boolean(props.busy);
   return (
     // type defaults to "button": a typeless button inside a form submits it.

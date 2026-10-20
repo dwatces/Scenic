@@ -6,9 +6,8 @@ import { apiRequest, isAbort, withFreshness } from "../util/api";
  * Load one API resource for a page.
  * @param {string | null} url what to load; null loads nothing ("idle")
  * @param {{ fresh?: boolean }} [options] `fresh`: add fresh=<time> after a
- *   recent change (withFreshness). It is applied when the request is sent,
- *   not in render, so a change made while the page is open (deleting a
- *   card) doesn't turn into a new URL and reload the page.
+ *   recent change (withFreshness), when the request is sent rather than in
+ *   render, so a change made on this page doesn't reload it.
  * @returns {{
  *   status: "idle" | "loading" | "ready" | "error",
  *   data: any,

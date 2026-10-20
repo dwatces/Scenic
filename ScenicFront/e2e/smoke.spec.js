@@ -13,7 +13,7 @@ test.describe("smoke", () => {
 
   test("the members page lists the seeded demo members", async ({ page }) => {
     await page.goto("/users");
-    // Other specs sign members up, so check the seeded two are listed.
+    // Other specs sign members up, so check only that the seeded ones are listed.
     const names = page.locator(".user-item h2");
     await expect(names.filter({ hasText: "Aroha" })).toHaveCount(1);
     await expect(names.filter({ hasText: "Daniel" })).toHaveCount(1);

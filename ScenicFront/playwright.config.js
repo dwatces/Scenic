@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-// Ports stay inside this workspace's range by default; override with env.
+// Default ports; override with PW_PREVIEW_PORT and PW_API_PORT.
 const PREVIEW_PORT = Number(process.env.PW_PREVIEW_PORT || 7104);
 const API_PORT = Number(process.env.PW_API_PORT || 7105);
 

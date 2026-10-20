@@ -42,8 +42,7 @@ test("Explore loads 12 at a time, announces each load, and ends without duplicat
   await expect(cards).toHaveCount(24);
   await expect(live).toHaveText("12 more scenes loaded.");
 
-  // Keep going to the end (33 or more scenes, depending on what other
-  // specs have posted).
+  // Keep going to the end; how far depends on what other specs have posted.
   for (let i = 0; i < 10 && (await button.count()) > 0; i++) {
     const before = await cards.count();
     await button.click();

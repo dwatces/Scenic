@@ -1,8 +1,6 @@
 import "./Map.css";
 
-/* Keyless map: OpenStreetMap embed centered on the scene marker.
-   (Replaced the Google Maps JS API, which required a billing key and
-   crashed when window.google was absent.) */
+// An OpenStreetMap embed centred on the scene: no API key or billing account needed.
 const Map = (props) => {
   const { center, zoom } = props;
   const span = 0.02 / Math.max(1, (zoom || 16) / 8);

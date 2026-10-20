@@ -1,6 +1,5 @@
-// The one place that decides what a user or a scene looks like in a
-// response, for database documents and demo data alike. Nothing private
-// (email, password hash, __v) is ever copied out of here.
+// Response shapes for users and scenes, used for database documents and demo
+// data alike. Nothing private (email, password hash, __v) is ever copied out.
 const { sniffImageType } = require("./image");
 
 const TYPE_BY_LABEL = {
@@ -150,9 +149,8 @@ function legacyScene(scene, { creator }) {
 
 /**
  * DEPRECATED, for GET /api/scenes/:id only. The deployed client's edit page
- * reads scene.image.contentType and scene.image.data, and its form only
- * enables Save once both exist. An empty data string keeps that form working
- * without sending the bytes again (its preview shows the alt text instead).
+ * only enables Save once scene.image.contentType and scene.image.data exist.
+ * An empty data string keeps that form working without resending the bytes.
  * Remove together with the other legacy shapes.
  */
 function legacyEditFields(scene) {
