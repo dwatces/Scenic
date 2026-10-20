@@ -50,6 +50,9 @@ test.describe("smoke", () => {
 });
 
 test.describe("request guard", () => {
+  // This test tries another host on purpose.
+  test.use({ allowedHosts: ["example.com"] });
+
   test("a request to another host is aborted and recorded", async ({ page, blockedHosts }) => {
     await expect(page.goto("https://example.com/")).rejects.toThrow(/ERR_BLOCKED_BY_CLIENT/);
     expect(blockedHosts).toContain("example.com");

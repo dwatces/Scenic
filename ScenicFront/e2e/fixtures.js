@@ -1,13 +1,22 @@
 // Shared test fixture: every page only talks to this machine. Requests to
-// any other host are aborted and recorded (the OpenStreetMap embed just
-// fails quietly), so a test can never reach a live site.
+// any other host are aborted before they leave and recorded (the
+// OpenStreetMap embed just fails quietly), so a test can never reach a live
+// site. After each test the attempts are checked: the app may only ever try
+// the hosts in `allowedHosts` (the map embed), and each run lists them in
+// test-results/blocked-hosts.log.
 import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { test as base, expect } from "@playwright/test";
 
 const LOCAL = new Set(["127.0.0.1", "localhost"]);
+const LOG = fileURLToPath(new URL("../test-results/blocked-hosts.log", import.meta.url));
 
 export const test = base.extend({
-  blockedHosts: async ({ context }, use) => {
+  // The scene page embeds an OpenStreetMap iframe; nothing else in the app
+  // should ever reach for another host.
+  allowedHosts: [["www.openstreetmap.org"], { option: true }],
+  blockedHosts: async ({ context, allowedHosts }, use, testInfo) => {
     const blocked = [];
     await context.route("**/*", (route) => {
       const { hostname } = new URL(route.request().url());
@@ -16,6 +25,12 @@ export const test = base.extend({
       return route.abort("blockedbyclient");
     });
     await use(blocked);
+    const hosts = [...new Set(blocked)].sort();
+    fs.mkdirSync(path.dirname(LOG), { recursive: true });
+    const name = [path.basename(testInfo.file), ...testInfo.titlePath.slice(1)].join(" > ");
+    fs.appendFileSync(LOG, `${name}\t${hosts.join(",")}\n`);
+    const unexpected = hosts.filter((host) => !allowedHosts.includes(host));
+    expect(unexpected, "requests to hosts other than this machine").toEqual([]);
   },
   // Pages always come with the guard on.
   page: async ({ page, blockedHosts }, use) => {
