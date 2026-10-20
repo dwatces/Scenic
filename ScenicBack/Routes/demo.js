@@ -5,7 +5,13 @@ const express = require("express");
 const HttpError = require("../models/http-error");
 const { objectIdParam, feedQuery, feedOptions } = require("../middleware/validate");
 const { SCENE_NOT_FOUND, MEMBER_NOT_FOUND } = require("../controllers/scenes");
-const { legacyUser, legacyScene, serializeUser, serializeScene } = require("../util/serialize");
+const {
+  legacyUser,
+  legacyScene,
+  legacyEditFields,
+  serializeUser,
+  serializeScene,
+} = require("../util/serialize");
 const { sendStoredImage } = require("../util/send-image");
 const demo = require("../util/demoData");
 
@@ -59,7 +65,12 @@ router.get("/api/scenes/user/:userId", (req, res) => {
 router.get("/api/scenes/:sceneId", (req, res) => {
   const scene = demo.findScene(req.params.sceneId);
   if (!scene) throw new HttpError(SCENE_NOT_FOUND, 404);
-  res.json({ scene: legacyScene(scene, { creator: demo.findUser(scene.creator) }) });
+  res.json({
+    scene: {
+      ...serializeScene(scene, { creator: demo.findUser(scene.creator) }),
+      ...legacyEditFields(scene),
+    },
+  });
 });
 
 router.get("/api/scenes/:sceneId/image", (req, res) => {

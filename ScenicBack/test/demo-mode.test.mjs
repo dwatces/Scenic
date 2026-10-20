@@ -37,7 +37,7 @@ describe("demo mode (no database configured)", () => {
     const one = await request(server).get(`/api/scenes/${scenes.body.scenes[0].id}`);
     expect(one.status).toBe(200);
     expect(one.body.scene.title).toBe("Milford Sound");
-    expect(one.body.scene.creator).toBe(users[0].id);
+    expect(one.body.scene.creator).toMatchObject({ id: users[0].id, isDemo: true });
   });
 
   it("applies the same id checks as the database", async () => {

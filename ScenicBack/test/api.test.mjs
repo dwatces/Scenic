@@ -180,8 +180,15 @@ describe("API with a database", () => {
       const res = await createScene(server, owner.token);
       expect(res.status).toBe(201);
       sceneId = res.body.scene.id;
-      expect(res.body.scene._id).toBe(sceneId);
+      expect(res.body.scene.id).toMatch(/^[0-9a-f]{24}$/);
       expect(res.body.scene.location).toEqual(STUB_COORDS);
+      // The new scene comes back serialised, so the client can show it
+      // straight away: creator summary and image URL, no bytes.
+      expect(res.body.scene.creator).toMatchObject({ id: owner.userId, isDemo: false });
+      expect(res.body.scene.imageUrl).toMatch(
+        new RegExp(`^/api/scenes/${sceneId}/image\\?v=\\d+$`),
+      );
+      expect(res.body.scene).not.toHaveProperty("image");
       const User = require("../models/user.js");
       const user = await User.findById(owner.userId);
       expect(user.scenes.map(String)).toEqual([sceneId]);
@@ -195,11 +202,15 @@ describe("API with a database", () => {
       expect(res.body.scenes[0].image.data).toBe(PNG_1PX.toString("base64"));
     });
 
-    it("gets one scene by id", async () => {
+    it("gets one scene by id, with its creator and image URL but not the bytes", async () => {
       const res = await request(server).get(`/api/scenes/${sceneId}`);
       expect(res.status).toBe(200);
       expect(res.body.scene.id).toBe(sceneId);
       expect(res.body.scene.address).toBe("Rangitoto Island");
+      expect(res.body.scene.creator).toMatchObject({ id: owner.userId, name: "Test Member" });
+      expect(res.body.scene.imageUrl).toMatch(/^\/api\/scenes\/[0-9a-f]{24}\/image\?v=\d+$/);
+      expect(res.body.scene.image).toEqual({ contentType: "png", data: "" }); // legacy edit fields
+      expect(res.text.length).toBeLessThan(2048);
     });
 
     it("lets the owner edit the title and description", async () => {
@@ -209,6 +220,7 @@ describe("API with a database", () => {
         .send({ title: "Rangitoto summit", description: "Looking back at the city." });
       expect(res.status).toBe(200);
       expect(res.body.scene.title).toBe("Rangitoto summit");
+      expect(res.body.scene.creator.id).toBe(owner.userId);
     });
 
     it("refuses invalid edits with a 422 that names the problem", async () => {
@@ -381,7 +393,7 @@ describe("API with a database", () => {
         contentType: "image/jpeg",
       });
       expect(res.status).toBe(201);
-      expect(res.body.scene.contentType).toBe("png");
+      expect(res.body.scene.imageType).toBe("image/png");
       const Scene = require("../models/scene.js");
       const stored = await Scene.collection.findOne({ title: "Labelled JPEG, really PNG" });
       expect(stored.image.contentType).toBe("image/png");
@@ -395,7 +407,7 @@ describe("API with a database", () => {
         contentType: "image/webp",
       });
       expect(webp.status).toBe(201);
-      expect(webp.body.scene.image.contentType).toBe("webp");
+      expect(webp.body.scene.imageType).toBe("image/webp");
       const jpeg = await createScene(server, owner.token, {
         fields: { title: "JPEG scene" },
         image: JPEG_1PX,
@@ -403,7 +415,7 @@ describe("API with a database", () => {
         contentType: "image/jpeg",
       });
       expect(jpeg.status).toBe(201);
-      expect(jpeg.body.scene.image.contentType).toBe("jpeg");
+      expect(jpeg.body.scene.imageType).toBe("image/jpeg");
     });
   });
 

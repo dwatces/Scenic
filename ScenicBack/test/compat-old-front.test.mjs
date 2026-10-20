@@ -121,13 +121,20 @@ describe("deployed client compatibility", () => {
       }
     });
 
-    it("GET /api/scenes/:id (edit page): title and description, plus the preview bytes for now", async () => {
-      // FE3 drops the bytes from this route; title, description and id stay.
+    it("GET /api/scenes/:id (edit page): title, description and image fields, no bytes", async () => {
+      // The old edit page reads scene.image.contentType and scene.image.data
+      // inside one try block before it fills its form; if `image` were
+      // missing, the throw would leave Save disabled. With an empty data
+      // string the form works and only its preview <img> breaks (it shows
+      // the alt text): the one accepted degradation until the new client
+      // is deployed.
       const res = await request(db).get(`/api/scenes/${sceneId}`);
       expect(res.status).toBe(200);
+      expect(res.body.scene.id).toBe(sceneId);
       expect(res.body.scene.title).toBe("Piha");
       expect(res.body.scene.description).toBe("Lion Rock at low tide.");
-      expectOldClientScene(res.body.scene, member.userId);
+      expect(res.body.scene.image.contentType).toMatch(/^(jpeg|png|webp)$/);
+      expect(res.body.scene.image.data).toBe("");
     });
 
     it("demo mode serves the same old-client shapes", async () => {
@@ -138,6 +145,12 @@ describe("deployed client compatibility", () => {
         const scenes = (await request(demoServer).get(`/api/scenes/user/${demo.IDS.daniel}`)).body
           .scenes;
         scenes.forEach((scene) => expectOldClientScene(scene, String(demo.IDS.daniel)));
+        const one = (await request(demoServer).get(`/api/scenes/${demo.IDS.milford}`)).body.scene;
+        expect(one.title).toBe("Milford Sound");
+        expect(one.image).toEqual({
+          contentType: expect.stringMatching(/^(jpeg|png|webp)$/),
+          data: "",
+        });
       } finally {
         await close(demoServer);
       }

@@ -148,11 +148,24 @@ function legacyScene(scene, { creator }) {
   };
 }
 
+/**
+ * DEPRECATED, for GET /api/scenes/:id only. The deployed client's edit page
+ * reads scene.image.contentType and scene.image.data, and its form only
+ * enables Save once both exist. An empty data string keeps that form working
+ * without sending the bytes again (its preview shows the alt text instead).
+ * Remove together with the other legacy shapes.
+ */
+function legacyEditFields(scene) {
+  const contentType = bareSubtype(normaliseContentType(scene.image && scene.image.contentType));
+  return { image: { contentType, data: "" } };
+}
+
 module.exports = {
   serializeUser,
   serializeScene,
   legacyUser,
   legacyScene,
+  legacyEditFields,
   normaliseContentType,
   isDemoUser,
 };
