@@ -200,4 +200,17 @@ ul {
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
   }
+
+  /* No hover lifts on buttons and cards, and the skeleton shimmer holds still. */
+  .button:hover,
+  .button:active,
+  .hero__cta:hover,
+  .user-item a:hover,
+  .user-item a:active {
+    transform: none !important;
+  }
+
+  .skeleton {
+    animation: none !important;
+  }
 }
