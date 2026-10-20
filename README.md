@@ -21,8 +21,9 @@ Scenic was first built in November 2021 as a learning project and reworked in Ju
 
 ## Tech stack
 
-- **Client (`ScenicFront/`):** React 17, React Router 5, Create React App 3
-- **API (`ScenicBack/`):** Node.js 18 or later, Express 4, Mongoose 5, multer, express-validator, bcryptjs, jsonwebtoken, axios
+- **Client (`ScenicFront/`):** React 19, React Router 7, Vite 8
+- **API (`ScenicBack/`):** Node.js 24, Express 5, Mongoose 9, multer, express-validator, bcryptjs, jsonwebtoken, helmet, cors, express-rate-limit
+- **Tests:** Vitest, supertest and an in-memory MongoDB replica set (API); Vitest and Testing Library (client)
 - **Database:** MongoDB (MongoDB Atlas in the live deployment)
 - **Hosting:** both apps on Vercel; the API runs as a serverless function through `api/index.js` and the rewrite in `vercel.json`
 
@@ -55,9 +56,9 @@ API (`ScenicBack/.env`, see `ScenicBack/.env.example`):
 
 Sign-up and login are rate-limited to 10 attempts per IP address every 15 minutes. On Vercel each running instance keeps its own count, so the limit slows guessing rather than capping it exactly.
 
-Client:
+Client (`ScenicFront/.env.local`, see `ScenicFront/.env.example`):
 
-- `REACT_APP_BACKEND_URL`: the API base URL including `/api`, for example `http://localhost:5000/api`.
+- `REACT_APP_BACKEND_URL`: the API base URL including `/api`, for example `http://localhost:5000/api`. The name is kept from the Create React App days so existing deployments keep working. When it is unset, production builds use `https://scenic-api.vercel.app/api` and `npm run dev` uses `http://localhost:5000/api`.
 
 ### Database note
 
@@ -85,23 +86,36 @@ It skips users and scenes that already exist. If `SEED_PASSWORD` is not set, it 
 ```bash
 cd ScenicFront
 npm install
-REACT_APP_BACKEND_URL=http://localhost:5000/api npm start   # http://localhost:3000
+npm run dev       # http://localhost:5173, talks to http://localhost:5000/api
+npm run build     # production build in build/ (hashed assets in build/static/)
+npm run preview   # serve that build locally
 ```
 
-The client uses Create React App 3 (webpack 4). On Node 17 or later, if `npm start` or `npm run build` stops with `ERR_OSSL_EVP_UNSUPPORTED`, prefix the command with `NODE_OPTIONS=--openssl-legacy-provider`.
+### Tests
+
+```bash
+cd ScenicBack && npm test    # API: Vitest + supertest against an in-memory MongoDB replica set
+cd ScenicFront && npm test   # client: Vitest + Testing Library
+```
+
+The API tests start MongoDB 8.2.6 through `mongodb-memory-server` on port 7107 and never reach the network: a guard fails any request to a host other than this machine. The first run downloads the MongoDB binary once if it isn't cached (set `MONGOMS_RUNTIME_DOWNLOAD=true`).
 
 ## Project structure
 
 ```
 ScenicBack/
-  app.js            Express app: CORS, cache headers, demo-mode fallback, routes, error handler
+  app.js            createApp(): security headers, CORS, rate limits, cache headers, demo-mode gate, routes, errors
   api/index.js      Vercel serverless entry point
-  Routes/           users and scenes routers
+  Routes/           users, scenes and demo-mode routers
   controllers/      request handlers
   models/           Mongoose User and Scene schemas, HttpError
-  middleware/       JWT check, MongoDB connection, multer upload limits
-  util/             geocoding, demo data, Atlas seeding script
+  middleware/       JWT check, MongoDB connection, uploads, validation, error responses
+  util/             serialisers, image type detection, email rules, geocoding, demo data, seeding script
+  test/             API tests (Vitest + supertest + in-memory MongoDB)
 ScenicFront/
+  index.html        Vite entry
+  vercel.json       build settings, SPA rewrite and asset caching for Vercel
+  src/config.js     API base URL
   src/landing_page/ landing page with rotating hero images
   src/user/         sign-up, login and users list
   src/scenes/       scene list, add and edit forms
