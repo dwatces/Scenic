@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";
 
@@ -52,10 +52,9 @@ describe("NavLinks", () => {
 });
 
 describe("MainNavigation", () => {
-  // Regression: React 19 removed findDOMNode, which react-transition-group
-  // falls back to without a nodeRef. The first drawer open used to blank
-  // the whole app.
-  it("opens the side drawer without crashing", async () => {
+  // The drawer used to crash on React 19 (react-transition-group needed
+  // findDOMNode); it is now a native modal <dialog>.
+  it("opens the menu as a dialog and closes it when a link is chosen", async () => {
     render(
       <AuthContext.Provider value={signedIn}>
         <MemoryRouter>
@@ -63,9 +62,28 @@ describe("MainNavigation", () => {
         </MemoryRouter>
       </AuthContext.Provider>,
     );
-    await userEvent.click(document.querySelector(".main-navigation__menu-btn"));
-    expect(document.querySelector(".side-drawer")).toBeInTheDocument();
-    expect(document.querySelector(".side-drawer nav")).toBeInTheDocument();
+    const menuButton = screen.getByRole("button", { name: "Menu" });
+    expect(menuButton).toHaveAttribute("aria-expanded", "false");
+    await userEvent.click(menuButton);
+    const drawer = screen.getByRole("dialog", { name: "Menu" });
+    expect(menuButton).toHaveAttribute("aria-expanded", "true");
+    expect(menuButton).toHaveAttribute("aria-controls", drawer.id);
+    expect(drawer.querySelector("nav[aria-label='Main']")).toBeInTheDocument();
+
+    await userEvent.click(within(drawer).getByRole("link", { name: "Explore" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("closes the menu with its Close button", async () => {
+    render(
+      <MemoryRouter>
+        <MainNavigation />
+      </MemoryRouter>,
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Menu" }));
+    await userEvent.click(screen.getByRole("button", { name: "Close menu" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Menu" })).toHaveFocus();
   });
 
   it("shows the signed-in member's initial beside My scenes once the profile loads", async () => {

@@ -22,9 +22,10 @@ test.describe("smoke", () => {
   test("the drawer opens at 375 px without blanking the app", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 800 });
     await page.goto("/users");
-    await page.locator(".main-navigation__menu-btn").click();
-    await expect(page.locator(".side-drawer")).toBeVisible();
-    await expect(page.locator(".side-drawer").getByRole("link", { name: "Members" })).toBeVisible();
+    await page.getByRole("button", { name: "Menu" }).click();
+    const drawer = page.getByRole("dialog", { name: "Menu" });
+    await expect(drawer).toBeVisible();
+    await expect(drawer.getByRole("link", { name: "Members" })).toBeVisible();
     await expect(page.locator(".user-item").first()).toBeVisible();
   });
 

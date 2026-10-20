@@ -69,6 +69,15 @@ export async function postScene(request, member, title = `E2E scene ${Date.now()
   return (await res.json()).scene;
 }
 
+/** Delete `member`'s scenes through the local API (tidying up after a spec). */
+export async function deleteScenes(request, member, scenes) {
+  for (const scene of scenes) {
+    await request.delete(`${API_URL}/scenes/${scene.id}`, {
+      headers: { Authorization: `Bearer ${member.token}` },
+    });
+  }
+}
+
 /** Put `member`'s session in the browser, as the app saves it after logging in. */
 export async function useSession(page, member, expiresInMs = 3600e3) {
   if (!/^http/.test(page.url())) await page.goto("/users");

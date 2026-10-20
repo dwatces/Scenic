@@ -37,7 +37,6 @@ const DeleteSceneButton = ({ scene, onDeleted, size = "small" }) => {
         show={confirming}
         onCancel={() => setConfirming(false)}
         header={`Delete “${scene.title}”?`}
-        footerClass="scene-card__modal-actions"
         footer={
           <React.Fragment>
             <Button inverse onClick={() => setConfirming(false)}>

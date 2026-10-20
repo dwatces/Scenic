@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { Link, useParams } from "react-router";
 
 import Avatar from "../../shared/components/UIElements/Avatar";
@@ -38,6 +38,7 @@ const UserScenes = ({ own = false }) => {
   const feed = useSceneFeed({ creator: userId, enabled: validId });
   const user = profile.data && profile.data.user;
   const notFound = !validId || (profile.status === "error" && profile.error.status === 404);
+  const [deletedNote, setDeletedNote] = useState("");
 
   useDocumentTitle(
     isMe ? "Your scenes" : user ? `Scenes by ${user.name}` : notFound ? "Member not found" : null,
@@ -68,6 +69,11 @@ const UserScenes = ({ own = false }) => {
   if (!user) return <StatusLine>Loading scenes…</StatusLine>;
 
   const onDeleted = (id) => {
+    const deleted = feed.scenes.find((scene) => scene.id === id);
+    setDeletedNote(deleted ? `Deleted “${deleted.title}”.` : "Scene deleted.");
+    // The card and its Delete button are gone: put focus somewhere useful.
+    const heading = document.querySelector(".member-page .page-heading");
+    if (heading) heading.focus();
     feed.remove(id);
     profile.update((data) => ({
       user: { ...data.user, sceneCount: Math.max(0, data.user.sceneCount - 1) },
@@ -123,6 +129,9 @@ const UserScenes = ({ own = false }) => {
         />
       )}
       {feed.status === "ready" && <LoadMore feed={feed} />}
+      <p className="visually-hidden" role="status">
+        {deletedNote}
+      </p>
     </div>
   );
 };

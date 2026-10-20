@@ -67,12 +67,17 @@
 
 .button:disabled,
 .button:hover:disabled,
-.button:active:disabled {
+.button:active:disabled,
+.button[aria-busy="true"] {
   background: var(--surface-3);
   color: var(--text-dim);
   border-color: transparent;
   transform: none;
   cursor: not-allowed;
+}
+
+.button[aria-busy="true"] {
+  cursor: progress;
 }
 
 .button--small {

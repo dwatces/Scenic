@@ -1,51 +1,28 @@
-import React, { useRef } from "react";
-import ReactDOM from "react-dom";
-import { CSSTransition } from "react-transition-group";
+import { useId } from "react";
 
-import Backdrop from "./Backdrop";
+import { useModalDialog } from "../../hooks/modal-dialog-hook";
 import "./Modal.css";
 
-const ModalOverlay = ({ ref, ...props }) => {
-  const content = (
-    <div ref={ref} className={`modal ${props.className}`} style={props.style}>
-      <header className={`modal__header ${props.headerClass}`}>
-        <h2>{props.header}</h2>
-      </header>
-      <form
-        onSubmit={
-          props.onSubmit
-            ? props.onSubmit
-            : (event) => {
-                event.preventDefault();
-              }
-        }
-      >
-        <div className={`modal__content ${props.contentClass}`}>{props.children}</div>
-        <footer className={`modal__footer ${props.footerClass}`}>{props.footer}</footer>
-      </form>
-    </div>
+const ModalDialog = ({ onCancel, header, footer, children, className, footerClass }) => {
+  const ref = useModalDialog(() => onCancel && onCancel());
+  const headingId = useId();
+  return (
+    <dialog ref={ref} className={`modal ${className || ""}`.trim()} aria-labelledby={headingId}>
+      <div className="modal__header">
+        <h2 id={headingId}>{header}</h2>
+      </div>
+      <div className="modal__content">{children}</div>
+      {footer && <div className={`modal__footer ${footerClass || ""}`.trim()}>{footer}</div>}
+    </dialog>
   );
-  return ReactDOM.createPortal(content, document.getElementById("modal-hook"));
 };
 
-const Modal = (props) => {
-  // React 19 has no findDOMNode, so CSSTransition needs the node by ref.
-  const nodeRef = useRef(null);
-  return (
-    <React.Fragment>
-      {props.show && <Backdrop onClick={props.onCancel} />}
-      <CSSTransition
-        nodeRef={nodeRef}
-        in={props.show}
-        mountOnEnter
-        unmountOnExit
-        timeout={200}
-        classNames="modal"
-      >
-        <ModalOverlay {...props} ref={nodeRef} />
-      </CSSTransition>
-    </React.Fragment>
-  );
-};
+/**
+ * A modal dialog (native <dialog>): labelled by its heading, closed by
+ * Escape, a backdrop click or a footer button (through onCancel), and
+ * focus returns to the button that opened it. Renders nothing while
+ * `show` is false.
+ */
+const Modal = ({ show, ...props }) => (show ? <ModalDialog {...props} /> : null);
 
 export default Modal;

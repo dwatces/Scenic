@@ -59,6 +59,13 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+/* A modal dialog (or the menu) is open: the page behind it stays put, and
+   keeps the scrollbar's space so it doesn't jump sideways. */
+html:has(dialog[open]) {
+  overflow: hidden;
+  scrollbar-gutter: stable;
+}
+
 body {
   min-height: 100vh;
   background: var(--bg);
@@ -131,25 +138,6 @@ ul {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--border-strong);
-}
-
-/* side-drawer slide transition (react-transition-group) */
-.slide-in-left-enter {
-  transform: translateX(-100%);
-}
-.slide-in-left-enter-active {
-  transform: translateX(0);
-  opacity: 1;
-  transition: all 220ms var(--ease);
-}
-.slide-in-left-exit {
-  transform: translateX(0%);
-  opacity: 1;
-}
-.slide-in-left-exit-active {
-  transform: translateX(-100%);
-  opacity: 0;
-  transition: all 220ms var(--ease);
 }
 
 /* helpers */

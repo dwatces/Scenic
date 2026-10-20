@@ -112,9 +112,3 @@
 .scene-card__actions .button {
   min-height: 44px;
 }
-
-.scene-card__modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.6rem;
-}

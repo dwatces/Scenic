@@ -43,10 +43,6 @@
   display: none;
 }
 
-.main-navigation__drawer-nav {
-  height: 100%;
-}
-
 @media (min-width: 768px) {
   .main-navigation__menu-btn {
     display: none;

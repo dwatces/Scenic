@@ -1,6 +1,6 @@
 import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
-import { afterEach, beforeEach, vi } from "vitest";
+import { afterEach, vi } from "vitest";
 
 // jsdom has no matchMedia or IntersectionObserver. Tests that care stub
 // matchMedia themselves (see Hero.test.jsx); by default nothing matches.
@@ -12,23 +12,24 @@ if (typeof window.matchMedia !== "function") {
     removeEventListener() {},
   }));
 }
+// jsdom has <dialog> but not showModal() or close(): enough of both for
+// the components (open flag, the close event).
+if (typeof HTMLDialogElement.prototype.showModal !== "function") {
+  HTMLDialogElement.prototype.showModal = function showModal() {
+    this.setAttribute("open", "");
+  };
+  HTMLDialogElement.prototype.close = function close() {
+    if (!this.hasAttribute("open")) return;
+    this.removeAttribute("open");
+    this.dispatchEvent(new Event("close"));
+  };
+}
 if (typeof window.IntersectionObserver !== "function") {
   window.IntersectionObserver = class {
     observe() {}
     disconnect() {}
   };
 }
-
-// The portal targets that index.html provides.
-beforeEach(() => {
-  for (const id of ["backdrop-hook", "modal-hook", "drawer-hook"]) {
-    if (!document.getElementById(id)) {
-      const el = document.createElement("div");
-      el.id = id;
-      document.body.appendChild(el);
-    }
-  }
-});
 
 afterEach(() => {
   cleanup();
