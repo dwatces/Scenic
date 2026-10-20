@@ -10,14 +10,15 @@ import { AuthContext } from "../../context/auth-context";
 const signedIn = { isLoggedIn: true, userId: "u1", token: "t", login() {}, logout() {} };
 
 describe("NavLinks", () => {
-  it("shows Login when signed out and marks the active link", () => {
+  it("shows Log in when signed out and marks the active link", () => {
     render(
       <MemoryRouter initialEntries={["/users"]}>
         <NavLinks />
       </MemoryRouter>,
     );
-    expect(screen.getByRole("link", { name: "Login" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "All Users" })).toHaveClass("active__link");
+    expect(screen.getByRole("link", { name: "Log in" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Members" })).toHaveClass("active__link");
+    expect(screen.getByRole("link", { name: "Explore" })).toHaveAttribute("href", "/explore");
   });
 
   it("shows the member links when signed in", () => {
@@ -28,10 +29,11 @@ describe("NavLinks", () => {
         </MemoryRouter>
       </AuthContext.Provider>,
     );
-    expect(screen.getByRole("link", { name: "My Scenes" })).toHaveAttribute("href", "/u1/scenes");
-    expect(screen.getByRole("link", { name: "My Scenes" })).toHaveClass("active__link");
-    expect(screen.getByRole("link", { name: "Add Scene" })).toHaveAttribute("href", "/scenes/new");
-    expect(screen.queryByRole("link", { name: "Login" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "My scenes" })).toHaveAttribute("href", "/u1/scenes");
+    expect(screen.getByRole("link", { name: "My scenes" })).toHaveClass("active__link");
+    expect(screen.getByRole("link", { name: "Add scene" })).toHaveAttribute("href", "/scenes/new");
+    expect(screen.getByRole("button", { name: "Log out" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Log in" })).not.toBeInTheDocument();
   });
 });
 

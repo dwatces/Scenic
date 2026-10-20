@@ -1,0 +1,18 @@
+.explore-page__header {
+  width: 100%;
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 1.75rem;
+  text-align: center;
+}
+
+.explore-page__intro {
+  margin-top: 0.5rem;
+  color: var(--text-muted);
+}
+
+.explore-page__empty {
+  margin: 2rem auto;
+  color: var(--text-muted);
+  text-align: center;
+}

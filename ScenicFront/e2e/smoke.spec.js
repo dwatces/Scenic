@@ -24,9 +24,7 @@ test.describe("smoke", () => {
     await page.goto("/users");
     await page.locator(".main-navigation__menu-btn").click();
     await expect(page.locator(".side-drawer")).toBeVisible();
-    await expect(
-      page.locator(".side-drawer").getByRole("link", { name: "All Users" }),
-    ).toBeVisible();
+    await expect(page.locator(".side-drawer").getByRole("link", { name: "Members" })).toBeVisible();
     await expect(page.locator(".user-item").first()).toBeVisible();
   });
 

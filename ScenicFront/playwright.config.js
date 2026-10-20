@@ -32,7 +32,7 @@ export default defineConfig({
       url: `http://127.0.0.1:${API_PORT}/`,
       reuseExistingServer: false,
       timeout: 90_000,
-      env: { PW_API_PORT: String(API_PORT) },
+      env: { PW_API_PORT: String(API_PORT), E2E_FIXTURE: "1" },
     },
     {
       command: `npx vite build && npx vite preview --port ${PREVIEW_PORT} --strictPort --host 127.0.0.1`,

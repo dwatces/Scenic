@@ -9,6 +9,7 @@ import { useAuth } from "./shared/hooks/auth-hook";
 
 const LandingPage = React.lazy(() => import("./landing_page/pages/LandingPage"));
 const Users = React.lazy(() => import("./user/pages/Users"));
+const Explore = React.lazy(() => import("./scenes/pages/Explore"));
 const NewScene = React.lazy(() => import("./scenes/pages/NewScene"));
 const UserScenes = React.lazy(() => import("./scenes/pages/UserScenes"));
 const ScenePage = React.lazy(() => import("./scenes/pages/ScenePage"));
@@ -31,6 +32,7 @@ const App = () => {
               {/* Signed in, home is "Your scenes"; signed out, the landing page. */}
               <Route path="/" element={token ? <UserScenes own /> : <LandingPage />} />
               <Route path="/landing" element={<Navigate to="/" replace />} />
+              <Route path="/explore" element={<Explore />} />
               <Route path="/users" element={<Users />} />
               <Route path="/:userId/scenes" element={<UserScenes />} />
               <Route

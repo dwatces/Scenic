@@ -3,54 +3,49 @@ import { NavLink } from "react-router";
 import { AuthContext } from "../../context/auth-context";
 import "./NavLinks.css";
 
+const activeClass = ({ isActive }) => (isActive ? "active__link" : undefined);
+
 const NavLinks = () => {
   const auth = useContext(AuthContext);
-  const userId = auth.userId;
 
   return (
     <ul className="nav-links">
       <li>
-        <NavLink
-          className={({ isActive }) => (isActive ? "active__link" : undefined)}
-          to="/users"
-          end
-        >
-          All Users
+        <NavLink className={activeClass} to="/explore" end>
+          Explore
+        </NavLink>
+      </li>
+      <li>
+        <NavLink className={activeClass} to="/users" end>
+          Members
         </NavLink>
       </li>
       {auth.isLoggedIn && (
         <li>
-          <NavLink
-            className={({ isActive }) => (isActive ? "active__link" : undefined)}
-            to={`/${userId}/scenes`}
-          >
-            My Scenes
+          <NavLink className={activeClass} to={`/${auth.userId}/scenes`}>
+            My scenes
           </NavLink>
         </li>
       )}
       {auth.isLoggedIn && (
         <li>
-          <NavLink
-            className={({ isActive }) => (isActive ? "active__link" : undefined)}
-            to="/scenes/new"
-          >
-            Add Scene
+          <NavLink className={activeClass} to="/scenes/new">
+            Add scene
           </NavLink>
         </li>
       )}
       {!auth.isLoggedIn && (
         <li>
-          <NavLink
-            className={({ isActive }) => (isActive ? "active__link" : undefined)}
-            to="/login"
-          >
-            Login
+          <NavLink className={activeClass} to="/login">
+            Log in
           </NavLink>
         </li>
       )}
       {auth.isLoggedIn && (
         <li>
-          <button onClick={auth.logout}>Logout</button>
+          <button type="button" onClick={() => auth.logout()}>
+            Log out
+          </button>
         </li>
       )}
     </ul>

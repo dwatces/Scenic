@@ -1,7 +1,7 @@
 // The API for end-to-end tests, from ../ScenicBack (run `npm ci` there
 // first): an in-memory MongoDB replica set, the real seeder (2 demo members,
-// 3 scenes), a stub geocoder, no rate limit. Never touches a real database
-// or the network.
+// 3 scenes) plus an optional 30-scene fixture, a stub geocoder, no rate
+// limit. Never touches a real database or the network.
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 
@@ -31,6 +31,35 @@ await mongoose.connect(dbUrl);
 
 const { seed } = require(backDir + "util/seedAtlas.js");
 await seed({ password: SEED_PASSWORD });
+
+// E2E_FIXTURE=1: 30 more scenes ("Test scene 01" to "Test scene 30") by a
+// test member flagged demo, so paging ("Load more") and the six-scene
+// landing feed have something to page through. They exist only in this
+// in-memory database: never in the seeder or any committed demo content.
+if (process.env.E2E_FIXTURE === "1") {
+  const User = require(backDir + "models/user.js");
+  const Scene = require(backDir + "models/scene.js");
+  const images = require(backDir + "util/demoImages.js");
+  const image = { data: images.milfordSound.toString("base64"), contentType: "image/webp" };
+  const member = await User.create({
+    name: "Test member (demo)",
+    email: "e2e-fixture@scenic.example",
+    password: "not-a-login",
+    demo: true,
+    scenes: [],
+  });
+  for (let i = 1; i <= 30; i++) {
+    const scene = await Scene.create({
+      title: `Test scene ${String(i).padStart(2, "0")}`,
+      description: "A fixture scene for the end-to-end tests.",
+      address: "Auckland",
+      location: { lat: -36.8485, lng: 174.7633 },
+      creator: member._id,
+      image,
+    });
+    await User.updateOne({ _id: member._id }, { $addToSet: { scenes: scene._id } });
+  }
+}
 
 const { createApp } = require(backDir + "app.js");
 const app = createApp({
