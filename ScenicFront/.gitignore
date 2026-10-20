@@ -1,1 +1,17 @@
+# dependencies
+node_modules/
+
+# build output
+build/
+
+# tests
+coverage/
+playwright-report/
+test-results/
+
+# local env files (keep the example)
+.env*
+!.env.example
+
+# Vercel CLI link
 .vercel
