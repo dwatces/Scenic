@@ -180,3 +180,25 @@ test.describe("the menu at 390 px", () => {
     await expect(page.getByRole("heading", { level: 1, name: "Explore scenes" })).toBeFocused();
   });
 });
+
+test("the menu at 375 px by keyboard alone: Enter opens it, Tab stays inside, Escape closes it and focus returns", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto("/users");
+  const menu = page.locator(".main-navigation__menu-btn");
+  for (let presses = 0; presses < 10; presses++) {
+    await page.keyboard.press("Tab");
+    if (await menu.evaluate((el) => el === document.activeElement)) break;
+  }
+  await expect(menu).toBeFocused();
+  await page.keyboard.press("Enter");
+  const drawer = page.getByRole("dialog", { name: "Menu" });
+  await expect(drawer).toBeVisible();
+  expect(await focusInside(page, "dialog[open]")).toBe(true);
+  await expectFocusTrapped(page, "dialog[open]");
+  await page.keyboard.press("Escape");
+  await expect(drawer).toHaveCount(0);
+  await expect(menu).toBeFocused();
+  await expect(menu).toHaveAttribute("aria-expanded", "false");
+});
