@@ -58,7 +58,7 @@ export function feedUrl({ limit, creator, before } = {}) {
   if (creator) params.set("creator", creator);
   if (before) params.set("before", before);
   const query = params.toString();
-  return withFreshness(`${API_URL}/scenes${query ? `?${query}` : ""}`);
+  return `${API_URL}/scenes${query ? `?${query}` : ""}`;
 }
 
 /**
@@ -76,7 +76,10 @@ export function useSceneFeed({ limit = 12, creator = null, enabled = true } = {}
   useEffect(() => {
     if (!key) return undefined;
     const controller = new AbortController();
-    apiRequest(firstPage, { signal: controller.signal }).then(
+    // Freshness is added as the request goes out, never in render: a
+    // change made while the page is open (a deleted card) must not become a
+    // new URL that reloads the feed and drops the pages already loaded.
+    apiRequest(withFreshness(firstPage), { signal: controller.signal }).then(
       (data) => dispatch({ type: "loaded", key, scenes: data.scenes, nextCursor: data.nextCursor }),
       (error) => {
         if (!isAbort(error)) dispatch({ type: "failed", key, error });
@@ -96,7 +99,8 @@ export function useSceneFeed({ limit = 12, creator = null, enabled = true } = {}
     more.current = controller;
     dispatch({ type: "moreStarted" });
     try {
-      const data = await apiRequest(feedUrl({ limit, creator, before: state.nextCursor }), {
+      const next = withFreshness(feedUrl({ limit, creator, before: state.nextCursor }));
+      const data = await apiRequest(next, {
         signal: controller.signal,
       });
       dispatch({ type: "moreLoaded", scenes: data.scenes, nextCursor: data.nextCursor });

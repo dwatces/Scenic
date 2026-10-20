@@ -16,7 +16,6 @@ import { useSceneFeed } from "../hooks/feed-hook";
 import { AuthContext } from "../../shared/context/auth-context";
 import { useApiResource } from "../../shared/hooks/resource-hook";
 import { useDocumentTitle } from "../../shared/hooks/use-document-title";
-import { withFreshness } from "../../shared/util/api";
 import { API_URL, apiAsset } from "../../config";
 import "./UserScenes.css";
 
@@ -35,7 +34,7 @@ const UserScenes = ({ own = false }) => {
   const isMe = auth.isLoggedIn && auth.userId === userId;
 
   const validId = isId(userId);
-  const profile = useApiResource(validId ? withFreshness(`${API_URL}/users/${userId}`) : null);
+  const profile = useApiResource(validId ? `${API_URL}/users/${userId}` : null, { fresh: true });
   const feed = useSceneFeed({ creator: userId, enabled: validId });
   const user = profile.data && profile.data.user;
   const notFound = !validId || (profile.status === "error" && profile.error.status === 404);

@@ -16,7 +16,7 @@ import { useHttpClient } from "../../shared/hooks/http-hook";
 import { useApiResource } from "../../shared/hooks/resource-hook";
 import { useDocumentTitle } from "../../shared/hooks/use-document-title";
 import { AuthContext } from "../../shared/context/auth-context";
-import { markWrite, withFreshness } from "../../shared/util/api";
+import { markWrite } from "../../shared/util/api";
 import { API_URL, apiAsset } from "../../config";
 import { imageAlt } from "./ScenePage";
 import "./SceneForm.css";
@@ -103,7 +103,7 @@ const EditSceneForm = ({ scene }) => {
 const UpdateScene = () => {
   const { sceneId } = useParams();
   const auth = useContext(AuthContext);
-  const resource = useApiResource(withFreshness(`${API_URL}/scenes/${sceneId}`));
+  const resource = useApiResource(`${API_URL}/scenes/${sceneId}`, { fresh: true });
   const scene = resource.data && resource.data.scene;
   useDocumentTitle(scene ? `Edit ${scene.title}` : "Edit scene");
 

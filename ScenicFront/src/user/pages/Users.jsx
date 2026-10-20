@@ -4,14 +4,13 @@ import { DemoNote } from "../../shared/components/UIElements/Demo";
 import { ErrorPanel, StatusLine } from "../../shared/components/UIElements/LoadState";
 import { useApiResource } from "../../shared/hooks/resource-hook";
 import { useDocumentTitle } from "../../shared/hooks/use-document-title";
-import { withFreshness } from "../../shared/util/api";
 import { API_URL } from "../../config";
 import "../components/UserList.css";
 
 /** /users: every member, by name. */
 const Users = () => {
   useDocumentTitle("Members");
-  const resource = useApiResource(withFreshness(`${API_URL}/users`));
+  const resource = useApiResource(`${API_URL}/users`, { fresh: true });
   const users = resource.data ? resource.data.users : [];
 
   return (

@@ -1,10 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { apiRequest, isAbort } from "../util/api";
+import { apiRequest, isAbort, withFreshness } from "../util/api";
 
 /**
  * Load one API resource for a page.
  * @param {string | null} url what to load; null loads nothing ("idle")
+ * @param {{ fresh?: boolean }} [options] `fresh`: add fresh=<time> after a
+ *   recent change (withFreshness). It is applied when the request is sent,
+ *   not in render, so a change made while the page is open (deleting a
+ *   card) doesn't turn into a new URL and reload the page.
  * @returns {{
  *   status: "idle" | "loading" | "ready" | "error",
  *   data: any,
@@ -13,7 +17,7 @@ import { apiRequest, isAbort } from "../util/api";
  *   update: (change: (data: any) => any) => void,
  * }}
  */
-export function useApiResource(url) {
+export function useApiResource(url, { fresh = false } = {}) {
   const [attempt, setAttempt] = useState(0);
   const key = url ? `${attempt} ${url}` : null;
   // The result remembers which request it answers, so a new URL (or a
@@ -23,14 +27,14 @@ export function useApiResource(url) {
   useEffect(() => {
     if (!key) return undefined;
     const controller = new AbortController();
-    apiRequest(url, { signal: controller.signal }).then(
+    apiRequest(fresh ? withFreshness(url) : url, { signal: controller.signal }).then(
       (data) => setResult({ key, data, error: null }),
       (error) => {
         if (!isAbort(error)) setResult({ key, data: null, error });
       },
     );
     return () => controller.abort();
-  }, [key, url]);
+  }, [key, url, fresh]);
 
   const retry = useCallback(() => setAttempt((n) => n + 1), []);
   const update = useCallback(

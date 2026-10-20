@@ -15,7 +15,6 @@ import { DemoBadge } from "../../shared/components/UIElements/Demo";
 import { AuthContext } from "../../shared/context/auth-context";
 import { useApiResource } from "../../shared/hooks/resource-hook";
 import { useDocumentTitle } from "../../shared/hooks/use-document-title";
-import { withFreshness } from "../../shared/util/api";
 import { API_URL, apiAsset } from "../../config";
 import "./ScenePage.css";
 
@@ -44,9 +43,9 @@ const ScenePage = () => {
 
   const passed = location.state && location.state.scene;
   const handedOver = passed && passed.id === sceneId ? passed : null;
-  const resource = useApiResource(
-    handedOver ? null : withFreshness(`${API_URL}/scenes/${sceneId}`),
-  );
+  const resource = useApiResource(handedOver ? null : `${API_URL}/scenes/${sceneId}`, {
+    fresh: true,
+  });
   const scene = handedOver || (resource.data && resource.data.scene);
 
   useDocumentTitle(

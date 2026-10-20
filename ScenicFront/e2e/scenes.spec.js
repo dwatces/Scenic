@@ -164,3 +164,33 @@ test.describe("demo labels", () => {
     await expect(page.getByText("Demo account")).toHaveCount(0);
   });
 });
+
+test("deleting a card on Your scenes removes just that card, without reloading the page", async ({
+  page,
+  request,
+}) => {
+  const member = await signUp(request, "Tidy");
+  await postScene(request, member, "Keep this one");
+  await postScene(request, member, "Delete this one");
+  await useSession(page, member);
+  await page.goto(`/${member.userId}/scenes`);
+  await expect(page.locator(".scene-card")).toHaveCount(2);
+  await expect(page.locator(".member-page__meta")).toContainText("2 scenes");
+
+  const reads = [];
+  page.on("request", (req) => req.method() === "GET" && reads.push(req.url()));
+  const card = page.locator(".scene-card", { hasText: "Delete this one" });
+  await card.getByRole("button", { name: "Delete", exact: true }).click();
+  await page.getByRole("button", { name: "Delete scene" }).click();
+
+  await expect(page.locator(".scene-card")).toHaveCount(1);
+  await expect(page.locator(".scene-card", { hasText: "Keep this one" })).toBeVisible();
+  await expect(page.locator(".member-page__meta")).toContainText("1 scene");
+  await expect(page.locator("h1")).toHaveText("Your scenes");
+  await expect(page.getByText("Loading scenes…")).toHaveCount(0);
+  // Removed from state: neither the profile nor the list is fetched again.
+  await page.waitForTimeout(500);
+  expect(
+    reads.filter((url) => url.includes("/api/scenes?") || url.includes("/api/users/")),
+  ).toEqual([]);
+});
