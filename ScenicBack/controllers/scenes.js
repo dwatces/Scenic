@@ -187,7 +187,7 @@ const deleteScene = async (req, res, next) => {
   }
 
   res.status(200).json({
-    messsage: "Scene deleted successfully",
+    message: "Scene deleted successfully",
   });
 };
 

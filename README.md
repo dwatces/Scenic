@@ -48,7 +48,7 @@ API (`ScenicBack/.env`, see `ScenicBack/.env.example`):
 
 - `DB_URL`: MongoDB connection string. Without it the API runs in read-only demo mode.
 - `JWT_KEY`: secret used to sign and verify tokens. Needed for sign-up, login and any write.
-- `GOOGLE_API_KEY`: optional. When set, Google geocodes addresses; otherwise Nominatim and Photon are used. `.env.example` contains a placeholder value for it, so delete that line or leave it empty (`GOOGLE_API_KEY=`) unless you have a real key, or every new scene will fail to geocode.
+- `GOOGLE_API_KEY`: optional. When set, Google geocodes addresses; otherwise Nominatim and Photon are used. Leave it empty (as in `.env.example`) unless you have a real key.
 - `PORT`: optional, defaults to `5000`.
 - `SEED_PASSWORD`: optional, only read by the seeding script below.
 
@@ -65,7 +65,7 @@ Creating and deleting scenes uses MongoDB transactions, which need a replica set
 ```bash
 cd ScenicBack
 npm install
-cp .env.example .env   # fill in DB_URL and JWT_KEY; clear GOOGLE_API_KEY unless you have one
+cp .env.example .env   # fill in DB_URL and JWT_KEY
 npm start              # http://localhost:5000
 ```
 

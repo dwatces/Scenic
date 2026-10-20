@@ -104,7 +104,7 @@ const login = async (req, res, next) => {
     validPassword = await bcrypt.compare(password, existingUser.password);
   } catch (err) {
     const error = new HttpError(
-      "Could not login, pelase confirm your credentials",
+      "Could not log in, please confirm your credentials",
       500
     );
     return next(error);
