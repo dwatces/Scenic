@@ -57,7 +57,9 @@ describe("API with a database", () => {
   it("answers the health check", async () => {
     const res = await request(server).get("/");
     expect(res.status).toBe(200);
-    expect(res.body).toMatchObject({ status: "ok", api: "Scenic backend" });
+    // "db" proves the connection really opened: a rejected connect option
+    // would silently drop the API into demo mode, where GETs still pass.
+    expect(res.body).toEqual({ status: "ok", api: "Scenic backend", mode: "db" });
   });
 
   describe("accounts", () => {
@@ -73,6 +75,29 @@ describe("API with a database", () => {
       const res = await signup(server, { email: "owner@example.com" });
       expect(res.status).toBe(422);
       expect(res.body.message).toEqual(expect.any(String));
+    });
+
+    it("maps a duplicate-key race to the same 422 (unique index, no plugin)", async () => {
+      const User = require("../models/user.js");
+      await User.init(); // index builds are asynchronous on a fresh database
+      const email = "race@example.com";
+      const results = await Promise.all(
+        Array.from({ length: 4 }, () => signup(server, { email }))
+      );
+      const statuses = results.map((r) => r.status).sort();
+      expect(statuses).toEqual([201, 422, 422, 422]);
+      for (const r of results.filter((r) => r.status === 422)) {
+        expect(r.body.message).toBe("An account with this email already exists.");
+      }
+      expect(await User.countDocuments({ email })).toBe(1);
+    });
+
+    it("has a unique index on email that rejects a direct double insert", async () => {
+      const User = require("../models/user.js");
+      await User.init();
+      const doc = { name: "Twice", email: "twice@example.com", password: "x".repeat(60), scenes: [] };
+      await User.create(doc);
+      await expect(User.create(doc)).rejects.toMatchObject({ code: 11000 });
     });
 
     it("refuses invalid sign-up input with 422", async () => {
@@ -103,9 +128,9 @@ describe("API with a database", () => {
     it("lists members without password hashes", async () => {
       const res = await request(server).get("/api/users/users");
       expect(res.status).toBe(200);
-      expect(res.body.users).toHaveLength(1);
-      expect(res.body.users[0]).not.toHaveProperty("password");
-      expect(res.body.users[0].name).toBe("Test Member");
+      expect(res.body.users.length).toBeGreaterThan(0);
+      for (const user of res.body.users) expect(user).not.toHaveProperty("password");
+      expect(res.body.users.map((u) => u.name)).toContain("Test Member");
     });
   });
 
@@ -193,12 +218,48 @@ describe("API with a database", () => {
     });
   });
 
+  describe("errors", () => {
+    it("survives a failing handler and hides its internals (Express 5)", async () => {
+      // Create without an image used to be an unhandled rejection that ended
+      // the process on Express 4.
+      const res = await request(server)
+        .post("/api/scenes")
+        .set("Authorization", `Bearer ${owner.token}`)
+        .field("title", "No image")
+        .field("description", "There is no image here.")
+        .field("address", "Nowhere");
+      expect(res.status).toBeGreaterThanOrEqual(400);
+      expect(JSON.stringify(res.body)).not.toMatch(/Cannot read properties|at .+\.js:\d+/);
+      const health = await request(server).get("/");
+      expect(health.status).toBe(200);
+    });
+  });
+
   describe("known bugs (fixed in later commits)", () => {
-    // Each of these crashes the process on Express 4 (an unhandled rejection
-    // inside an async handler), so they can't run until Express 5.
-    it.todo("signup without an image returns 422, not a crash");
-    it.todo("create scene without an image returns 422, not a crash");
-    it.todo("PATCH on a well-formed id that doesn't exist returns 404, not a crash");
+    // These ended the process on Express 4. Express 5 forwards the error, so
+    // they now answer 500 instead of crashing; the right status comes next.
+    it.fails("signup without an image returns 422", async () => {
+      const res = await signup(server, { email: "noimage@example.com", image: false });
+      expect(res.status).toBe(422);
+    });
+
+    it.fails("create scene without an image returns 422", async () => {
+      const res = await request(server)
+        .post("/api/scenes")
+        .set("Authorization", `Bearer ${owner.token}`)
+        .field("title", "No image")
+        .field("description", "There is no image here.")
+        .field("address", "Nowhere");
+      expect(res.status).toBe(422);
+    });
+
+    it.fails("PATCH on a well-formed id that doesn't exist returns 404", async () => {
+      const res = await request(server)
+        .patch("/api/scenes/5f0000000000000000000000")
+        .set("Authorization", `Bearer ${owner.token}`)
+        .send({ title: "Ghost", description: "This scene does not exist." });
+      expect(res.status).toBe(404);
+    });
 
     it.fails("ownership failures return 403", async () => {
       const res = await request(server)

@@ -1,17 +1,36 @@
-const axios = require("axios").default;
-
 const HttpError = require("../models/http-error");
 
-const API_KEY = process.env.GOOGLE_API_KEY;
+// Every geocoder call gives up after 5 s, so a slow provider can't hold a
+// serverless request open.
+const TIMEOUT_MS = 5000;
+const USER_AGENT = "scenic-app (https://scenic-app.vercel.app)";
 
-async function googleGeocode(address) {
-  const response = await axios.get(
-    `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
-      address
-    )}&key=${API_KEY}`
-  );
+async function getJson(url, headers = {}) {
+  const response = await fetch(url, {
+    headers: { Accept: "application/json", ...headers },
+    signal: AbortSignal.timeout(TIMEOUT_MS),
+  });
+  if (!response.ok) {
+    throw new Error(`${url.hostname} answered ${response.status}`);
+  }
+  return response.json();
+}
 
-  const data = response.data;
+async function googleGeocode(address, apiKey) {
+  const url = new URL("https://maps.googleapis.com/maps/api/geocode/json");
+  url.searchParams.set("address", address);
+  url.searchParams.set("key", apiKey);
+
+  let data;
+  try {
+    data = await getJson(url);
+  } catch (err) {
+    console.error("Google geocoding unreachable:", err.message);
+    throw new HttpError(
+      "The location service is temporarily unavailable, please try again",
+      502
+    );
+  }
 
   if (!data || data.status !== "OK" || !data.results.length) {
     throw new HttpError("Could not find the location for this address", 422);
@@ -21,25 +40,24 @@ async function googleGeocode(address) {
 }
 
 /* Keyless geocoders. Nominatim rate-limits shared cloud egress IPs, so a miss
-   there falls through to Photon (komoot) before giving up. Returns
+   there falls through to Photon (komoot) before giving up. Each returns
    { lat, lng }, null for a genuine not-found, or throws on network failure. */
 async function nominatim(address) {
-  const response = await axios.get("https://nominatim.openstreetmap.org/search", {
-    params: { q: address, format: "json", limit: 1 },
-    headers: { "User-Agent": "scenic-app (https://scenic-app.vercel.app)" },
-    timeout: 5000,
-  });
-  const results = response.data;
+  const url = new URL("https://nominatim.openstreetmap.org/search");
+  url.searchParams.set("q", address);
+  url.searchParams.set("format", "json");
+  url.searchParams.set("limit", "1");
+  const results = await getJson(url, { "User-Agent": USER_AGENT });
   if (!Array.isArray(results) || results.length === 0) return null;
   return { lat: parseFloat(results[0].lat), lng: parseFloat(results[0].lon) };
 }
 
 async function photon(address) {
-  const response = await axios.get("https://photon.komoot.io/api/", {
-    params: { q: address, limit: 1 },
-    timeout: 5000,
-  });
-  const feats = response.data && response.data.features;
+  const url = new URL("https://photon.komoot.io/api/");
+  url.searchParams.set("q", address);
+  url.searchParams.set("limit", "1");
+  const data = await getJson(url, { "User-Agent": USER_AGENT });
+  const feats = data && data.features;
   if (!Array.isArray(feats) || feats.length === 0) return null;
   const [lng, lat] = feats[0].geometry.coordinates;
   return { lat, lng };
@@ -65,8 +83,16 @@ async function keylessGeocode(address) {
   throw new HttpError("Could not find the location for this address", 422);
 }
 
-async function getCoordinatesForAddress(address) {
-  return API_KEY ? googleGeocode(address) : keylessGeocode(address);
+/**
+ * Turn an address into { lat, lng }: Google when a key is configured,
+ * otherwise Nominatim, then Photon. The key is read per call, so the
+ * caller (createApp's env) decides, not whatever was set at import time.
+ */
+async function getCoordinatesForAddress(
+  address,
+  { apiKey = process.env.GOOGLE_API_KEY } = {}
+) {
+  return apiKey ? googleGeocode(address, apiKey) : keylessGeocode(address);
 }
 
 module.exports = getCoordinatesForAddress;

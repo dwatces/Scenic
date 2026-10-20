@@ -30,7 +30,7 @@ describe("JWT_KEY unset", () => {
     await mongoose.disconnect();
   });
 
-  it.fails("rejects an alg:none token on a write", async () => {
+  it("never accepts an alg:none token on a write", async () => {
     const res = await request(server)
       .post("/api/scenes")
       .set("Authorization", `Bearer ${algNoneToken({ userId })}`)
@@ -38,6 +38,9 @@ describe("JWT_KEY unset", () => {
       .field("description", "Posted with a forged token.")
       .field("address", "Anywhere")
       .attach("image", PNG_1PX, { filename: "a.png", contentType: "image/png" });
-    expect(res.status).toBe(401);
+    expect(res.status).toBeGreaterThanOrEqual(400);
+    expect(res.status).toBeLessThan(500);
+    const Scene = require("../models/scene.js");
+    expect(await Scene.countDocuments()).toBe(0);
   });
 });

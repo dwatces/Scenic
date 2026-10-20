@@ -14,7 +14,7 @@ describe("demo mode (no database configured)", () => {
   it("answers the health check", async () => {
     const res = await request(server).get("/");
     expect(res.status).toBe(200);
-    expect(res.body).toMatchObject({ status: "ok", api: "Scenic backend" });
+    expect(res.body).toEqual({ status: "ok", api: "Scenic backend", mode: "demo" });
   });
 
   it("lists the two demo members", async () => {

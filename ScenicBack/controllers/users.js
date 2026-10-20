@@ -1,9 +1,10 @@
-require("dotenv").config();
 const { validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const HttpError = require("../models/http-error");
 const User = require("../models/user");
+
+const DUPLICATE_EMAIL = "An account with this email already exists.";
 
 const getUsers = async (req, res, next) => {
   let users;
@@ -34,11 +35,7 @@ const signup = async (req, res, next) => {
   }
 
   if (existingUser) {
-    const error = new HttpError(
-      "User exists already, please try another email or login",
-      422
-    );
-    return next(error);
+    return next(new HttpError(DUPLICATE_EMAIL, 422));
   }
 
   let hashedPassword = bcrypt.hashSync(password, 8);
@@ -59,6 +56,10 @@ const signup = async (req, res, next) => {
   try {
     await createdUser.save();
   } catch (err) {
+    // Two sign-ups racing past the findOne above: the unique index decides.
+    if (err && err.code === 11000) {
+      return next(new HttpError(DUPLICATE_EMAIL, 422));
+    }
     const error = new HttpError(
       "Signing up failed, please try again later.",
       500

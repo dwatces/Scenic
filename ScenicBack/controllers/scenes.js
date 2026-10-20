@@ -173,7 +173,7 @@ const deleteScene = async (req, res, next) => {
   try {
     const session = await mongoose.startSession();
     session.startTransaction();
-    await scene.remove({ session });
+    await scene.deleteOne({ session });
     scene.creator.scenes.pull(scene);
     await scene.creator.save({ session });
     await session.commitTransaction();
