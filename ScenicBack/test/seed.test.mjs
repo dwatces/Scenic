@@ -3,6 +3,7 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { require, mongoose, dbUrl } from "./helpers.mjs";
 
 const { seed } = require("../util/seedAtlas.js");
+const demo = require("../util/demoData.js");
 const User = require("../models/user.js");
 const Scene = require("../models/scene.js");
 
@@ -27,8 +28,22 @@ describe("seed()", () => {
     for (const scene of scenes) {
       const owner = users.find((u) => String(u._id) === String(scene.creator));
       expect(owner.scenes.map(String)).toContain(String(scene._id));
-      const bytes = Buffer.from(scene.image.data, "base64");
-      expect(bytes.subarray(0, 3).toString("hex")).toBe("ffd8ff");
+    }
+  });
+
+  it("copies the demo content as it is: names, descriptions, labelled WebP placeholders", async () => {
+    const users = await User.find({}, "name image").lean();
+    expect(users.map((u) => u.name).sort()).toEqual(["Aroha (demo)", "Daniel (demo)"]);
+    const scenes = await Scene.find({}, "title description image").lean();
+    for (const scene of scenes) {
+      const source = demo.SCENES.find((s) => s.title === scene.title);
+      expect(scene.description).toBe(source.description);
+    }
+    for (const doc of [...users, ...scenes]) {
+      const bytes = Buffer.from(doc.image.data, "base64");
+      expect(bytes.toString("ascii", 0, 4)).toBe("RIFF");
+      expect(bytes.toString("ascii", 8, 12)).toBe("WEBP");
+      expect(doc.image.contentType).toBe("image/webp");
     }
   });
 

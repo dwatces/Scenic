@@ -120,7 +120,7 @@ describe("DB and demo responses have the same shape", () => {
   it("labels demo accounts and their scenes, and nothing else", async () => {
     const users = (await request(db).get("/api/users/users")).body.users;
     const byName = Object.fromEntries(users.map((u) => [u.name, u.isDemo]));
-    expect(byName).toEqual({ Daniel: true, Aroha: true, Kiri: false });
+    expect(byName).toEqual({ "Daniel (demo)": true, "Aroha (demo)": true, Kiri: false });
     const seededScenes = (await request(db).get(`/api/scenes/user/${seededUserId}`)).body.scenes;
     expect(seededScenes.every((s) => s.isDemo === true)).toBe(true);
     const memberScene = (await request(db).get(`/api/scenes/${memberSceneId}`)).body.scene;

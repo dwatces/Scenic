@@ -11,7 +11,9 @@ const { USERS, SCENES } = require("./demoData");
 
 /**
  * Seed the demo content through the already-open default mongoose
- * connection. Seeded accounts are flagged demo: true.
+ * connection, exactly as util/demoData.js has it: names keep their
+ * " (demo)" suffix, accounts are flagged demo: true, and the images are
+ * the labelled placeholders.
  * @param {{ password: string }} options the login password for seeded accounts
  * @returns {Promise<{ created: number, users: number, scenes: number }>}
  */
@@ -27,7 +29,7 @@ async function seed({ password }) {
       continue;
     }
     const doc = await User.create({
-      name: u.name.replace(" (demo)", ""),
+      name: u.name,
       email: u.email,
       password: hashed,
       demo: true,
@@ -44,7 +46,7 @@ async function seed({ password }) {
     if (existing) continue;
     const doc = await Scene.create({
       title: s.title,
-      description: s.description.replace(/ - demo scene.*\.$/, "."),
+      description: s.description,
       image: { data: s.image.data, contentType: s.image.contentType },
       address: s.address,
       location: s.location,

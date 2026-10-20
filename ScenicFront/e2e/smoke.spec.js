@@ -14,7 +14,7 @@ test.describe("smoke", () => {
   test("the members page lists the seeded demo members", async ({ page }) => {
     await page.goto("/users");
     await expect(page.locator(".user-item")).toHaveCount(2);
-    await expect(page.locator(".user-item h2")).toHaveText(["Daniel", "Aroha"]);
+    await expect(page.locator(".user-item h2")).toHaveText(["Daniel (demo)", "Aroha (demo)"]);
   });
 
   test("the drawer opens at 375 px without blanking the app", async ({ page }) => {

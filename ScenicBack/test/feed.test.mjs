@@ -202,11 +202,16 @@ describe("feed and member API (database)", () => {
       const res = await get("/api/users");
       expect(res.status).toBe(200);
       expect(res.headers["cache-control"]).toBe(READ_CACHE);
-      expect(res.body.users.map((user) => user.name)).toEqual(["Aroha", "Daniel", "kiri", "Zed"]);
+      expect(res.body.users.map((user) => user.name)).toEqual([
+        "Aroha (demo)",
+        "Daniel (demo)",
+        "kiri",
+        "Zed",
+      ]);
       const byName = Object.fromEntries(res.body.users.map((user) => [user.name, user]));
       expect(byName.kiri.sceneCount).toBe(EXTRA_SCENES);
-      expect(byName.Daniel.sceneCount).toBe(2);
-      expect(byName.Daniel.isDemo).toBe(true);
+      expect(byName["Daniel (demo)"].sceneCount).toBe(2);
+      expect(byName["Daniel (demo)"].isDemo).toBe(true);
       expect(byName.kiri.isDemo).toBe(false);
       expect(byName.Zed.avatarUrl).toBeNull();
       expect(findKeys(res.body, ["email", "password", "__v", "data", "image"])).toEqual([]);
