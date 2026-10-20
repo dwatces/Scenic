@@ -12,5 +12,5 @@
 }
 
 .load-more__error {
-  color: var(--danger);
+  color: var(--danger-text);
 }

@@ -43,14 +43,14 @@
 }
 
 .image-upload__input:disabled + .image-upload__choose {
-  color: var(--text-disabled, #6f6f7a);
+  color: var(--text-disabled);
   border-color: transparent;
   background: var(--surface-3);
   cursor: progress;
 }
 
 .image-upload--invalid .image-upload__choose {
-  border-color: var(--danger);
+  border-color: var(--danger-text);
 }
 
 .image-upload__hint,
@@ -61,7 +61,7 @@
 }
 
 .image-upload__error {
-  color: var(--danger);
+  color: var(--danger-text);
   font-size: 0.92rem;
   font-weight: 600;
   text-align: center;

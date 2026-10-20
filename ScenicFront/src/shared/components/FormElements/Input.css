@@ -18,7 +18,7 @@
   font: inherit;
   color: var(--text);
   background: var(--surface-2);
-  border: 1px solid var(--border-strong);
+  border: 1px solid var(--input-border);
   border-radius: var(--radius-sm);
   padding: 0.7rem 0.85rem;
   transition:
@@ -58,18 +58,18 @@
 
 .form-control__error {
   margin-top: 0.4rem;
-  color: var(--danger);
+  color: var(--danger-text);
   font-size: 0.88rem;
   font-weight: 600;
 }
 
 .form-control--invalid label {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .form-control--invalid input,
 .form-control--invalid textarea {
-  border-color: var(--danger);
+  border-color: var(--danger-text);
   background: var(--danger-soft);
 }
 

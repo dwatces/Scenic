@@ -2,7 +2,7 @@
   margin: 0.25rem 0 1.25rem;
   padding: 1rem 1.15rem;
   background: var(--danger-soft);
-  border: 1px solid var(--danger-text, #f0524d);
+  border: 1px solid var(--danger-text);
   border-left-width: 4px;
   border-radius: var(--radius-sm);
 }

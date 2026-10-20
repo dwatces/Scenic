@@ -7,6 +7,7 @@ import Button from "../../shared/components/FormElements/Button";
 import ErrorSummary from "../../shared/components/FormElements/ErrorSummary";
 import ErrorModal from "../../shared/components/UIElements/ErrorModal";
 import PageHeading from "../../shared/components/UIElements/PageHeading";
+import AuthIntro from "../components/AuthIntro";
 import { VALIDATOR_EMAIL, VALIDATOR_REQUIRE } from "../../shared/Util/validators";
 import { useForm, useValidatedSubmit } from "../../shared/hooks/form";
 import { useHttpClient } from "../../shared/hooks/http-hook";
@@ -109,6 +110,7 @@ const Login = () => {
             <Link to={next ? `/signup?next=${encodeURIComponent(next)}` : "/signup"}>Sign up</Link>
           </p>
         </Card>
+        <AuthIntro />
       </div>
     </React.Fragment>
   );

@@ -51,6 +51,7 @@ const DeleteSceneButton = ({ scene, onDeleted, size = "small" }) => {
         <p>This can&apos;t be undone.</p>
       </Modal>
       <Button
+        inverse
         danger
         size={size}
         onClick={() => setConfirming(true)}

@@ -8,6 +8,7 @@ import ErrorSummary from "../../shared/components/FormElements/ErrorSummary";
 import ErrorModal from "../../shared/components/UIElements/ErrorModal";
 import ImageUpload from "../../shared/components/FormElements/ImageUpload";
 import PageHeading from "../../shared/components/UIElements/PageHeading";
+import AuthIntro from "../components/AuthIntro";
 import {
   VALIDATOR_EMAIL,
   VALIDATOR_MINLENGTH,
@@ -126,6 +127,7 @@ const Signup = () => {
             <Link to={next ? `/login?next=${encodeURIComponent(next)}` : "/login"}>Log in</Link>
           </p>
         </Card>
+        <AuthIntro />
       </div>
     </React.Fragment>
   );

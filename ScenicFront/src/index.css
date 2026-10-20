@@ -15,10 +15,14 @@
   --border: #2a2a31;
   --border-strong: #3a3a45;
 
-  /* text */
+  /* text (contrast checked by notes/scenic/tools/design-tokens-contrast.mjs) */
   --text: #f4f4f5;
   --text-muted: #a8a8b3;
-  --text-dim: #6f6f7a;
+  --text-dim: #9090a0; /* placeholders and hints: at least 4.6:1 on every surface */
+  --text-disabled: #6f6f7a; /* disabled controls only (exempt from contrast) */
+
+  /* field and outline-button borders: at least 3:1 against cards and the page */
+  --input-border: #70707f;
 
   /* accent (emerald) */
   --accent: #10b981;
@@ -27,9 +31,10 @@
   --accent-soft: rgba(16, 185, 129, 0.13);
   --accent-ring: rgba(16, 185, 129, 0.35);
 
-  /* danger */
-  --danger: #f0524d;
-  --danger-hover: #f4716d;
+  /* danger: one colour for text and borders, a darker one for filled buttons */
+  --danger-text: #f0524d; /* 5.1:1 on a card */
+  --danger-fill: #c4362f; /* white text 5.4:1 */
+  --danger-fill-hover: #a92e28;
   --danger-soft: rgba(240, 82, 77, 0.13);
 
   /* shape */

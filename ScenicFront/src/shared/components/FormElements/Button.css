@@ -33,7 +33,7 @@
 .button--inverse {
   background: transparent;
   color: var(--accent);
-  border-color: var(--border-strong);
+  border-color: var(--input-border);
 }
 
 .button--inverse:hover,
@@ -43,26 +43,27 @@
   border-color: var(--accent);
 }
 
-/* edit (amber) */
-.button--edit {
-  background: #f5a524;
-  color: #1a1206;
-}
-
-.button--edit:hover,
-.button--edit:active {
-  background: #ffb845;
-}
-
-/* danger */
+/* danger: filled for the confirming action ("Delete scene") */
 .button--danger {
-  background: var(--danger);
+  background: var(--danger-fill);
   color: #fff;
 }
 
 .button--danger:hover,
 .button--danger:active {
-  background: var(--danger-hover);
+  background: var(--danger-fill-hover);
+}
+
+/* quiet danger: outline, for a Delete that only opens a confirmation */
+.button--inverse.button--danger {
+  background: transparent;
+  color: var(--danger-text);
+  border-color: var(--danger-text);
+}
+
+.button--inverse.button--danger:hover,
+.button--inverse.button--danger:active {
+  background: var(--danger-soft);
 }
 
 .button:disabled,
@@ -70,7 +71,7 @@
 .button:active:disabled,
 .button[aria-busy="true"] {
   background: var(--surface-3);
-  color: var(--text-dim);
+  color: var(--text-disabled);
   border-color: transparent;
   transform: none;
   cursor: not-allowed;
