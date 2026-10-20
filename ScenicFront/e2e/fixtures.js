@@ -1,7 +1,6 @@
 // Shared test fixture: every page only talks to this machine. Requests to
-// any other host are aborted and recorded (Google Fonts and the
-// OpenStreetMap embed just fail quietly), so a test can never reach a live
-// site.
+// any other host are aborted and recorded (the OpenStreetMap embed just
+// fails quietly), so a test can never reach a live site.
 import fs from "node:fs";
 import { test as base, expect } from "@playwright/test";
 

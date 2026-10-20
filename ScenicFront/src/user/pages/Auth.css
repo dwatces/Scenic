@@ -21,7 +21,7 @@
 
 .auth-intro__lead {
   color: var(--text);
-  font-family: "Space Grotesk", "Inter", sans-serif;
+  font-family: var(--font-heading);
   font-size: 1.35rem;
   font-weight: 600;
   line-height: 1.2;

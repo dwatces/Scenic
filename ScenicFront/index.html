@@ -1,21 +1,43 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-NZ">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" href="/favicon.png" />
-    <link href="/Nunito-Regular.ttf" rel="stylesheet" />
-
-    <meta name="theme-color" content="#000000" />
+    <title>Scenic: share photos of the places you love</title>
     <meta
-      name="Scenic"
-      content="A photo hosting site to share scenes people capture connected to user accounts"
+      name="description"
+      content="Scenic: share photos of places you love, with a map of where each was taken. A full-stack demo app by Daniel Olliver."
     />
+    <meta name="theme-color" content="#0f0f11" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" href="/favicon.png" type="image/png" />
     <link rel="manifest" href="/manifest.json" />
-    <title>Scenic</title>
+
+    <!-- Link previews. %SITE_URL% is filled in at build time (vite.config.js). -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Scenic" />
+    <meta property="og:title" content="Scenic: share photos of the places you love" />
+    <meta
+      property="og:description"
+      content="Post a photo, say where you took it, and see it on the map. A full-stack demo app by Daniel Olliver."
+    />
+    <meta property="og:image" content="%SITE_URL%/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="The word Scenic with the line: Share your photos, say where you took them, and see them on the map."
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Scenic: share photos of the places you love" />
+    <meta
+      name="twitter:description"
+      content="Post a photo, say where you took it, and see it on the map. A full-stack demo app by Daniel Olliver."
+    />
+    <meta name="twitter:image" content="%SITE_URL%/og-image.png" />
   </head>
   <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <noscript>Scenic needs JavaScript to run.</noscript>
     <div id="root"></div>
     <script type="module" src="/src/index.jsx"></script>
   </body>

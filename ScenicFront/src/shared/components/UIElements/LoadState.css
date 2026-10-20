@@ -101,7 +101,7 @@
 }
 
 .load-panel__title {
-  font-family: "Space Grotesk", "Inter", sans-serif;
+  font-family: var(--font-heading);
   font-size: 1.2rem;
   font-weight: 600;
 }
