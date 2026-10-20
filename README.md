@@ -11,9 +11,9 @@ Scenic was first built in November 2021 as a learning project, reworked in June 
 
 | Explore | A scene page | On a phone |
 | --- | --- | --- |
-| ![Explore page listing three scenes as cards, Cathedral Cove, Lake Tekapo and Milford Sound, each with a "Demo image" placeholder photo, its place, a Demo scene badge and the member who posted it](docs/explore.webp) | ![The Milford Sound scene page: the demo placeholder photo, the place, a Demo scene badge, a one-line description, who posted it and when, and an OpenStreetMap map of Milford Sound with a marker](docs/scene.webp) | ![The same scene page on a 390 px wide phone: the photo, title, place, badge, description and byline stacked above the map](docs/phone.webp) |
+| ![Explore page listing three scenes as cards: Te Hoho Rock through the Cathedral Cove arch, lupins by Lake Tekapo and a boat under Mitre Peak in Milford Sound, each with its place, a Demo scene badge and the member who posted it](docs/explore.webp) | ![The Milford Sound scene page: a boat under Mitre Peak with the photographer's credit, the place, a Demo scene badge, a one-line description, who posted it and when, and an OpenStreetMap map of Milford Sound with a marker](docs/scene.webp) | ![The same scene page on a 390 px wide phone: the photo, title, place, badge, description and byline stacked above the map](docs/phone.webp) |
 
-The screenshots are of a local build with the repo's seeded demo content: two labelled demo members and three scenes with placeholder images.
+The screenshots are of a local build with the repo's demo content: two labelled demo members and three scenes with free-to-use photos from Pexels, credited on each scene page.
 
 ## Features
 
@@ -24,7 +24,7 @@ The screenshots are of a local build with the repo's seeded demo content: two la
 - **Edit and delete:** owners can edit a scene's title and description or delete it (after a confirmation that names the scene). The API checks ownership before any change.
 - **Maps:** the location you type is turned into coordinates (Google Geocoding API when `GOOGLE_API_KEY` is set, otherwise Nominatim with Photon as a fallback).
 - **Demo mode:** if no database is configured or it cannot be reached, read requests are answered from a built-in set of two demo members and three New Zealand scenes, through the same serialisers as database responses, and write requests return a 503 with an explanation.
-- **Demo content is labelled:** sample accounts and scenes (in demo mode, and when seeded into a database) carry `isDemo: true`, show "Demo account" or "Demo scene" in the app, and use placeholder images that say "Demo image" on them. Lists that contain them say so in one line.
+- **Demo content is labelled:** sample accounts and scenes (in demo mode, and when seeded into a database) carry `isDemo: true`, show "Demo account" or "Demo scene" in the app, and lists that contain them say so in one line. The scene photos are free-to-use Pexels photos, each credited to its photographer.
 - **Accessible:** checked against WCAG 2.2 AA with axe on every page at phone and desktop widths, by keyboard, at 320 px wide and with reduced motion (see [Tests](#tests)). Dialogs and the phone menu are native modal `<dialog>`s.
 - **Edge caching:** GET responses send `Cache-Control: s-maxage=1, stale-while-revalidate=599`, so the CDN can answer reads from cache while it refreshes in the background, which hides serverless cold starts.
 
@@ -192,7 +192,7 @@ ScenicBack/
   models/           Mongoose User and Scene schemas, HttpError
   middleware/       JWT check, MongoDB connection, uploads, validation, error responses
   util/             serialisers, image type detection and serving, email rules, geocoding, demo data, seeding script
-  assets/demo/      the labelled demo placeholder images (drawn by scripts/make-demo-images.py)
+  assets/demo/      demo scene photos and avatars (built by scripts/make-demo-images.py)
   test/             API tests (Vitest + supertest + in-memory MongoDB)
 ScenicFront/
   index.html        Vite entry
@@ -217,11 +217,11 @@ docs/               README screenshots
 - **New pages and API routes:** Explore (a paged feed), public scene pages with a map, public member pages, a members list with scene counts, Page not found, and a title for every page. The old endpoints still answer for the deployed client.
 - **Client:** moved from Create React App 3 (React 17, React Router 5) to Vite 8, React 19 and React Router 7. One HTTP client handles errors and expired sessions, and lists stay fresh after a change.
 - **Design and accessibility:** the landing page dropped from 11 MB of preloaded photos to about 0.6 MB (AVIF crops, a pause control, reduced motion respected) with a plain question as its heading. Dialogs and the phone menu became native `<dialog>`s. The update also brought a skip link and landmarks, colours that pass contrast, forms whose errors are linked to their fields, loading skeletons and one Try again on errors, self-hosted fonts with size-matched fallbacks, and plain NZ English copy.
-- **Honest demo content:** demo members and scenes are labelled everywhere and use placeholder images that say so.
+- **Honest demo content:** demo members and scenes are labelled, and every demo photo is credited.
 - **Tests and CI:** API, client, end-to-end, accessibility and performance suites as described in [Tests](#tests), and a GitHub Actions workflow.
 
 ## Author
 
 Built by Daniel Olliver. More of my work: [danielolliver.com/dev](https://danielolliver.com/dev/).
 
-I also run [Olliver Web](https://olliverweb.co.nz), a web design and development studio in Auckland.
+I also run [Olliver Web](https://olliverweb.co.nz), my web design and development business in Auckland.

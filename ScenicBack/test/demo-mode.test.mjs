@@ -21,7 +21,7 @@ describe("demo mode (no database configured)", () => {
     const res = await request(server).get("/api/users/users");
     expect(res.status).toBe(200);
     expect(res.headers["cache-control"]).toBe("s-maxage=1, stale-while-revalidate=599");
-    expect(res.body.users.map((u) => u.name)).toEqual(["Daniel (demo)", "Aroha (demo)"]);
+    expect(res.body.users.map((u) => u.name)).toEqual(["Daniel", "Aroha"]);
     for (const user of res.body.users) {
       expect(user.id).toMatch(/^[0-9a-f]{24}$/);
       expect(user.isDemo).toBe(true);

@@ -38,7 +38,7 @@ describe("SceneGrid and SceneCard", () => {
   it("shows the creator with their avatar, or their initial when they have none", () => {
     renderPage(<SceneGrid scenes={[sceneFixture(1, { creator: DEMO_DANIEL }), sceneFixture(2)]} />);
     const [withAvatar, withoutAvatar] = cards();
-    expect(within(withAvatar).getByRole("link", { name: "Daniel (demo)" })).toHaveAttribute(
+    expect(within(withAvatar).getByRole("link", { name: "Daniel" })).toHaveAttribute(
       "href",
       `/${DEMO_DANIEL.id}/scenes`,
     );

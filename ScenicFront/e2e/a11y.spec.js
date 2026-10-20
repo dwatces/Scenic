@@ -8,7 +8,7 @@ let routes;
 test.beforeAll(async ({ request }) => {
   const { users } = await (await request.get(`${API_URL}/users`)).json();
   const { scenes } = await (await request.get(`${API_URL}/scenes?limit=1`)).json();
-  const daniel = users.find((user) => user.name === "Daniel (demo)");
+  const daniel = users.find((user) => user.name === "Daniel");
   routes = ["/", "/explore", "/users", `/${daniel.id}/scenes`, `/scenes/${scenes[0].id}`];
   routes.push("/login", "/signup", "/no-such-page");
 });

@@ -36,7 +36,7 @@ test("/landing goes home", async ({ page, request }) => {
 
 test("every route has its own title", async ({ page, request }) => {
   const { users } = await (await request.get(`${API_URL}/users`)).json();
-  const daniel = users.find((user) => user.name === "Daniel (demo)");
+  const daniel = users.find((user) => user.name === "Daniel");
   const member = await signUp(request, "Titled");
   const scene = await postScene(request, member, "A titled scene");
 
@@ -50,7 +50,7 @@ test("every route has its own title", async ({ page, request }) => {
   await visit("/", "Scenic: share photos of the places you love");
   await visit("/explore", "Explore · Scenic");
   await visit("/users", "Members · Scenic");
-  await visit(`/${daniel.id}/scenes`, "Scenes by Daniel (demo) · Scenic");
+  await visit(`/${daniel.id}/scenes`, "Scenes by Daniel · Scenic");
   await visit(`/scenes/${scene.id}`, "A titled scene · Scenic");
   await visit("/scenes/000000000000000000000000", "Scene not found · Scenic");
   await visit("/000000000000000000000000/scenes", "Member not found · Scenic");

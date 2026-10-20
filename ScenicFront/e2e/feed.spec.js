@@ -60,7 +60,7 @@ test("the members page lists the seeded members, centred at 1440 px", async ({ p
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/users");
   await expect(page.locator("h1")).toHaveText("Members");
-  await expect(page.locator(".user-item", { hasText: "Aroha (demo)" })).toBeVisible();
+  await expect(page.locator(".user-item", { hasText: "Aroha" })).toBeVisible();
   const { left, right } = await page.locator(".user-item").evaluateAll((items) => {
     const boxes = items.map((item) => item.getBoundingClientRect());
     return {

@@ -36,9 +36,9 @@ describe("a member's page", () => {
 
     expect(screen.getByRole("status")).toHaveTextContent("Loading scenes…");
     expect(
-      await screen.findByRole("heading", { level: 1, name: "Scenes by Daniel (demo)" }),
+      await screen.findByRole("heading", { level: 1, name: "Scenes by Daniel" }),
     ).toBeInTheDocument();
-    await waitFor(() => expect(document.title).toBe("Scenes by Daniel (demo) · Scenic"));
+    await waitFor(() => expect(document.title).toBe("Scenes by Daniel · Scenic"));
     expect(screen.getByText("2 scenes")).toBeInTheDocument();
     expect(screen.getByText("Demo account")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Back to members" })).toHaveAttribute("href", "/users");
@@ -48,7 +48,7 @@ describe("a member's page", () => {
     expect(feed.url.searchParams.get("creator")).toBe(DEMO_DANIEL.id);
     // Someone else's page: no owner actions, no creator line on each card.
     expect(screen.queryByRole("button", { name: "Delete" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Daniel (demo)" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Daniel" })).not.toBeInTheDocument();
   });
 
   it("says when a member has posted nothing", async () => {

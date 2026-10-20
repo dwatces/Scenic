@@ -61,14 +61,12 @@ describe("Scene page", () => {
     expect(screen.queryByRole("button", { name: "Delete" })).not.toBeInTheDocument();
   });
 
-  it("describes a demo photo as a placeholder and labels the scene", async () => {
+  it("labels a demo scene and describes its photo by title and place", async () => {
     const scene = sceneFixture(2, { title: "Milford Sound", creator: DEMO_DANIEL });
     mockApi({ [`GET /scenes/${scene.id}`]: () => json({ scene }) });
     renderPage(<ScenePage />, { path: at(scene), route: ROUTE });
     expect(
-      await screen.findByRole("img", {
-        name: "Placeholder image for Milford Sound (demo content)",
-      }),
+      await screen.findByRole("img", { name: "Milford Sound, Piha, Auckland" }),
     ).toBeInTheDocument();
     expect(screen.getByText("Demo scene")).toBeInTheDocument();
     expect(imageAlt({ ...scene, isDemo: false })).toBe("Milford Sound, Piha, Auckland");

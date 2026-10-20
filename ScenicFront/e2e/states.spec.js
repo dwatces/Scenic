@@ -40,7 +40,7 @@ let paths;
 test.beforeAll(async ({ request }) => {
   const { users } = await (await request.get(`${API_URL}/users`)).json();
   const { scenes } = await (await request.get(`${API_URL}/scenes?limit=1`)).json();
-  const daniel = users.find((user) => user.name === "Daniel (demo)");
+  const daniel = users.find((user) => user.name === "Daniel");
   paths = {
     Members: { path: "/users", ready: (page) => page.locator(".user-item").first() },
     Explore: { path: "/explore", ready: (page) => page.locator(".scene-card").first() },

@@ -21,8 +21,8 @@ test.describe("scene page", () => {
     page,
   }) => {
     await page.goto("/users");
-    await page.getByRole("link", { name: /Daniel \(demo\)/ }).click();
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Scenes by Daniel (demo)");
+    await page.getByRole("link", { name: /^Daniel\b/ }).click();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Scenes by Daniel");
     httpOnly(await imageSources(page));
 
     await page.getByRole("link", { name: "Milford Sound" }).click();
@@ -39,7 +39,7 @@ test.describe("scene page", () => {
       "href",
       /openstreetmap\.org\/\?mlat=-44\.6717&mlon=167\.9256/,
     );
-    await page.getByRole("link", { name: "Daniel (demo)" }).click();
+    await page.getByRole("link", { name: "Daniel", exact: true }).click();
     await expect(page).toHaveURL(/\/[0-9a-f]{24}\/scenes$/);
   });
 
@@ -177,7 +177,7 @@ test.describe("demo labels", () => {
       "Sample accounts and photos show how Scenic works. Anyone can sign up and post their own.";
     await page.goto("/users");
     await expect(page.getByText(note)).toBeVisible();
-    const daniel = page.locator(".user-item", { hasText: "Daniel (demo)" });
+    const daniel = page.locator(".user-item", { hasText: "Daniel" });
     await expect(daniel.getByText("Demo account")).toBeVisible();
 
     await daniel.getByRole("link").click();
@@ -190,7 +190,7 @@ test.describe("demo labels", () => {
     await expect(page.locator(".scene-page__body").getByText("Demo scene")).toBeVisible();
     await expect(page.locator(".scene-page__figure img")).toHaveAttribute(
       "alt",
-      "Placeholder image for Lake Tekapo (demo content)",
+      "Lake Tekapo, Lake Tekapo, Canterbury",
     );
   });
 

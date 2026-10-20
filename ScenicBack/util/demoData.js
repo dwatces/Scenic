@@ -1,13 +1,11 @@
-/* Demo content: two demo members and three New Zealand scenes, served
-   while no database is connected (see app.js) and copied into a real
-   database by util/seedAtlas.js. Every account is on the reserved
-   @scenic.example domain and flagged demo: true, so responses label it
-   ("Demo account", "Demo scene"), and every image is a placeholder that
-   says "Demo image" on it (util/demoImages.js).
+/* Demo content: two members and three New Zealand scenes. Served while no
+   database is connected (see app.js) and copied into a real one by
+   util/seedAtlas.js. Accounts use the reserved @scenic.example domain and
+   demo: true, so the app labels them ("Demo account", "Demo scene"). The
+   photos are free-to-use Pexels photos, credited on each scene.
 
-   Documents are shaped like the database ones (24-hex ObjectIds, explicit
-   createdAt), so demo mode goes through the same id checks and the same
-   serialisers as database mode. */
+   Documents are shaped like database ones (24-hex ObjectIds, explicit
+   createdAt), so demo mode runs the same id checks and serialisers. */
 const { Types } = require("mongoose");
 const images = require("./demoImages");
 
@@ -15,6 +13,12 @@ const id = (hex) => new Types.ObjectId(hex);
 
 /** A stored image, shaped like an uploaded one (base64 in the document). */
 const webp = (bytes) => ({ contentType: "image/webp", data: bytes.toString("base64") });
+
+/** Credit for a Pexels photo, linking to its page there. */
+const pexels = (photographer, slug) => ({
+  text: `${photographer} on Pexels`,
+  url: `https://www.pexels.com/photo/${slug}/`,
+});
 
 const IDS = {
   daniel: id("6ad72233e7b2b3491f9be98b"),
@@ -27,7 +31,7 @@ const IDS = {
 const USERS = [
   {
     _id: IDS.daniel,
-    name: "Daniel (demo)",
+    name: "Daniel",
     email: "daniel@scenic.example",
     demo: true,
     image: webp(images.avatarDaniel),
@@ -36,7 +40,7 @@ const USERS = [
   },
   {
     _id: IDS.aroha,
-    name: "Aroha (demo)",
+    name: "Aroha",
     email: "aroha@scenic.example",
     demo: true,
     image: webp(images.avatarAroha),
@@ -49,31 +53,38 @@ const SCENES = [
   {
     _id: IDS.milford,
     title: "Milford Sound",
-    description: "Mitre Peak rises straight out of the fiord.",
+    description: "A cruise boat heads out under Mitre Peak, which rises straight out of the fiord.",
     address: "Milford Sound, Fiordland",
     location: { lat: -44.6717, lng: 167.9256 },
     creator: IDS.daniel,
     image: webp(images.milfordSound),
+    credit: pexels("Ravish Maqsood", "cruise-milford-sound-new-zealand-17431554"),
     createdAt: new Date("2026-06-20T09:10:00Z"),
   },
   {
     _id: IDS.tekapo,
     title: "Lake Tekapo",
-    description: "Lupins flower along the shore in early summer.",
+    description:
+      "Lupins flower along the shore in early summer, in front of the lake's glacial blue water.",
     address: "Lake Tekapo, Canterbury",
     location: { lat: -44.0046, lng: 170.4771 },
     creator: IDS.daniel,
     image: webp(images.lakeTekapo),
+    credit: pexels("Chee Huey Wong", "purple-lavender-by-the-lake-62344"),
     createdAt: new Date("2026-06-20T09:15:00Z"),
   },
   {
     _id: IDS.cathedralCove,
     title: "Cathedral Cove",
-    description: "A sea arch between two beaches near Hahei.",
+    description: "Te Hoho Rock, framed by the sea arch at Cathedral Cove near Hahei.",
     address: "Hahei, Coromandel",
     location: { lat: -36.8277, lng: 175.7917 },
     creator: IDS.aroha,
     image: webp(images.cathedralCove),
+    credit: pexels(
+      "Frank Schrader",
+      "looking-at-te-hoho-rock-through-cathedral-cove-hahei-new-zealand-28240868",
+    ),
     createdAt: new Date("2026-06-20T09:20:00Z"),
   },
 ];

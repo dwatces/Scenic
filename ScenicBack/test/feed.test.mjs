@@ -202,16 +202,11 @@ describe("feed and member API (database)", () => {
       const res = await get("/api/users");
       expect(res.status).toBe(200);
       expect(res.headers["cache-control"]).toBe(READ_CACHE);
-      expect(res.body.users.map((user) => user.name)).toEqual([
-        "Aroha (demo)",
-        "Daniel (demo)",
-        "kiri",
-        "Zed",
-      ]);
+      expect(res.body.users.map((user) => user.name)).toEqual(["Aroha", "Daniel", "kiri", "Zed"]);
       const byName = Object.fromEntries(res.body.users.map((user) => [user.name, user]));
       expect(byName.kiri.sceneCount).toBe(EXTRA_SCENES);
-      expect(byName["Daniel (demo)"].sceneCount).toBe(2);
-      expect(byName["Daniel (demo)"].isDemo).toBe(true);
+      expect(byName["Daniel"].sceneCount).toBe(2);
+      expect(byName["Daniel"].isDemo).toBe(true);
       expect(byName.kiri.isDemo).toBe(false);
       expect(byName.Zed.avatarUrl).toBeNull();
       expect(findKeys(res.body, ["email", "password", "__v", "data", "image"])).toEqual([]);
@@ -285,9 +280,9 @@ describe("feed and member API (demo mode)", () => {
 
   it("lists and profiles the demo members", async () => {
     const list = await get("/api/users");
-    expect(list.body.users.map((user) => user.name)).toEqual(["Aroha (demo)", "Daniel (demo)"]);
+    expect(list.body.users.map((user) => user.name)).toEqual(["Aroha", "Daniel"]);
     const one = await get(`/api/users/${demo.IDS.daniel}`);
-    expect(one.body.user).toMatchObject({ name: "Daniel (demo)", sceneCount: 2, isDemo: true });
+    expect(one.body.user).toMatchObject({ name: "Daniel", sceneCount: 2, isDemo: true });
     expect((await get("/api/users/5f0000000000000000000000")).status).toBe(404);
     expect((await get("/api/users/users")).status).toBe(200);
   });

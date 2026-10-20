@@ -11,9 +11,8 @@ const { USERS, SCENES } = require("./demoData");
 
 /**
  * Seed the demo content through the already-open default mongoose
- * connection, exactly as util/demoData.js has it: names keep their
- * " (demo)" suffix, accounts are flagged demo: true, and the images are
- * the labelled placeholders.
+ * connection, exactly as util/demoData.js has it: accounts are flagged
+ * demo: true, and each scene keeps its photo and photo credit.
  * @param {{ password: string }} options the login password for seeded accounts
  * @returns {Promise<{ created: number, users: number, scenes: number }>}
  */
@@ -51,6 +50,7 @@ async function seed({ password }) {
       address: s.address,
       location: s.location,
       creator,
+      credit: s.credit,
     });
     await User.updateOne({ _id: creator }, { $addToSet: { scenes: doc._id } });
     created++;

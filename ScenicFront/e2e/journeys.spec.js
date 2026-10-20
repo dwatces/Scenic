@@ -39,8 +39,8 @@ test("browse: landing, a recent scene, its author, Members, another member", asy
   await page.getByRole("link", { name: "Back to members" }).click();
   await expect(page).toHaveURL("/users");
   await expect(page.locator("h1")).toHaveText("Members");
-  await page.locator(".user-item", { hasText: "Aroha (demo)" }).getByRole("link").click();
-  await expect(page.locator("h1")).toHaveText("Scenes by Aroha (demo)");
+  await page.locator(".user-item", { hasText: "Aroha" }).getByRole("link").click();
+  await expect(page.locator("h1")).toHaveText("Scenes by Aroha");
   await expect(page.getByRole("heading", { level: 2, name: "Cathedral Cove" })).toBeVisible();
   await expect(page.getByText("Demo account")).toBeVisible();
 });

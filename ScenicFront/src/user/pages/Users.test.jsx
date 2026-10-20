@@ -27,7 +27,7 @@ describe("Members page", () => {
     expect(kiri).toHaveTextContent("1 scene");
     await waitFor(() => expect(document.title).toBe("Members · Scenic"));
 
-    const daniel = screen.getByRole("link", { name: /Daniel \(demo\)/ });
+    const daniel = screen.getByRole("link", { name: /^Daniel\b/ });
     expect(daniel).toHaveTextContent("2 scenes");
     expect(within(daniel).getByText("Demo account")).toBeInTheDocument();
     expect(daniel.querySelector("img")).toHaveAttribute(

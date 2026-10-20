@@ -1,6 +1,6 @@
-// The demo placeholder images (assets/demo/, drawn by
-// scripts/make-demo-images.py), read once. Demo mode serves them and the
-// seeder copies them, so both take their bytes from here.
+// The demo images in assets/demo/ (built by scripts/make-demo-images.py),
+// read once. Demo mode serves them and the seeder copies them, so both take
+// their bytes from here.
 //
 // Each path is a literal path.join(__dirname, ...) so Vercel's file tracer
 // sees the files and bundles them with the function. Keep it that way: a

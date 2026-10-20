@@ -101,7 +101,7 @@ test("no tap target under 44 x 44 px at 390 px", async ({ page, request }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   const { users } = await (await request.get(`${API_URL}/users`)).json();
   const { scenes } = await (await request.get(`${API_URL}/scenes?limit=1`)).json();
-  const daniel = users.find((user) => user.name === "Daniel (demo)");
+  const daniel = users.find((user) => user.name === "Daniel");
   const found = {};
   for (const path of [
     "/",

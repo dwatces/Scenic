@@ -21,7 +21,7 @@ describe("Avatar", () => {
   });
 
   it("falls back to the initial when the image fails to load", () => {
-    const { container } = render(<Avatar src="https://api.example/broken" name="Daniel (demo)" />);
+    const { container } = render(<Avatar src="https://api.example/broken" name="Daniel" />);
     fireEvent.error(container.querySelector("img"));
     expect(container.querySelector("img")).toBeNull();
     expect(container.querySelector(".avatar__monogram")).toHaveTextContent("D");

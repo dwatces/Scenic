@@ -25,10 +25,7 @@ const openStreetMapLink = ({ lat, lng }) =>
   `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=15/${lat}/${lng}`;
 
 /** What the photo is, for people who can't see it. */
-export const imageAlt = (scene) =>
-  scene.isDemo
-    ? `Placeholder image for ${scene.title} (demo content)`
-    : `${scene.title}, ${scene.address}`;
+export const imageAlt = (scene) => `${scene.title}, ${scene.address}`;
 
 /**
  * One scene: the photo, where it is, who posted it, and a map. Public, so

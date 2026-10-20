@@ -46,7 +46,7 @@ export const API_URL = `http://127.0.0.1:${process.env.PW_API_PORT || 7105}/api`
 export const SEED_PASSWORD = process.env.E2E_SEED_PASSWORD || "e2e-demo-password";
 const PASSWORD = "e2e-member-password";
 
-/** A real image to post (one of the demo placeholders). */
+/** A real photo to post (one of the demo scene photos). */
 export const SAMPLE_IMAGE = fs.readFileSync(
   new URL("../../ScenicBack/assets/demo/lake-tekapo.webp", import.meta.url),
 );

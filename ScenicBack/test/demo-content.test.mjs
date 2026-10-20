@@ -1,6 +1,5 @@
-// Demo content is honest: every image is a small WebP placeholder that says
-// "Demo image" on it, every account is labelled, and no description claims
-// anything about a database or a photo that isn't there.
+// Demo content is honest and light: every account is labelled, every scene
+// photo is credited, and the images are small enough to live in a document.
 import { describe, it, expect } from "vitest";
 import { require } from "./helpers.mjs";
 
@@ -11,7 +10,7 @@ const isWebp = (bytes) =>
   bytes.toString("ascii", 0, 4) === "RIFF" && bytes.toString("ascii", 8, 12) === "WEBP";
 
 describe("demo content", () => {
-  it("loads five WebP placeholders, each 30 KB or less", () => {
+  it("loads three scene photos of 150 KB or less and two avatars of 5 KB or less, all WebP", () => {
     expect(Object.keys(images).sort()).toEqual([
       "avatarAroha",
       "avatarDaniel",
@@ -22,23 +21,30 @@ describe("demo content", () => {
     for (const [name, bytes] of Object.entries(images)) {
       expect(Buffer.isBuffer(bytes), name).toBe(true);
       expect(isWebp(bytes), name).toBe(true);
-      expect(bytes.length, name).toBeLessThanOrEqual(30 * 1024);
+      const limit = name.startsWith("avatar") ? 5 : 150;
+      expect(bytes.length, name).toBeLessThanOrEqual(limit * 1024);
     }
   });
 
   it("gives every demo member and scene one of those images, typed image/webp", () => {
-    const placeholders = Object.values(images).map((bytes) => bytes.toString("base64"));
+    const files = Object.values(images).map((bytes) => bytes.toString("base64"));
     for (const doc of [...demo.USERS, ...demo.SCENES]) {
       expect(doc.image.contentType).toBe("image/webp");
-      expect(placeholders).toContain(doc.image.data);
+      expect(files).toContain(doc.image.data);
     }
   });
 
-  it("labels every demo account by flag, domain and name", () => {
+  it("labels every demo account by flag and domain", () => {
     for (const user of demo.USERS) {
       expect(user.demo).toBe(true);
       expect(user.email).toMatch(/@scenic\.example$/);
-      expect(user.name).toMatch(/ \(demo\)$/);
+    }
+  });
+
+  it("credits every scene photo to its photographer, linking to the photo's Pexels page", () => {
+    for (const scene of demo.SCENES) {
+      expect(scene.credit.text).toMatch(/^\S.* on Pexels$/);
+      expect(scene.credit.url).toMatch(/^https:\/\/www\.pexels\.com\/photo\/[a-z0-9-]+-\d+\/$/);
     }
   });
 

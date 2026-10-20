@@ -58,7 +58,7 @@ const hexId = (n) => n.toString(16).padStart(24, "0");
 export const KIRI = { id: hexId(0xa1), name: "Kiri", avatarUrl: null, isDemo: false };
 export const DEMO_DANIEL = {
   id: hexId(0xd1),
-  name: "Daniel (demo)",
+  name: "Daniel",
   avatarUrl: `/api/users/${hexId(0xd1)}/image?v=1`,
   isDemo: true,
 };

@@ -15,8 +15,8 @@ test.describe("smoke", () => {
     await page.goto("/users");
     // Other specs sign members up, so check the seeded two are listed.
     const names = page.locator(".user-item h2");
-    await expect(names.filter({ hasText: "Aroha (demo)" })).toHaveCount(1);
-    await expect(names.filter({ hasText: "Daniel (demo)" })).toHaveCount(1);
+    await expect(names.filter({ hasText: "Aroha" })).toHaveCount(1);
+    await expect(names.filter({ hasText: "Daniel" })).toHaveCount(1);
   });
 
   test("the drawer opens at 375 px without blanking the app", async ({ page }) => {

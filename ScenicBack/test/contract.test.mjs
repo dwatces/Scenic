@@ -61,6 +61,10 @@ describe("DB and demo responses have the same shape", () => {
     await mongoose.disconnect();
   });
 
+  // A scene's credit is optional: null for a member's own photo, { text, url }
+  // for a credited one. Compare shapes without the credit's inner keys.
+  const shape = (body) => sorted(deepKeys(body)).filter((key) => !/\.credit\./.test(key));
+
   async function both(dbPath, demoPath) {
     const [a, b] = await Promise.all([request(db).get(dbPath), request(demoServer).get(demoPath)]);
     expect(a.status).toBe(200);
@@ -89,11 +93,20 @@ describe("DB and demo responses have the same shape", () => {
   });
 
   it("GET /api/scenes/:sceneId", async () => {
-    const [fromDb, fromDemo] = await both(
+    const Scene = require("../models/scene.js");
+    const seededId = String((await Scene.findOne({ title: "Milford Sound" }))._id);
+    const [seeded, fromDemo] = await both(
+      `/api/scenes/${seededId}`,
+      `/api/scenes/${demo.IDS.milford}`,
+    );
+    expect(sorted(deepKeys(seeded))).toEqual(sorted(deepKeys(fromDemo)));
+    expect(seeded.scene.credit).toEqual(fromDemo.scene.credit);
+    const [fromMember] = await both(
       `/api/scenes/${memberSceneId}`,
       `/api/scenes/${demo.IDS.milford}`,
     );
-    expect(sorted(deepKeys(fromDb))).toEqual(sorted(deepKeys(fromDemo)));
+    expect(fromMember.scene.credit).toBeNull();
+    expect(shape(fromMember)).toEqual(shape(fromDemo));
   });
 
   it("GET /api/scenes (the feed)", async () => {
@@ -104,7 +117,7 @@ describe("DB and demo responses have the same shape", () => {
       `/api/scenes?creator=${member.userId}`,
       `/api/scenes?creator=${demo.IDS.daniel}`,
     );
-    expect(sorted(deepKeys(filtered))).toEqual(sorted(deepKeys(fromDemo)));
+    expect(shape(filtered)).toEqual(shape(fromDemo));
   });
 
   it("GET /api/users and GET /api/users/:userId", async () => {
@@ -120,7 +133,7 @@ describe("DB and demo responses have the same shape", () => {
   it("labels demo accounts and their scenes, and nothing else", async () => {
     const users = (await request(db).get("/api/users/users")).body.users;
     const byName = Object.fromEntries(users.map((u) => [u.name, u.isDemo]));
-    expect(byName).toEqual({ "Daniel (demo)": true, "Aroha (demo)": true, Kiri: false });
+    expect(byName).toEqual({ Daniel: true, Aroha: true, Kiri: false });
     const seededScenes = (await request(db).get(`/api/scenes/user/${seededUserId}`)).body.scenes;
     expect(seededScenes.every((s) => s.isDemo === true)).toBe(true);
     const memberScene = (await request(db).get(`/api/scenes/${memberSceneId}`)).body.scene;
