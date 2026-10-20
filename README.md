@@ -50,7 +50,10 @@ API (`ScenicBack/.env`, see `ScenicBack/.env.example`):
 - `JWT_KEY`: secret used to sign and verify tokens. Needed for sign-up, login and any write.
 - `GOOGLE_API_KEY`: optional. When set, Google geocodes addresses; otherwise Nominatim and Photon are used. Leave it empty (as in `.env.example`) unless you have a real key.
 - `PORT`: optional, defaults to `5000`.
+- `CORS_ORIGIN`: optional comma-separated list of browser origins allowed to call the API. Unset allows any origin.
 - `SEED_PASSWORD`: optional, only read by the seeding script below.
+
+Sign-up and login are rate-limited to 10 attempts per IP address every 15 minutes. On Vercel each running instance keeps its own count, so the limit slows guessing rather than capping it exactly.
 
 Client:
 

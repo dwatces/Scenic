@@ -20,9 +20,26 @@ export function dbUrl(name) {
   return url.toString();
 }
 
+/**
+ * An app with the stub geocoder and the sign-up/login rate limiter off:
+ * every request in a run comes from 127.0.0.1, so one shared bucket of 10
+ * would break the rest of the suite. Limiter tests switch it back on.
+ */
 export function buildApp(options = {}) {
   const { createApp } = require("../app.js");
-  return createApp({ geocode: stubGeocode, ...options });
+  return createApp({ geocode: stubGeocode, rateLimit: false, ...options });
+}
+
+/** Every key path in a JSON value whose last segment is one of `names`. */
+export function findKeys(value, names, path = "$") {
+  if (Array.isArray(value)) return value.flatMap((item, i) => findKeys(item, names, `${path}[${i}]`));
+  if (value && typeof value === "object") {
+    return Object.entries(value).flatMap(([key, child]) => [
+      ...(names.includes(key) ? [`${path}.${key}`] : []),
+      ...findKeys(child, names, `${path}.${key}`),
+    ]);
+  }
+  return [];
 }
 
 export async function listen(app, port = API_PORT) {

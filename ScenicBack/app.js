@@ -1,6 +1,9 @@
 // Load .env first: modules below may read process.env when they load.
 require("dotenv").config({ quiet: true });
 const express = require("express");
+const cors = require("cors");
+const helmet = require("helmet");
+const { rateLimit: createRateLimiter } = require("express-rate-limit");
 const mongoose = require("mongoose");
 const connection = require("./middleware/mongo");
 const { errorHandler, notFound, noStoreOnErrors } = require("./middleware/errors");
@@ -30,6 +33,39 @@ function startConnection(dbUrl) {
 
 const isConnected = () => mongoose.connection.readyState === 1;
 
+let warnedNoJwtKey = false;
+function checkConfig(env) {
+  if (!env.JWT_KEY && !warnedNoJwtKey) {
+    warnedNoJwtKey = true;
+    console.error(
+      "JWT_KEY is not set: sign-up, login and posting answer 503 until it is. Reads still work."
+    );
+  }
+}
+
+/** CORS_ORIGIN: a comma-separated list of allowed origins; unset means any (*). */
+function corsOrigin(value) {
+  const origins = (value || "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+  return origins.length === 0 || origins.includes("*") ? "*" : origins;
+}
+
+// Sign-up and login: 10 attempts per IP per 15 minutes. On serverless the
+// count is per running instance, so this slows guessing rather than capping
+// it exactly.
+function authRateLimiter(options = {}) {
+  return createRateLimiter({
+    windowMs: 15 * 60 * 1000,
+    limit: 10,
+    standardHeaders: "draft-8",
+    legacyHeaders: false,
+    message: { message: "Too many attempts. Wait 15 minutes and try again." },
+    ...options,
+  });
+}
+
 function waitAtMost(promise, ms) {
   let timer;
   const timeout = new Promise((resolve) => {
@@ -44,30 +80,59 @@ function waitAtMost(promise, ms) {
  * @param {(address: string) => Promise<{lat: number, lng: number}>} [options.geocode]
  *   turns a scene address into coordinates (tests inject a stub)
  * @param {NodeJS.ProcessEnv} [options.env] configuration source (defaults to process.env)
+ * @param {boolean | object} [options.rateLimit] sign-up/login rate limiting:
+ *   true (default), false to switch it off, or express-rate-limit options
  */
 function createApp({
   env = process.env,
   geocode = (address) =>
     getCoordinatesForAddress(address, { apiKey: env.GOOGLE_API_KEY }),
+  rateLimit = true,
 } = {}) {
+  checkConfig(env);
   const app = express();
   app.locals.geocode = geocode;
   app.locals.env = env;
 
+  app.disable("x-powered-by");
+  // Vercel's edge is the one proxy in front of the function: req.ip is the
+  // visitor's address, which the rate limiter keys on.
+  app.set("trust proxy", 1);
+
   app.use(noStoreOnErrors);
+
+  // A JSON and image API: no HTML is ever served, so the CSP denies
+  // everything. Images are loaded cross-origin by the client, which needs
+  // Cross-Origin-Resource-Policy: cross-origin.
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        useDefaults: false,
+        directives: { defaultSrc: ["'none'"], frameAncestors: ["'none'"] },
+      },
+      crossOriginResourcePolicy: { policy: "cross-origin" },
+    })
+  );
+
+  // CORS answers preflight requests itself (204), before the database gate,
+  // so a browser sees the real response even in demo mode.
+  app.use(
+    cors({
+      origin: corsOrigin(env.CORS_ORIGIN),
+      methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+      allowedHeaders: ["Content-Type", "Authorization"],
+      maxAge: 600,
+    })
+  );
+
   // JSON only: the client posts JSON (login, edits) or multipart (uploads,
   // handled by multer on those routes). Nothing posts urlencoded forms.
   app.use(express.json({ limit: "100kb" }));
 
-  app.use((req, res, next) => {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader(
-      "Access-Control-Allow-Headers",
-      "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-    );
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE");
-    next();
-  });
+  if (rateLimit) {
+    const limiter = authRateLimiter(rateLimit === true ? {} : rateLimit);
+    app.post(["/api/users/login", "/api/users/signup"], limiter);
+  }
 
   // Edge caching for reads: the CDN answers instantly from cache and revalidates
   // in the background, which hides serverless cold starts from visitors. Writes

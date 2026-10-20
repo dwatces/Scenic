@@ -14,6 +14,8 @@ import {
   WEBP_1PX,
   GIF_1PX,
   STUB_COORDS,
+  findKeys,
+  algNoneToken,
 } from "./helpers.mjs";
 
 const PASSWORD = "secret123";
@@ -434,27 +436,118 @@ describe("API with a database", () => {
     });
   });
 
-  describe("known bugs (fixed in the next commit)", () => {
-    it.fails("the members list does not expose email addresses", async () => {
+  describe("privacy and login hardening", () => {
+    it("never sends an email, password hash or __v in the members list", async () => {
       const res = await request(server).get("/api/users/users");
-      for (const user of res.body.users) expect(user).not.toHaveProperty("email");
+      expect(res.status).toBe(200);
+      expect(findKeys(res.body, ["email", "password", "__v"])).toEqual([]);
+      // The fields the deployed client reads are still there.
+      for (const user of res.body.users) {
+        expect(user).toHaveProperty("id");
+        expect(user).toHaveProperty("_id");
+        expect(user).toHaveProperty("name");
+        expect(Array.isArray(user.scenes)).toBe(true);
+      }
     });
 
-    it.fails("a mixed-case Gmail address logs in exactly as typed at sign-up", async () => {
+    it("keeps private fields out of a user document's JSON (defence in depth)", async () => {
+      const User = require("../models/user.js");
+      const user = await User.findById(owner.userId);
+      expect(user.toJSON()).not.toHaveProperty("password");
+      expect(user.toObject({ getters: true })).not.toHaveProperty("email");
+    });
+
+    it("logs in with a mixed-case Gmail address exactly as typed at sign-up", async () => {
       const email = "Test.User+123@Gmail.com";
       expect((await signup(server, { email })).status).toBe(201);
       const res = await login(server, email);
       expect(res.status).toBe(200);
+      expect((await login(server, "testuser@gmail.com")).status).toBe(200);
     });
 
-    it.fails("an operator object as the login email never logs anyone in", async () => {
-      // With a real member's password, { $ne: null } matches the first
-      // account and would hand out its token.
+    it("still logs in an account stored by the old API (normalised address, cost-8 hash)", async () => {
+      // Inserted directly, exactly as express-validator 6 and bcryptjs 2.4
+      // stored it: no API code involved.
+      const User = require("../models/user.js");
+      await User.collection.insertOne({
+        name: "Old Account",
+        email: "first.last@outlook.com",
+        password: "$2a$08$A.wDIL.KTkuMO/dTZ5JSBupy4PenJbHdTGzKQPhlwZ70gUHCtmyvy", // "secret123"
+        image: { data: PNG_1PX.toString("base64"), contentType: "image/png" },
+        scenes: [],
+      });
+      expect((await login(server, "First.Last+news@Outlook.com")).status).toBe(200);
+      expect((await login(server, "first.last@outlook.com")).status).toBe(200);
+    });
+
+    it("never logs anyone in with an operator object as the email", async () => {
+      // With a real member's password, { $ne: null } would match the first
+      // account and hand out its token.
       const res = await request(server)
         .post("/api/users/login")
         .send({ email: { $ne: null }, password: PASSWORD });
+      expect(res.status).toBe(422);
       expect(res.body.token).toBeUndefined();
-      expect([401, 422]).toContain(res.status);
+    });
+
+    it("matches an operator literally even when it reaches the query (sanitizeFilter on the login query only)", async () => {
+      const User = require("../models/user.js");
+      // Wrapped in $eq, the object is a value to compare, not an operator:
+      // it can't be cast to the string email, so nothing can match.
+      await expect(
+        User.findOne({ email: { $ne: null } }).setOptions({ sanitizeFilter: true })
+      ).rejects.toThrow(/Cast to string failed/);
+      expect(await User.findOne({ email: { $ne: null } })).not.toBeNull(); // the hazard without it
+      // Not global: it would rewrite app-built operator filters (feed cursors).
+      expect(mongoose.get("sanitizeFilter")).toBeFalsy();
+    });
+
+    it("gives an unknown email and a wrong password the identical answer", async () => {
+      const unknown = await login(server, "nobody@example.com");
+      const wrong = await login(server, "owner@example.com", "wrong-password");
+      expect(unknown.status).toBe(401);
+      expect(wrong.status).toBe(401);
+      expect(unknown.text).toBe(wrong.text);
+      expect(unknown.body.message).toBe("That email and password don't match an account.");
+    });
+
+    it.each([
+      ["no body", (r) => r],
+      ["a text/plain body", (r) => r.set("Content-Type", "text/plain").send("email=a@b.co&password=x")],
+      ["a missing password", (r) => r.send({ email: "owner@example.com" })],
+    ])("answers a login with %s with a JSON 422", async (_label, shape) => {
+      const res = await shape(request(server).post("/api/users/login"));
+      expect(res.status).toBe(422);
+      expect(res.body.message).toEqual(expect.any(String));
+    });
+
+    it("issues HS256 tokens that carry only the user id", async () => {
+      const jwt = require("jsonwebtoken");
+      const res = await login(server, "owner@example.com");
+      const { header, payload } = jwt.decode(res.body.token, { complete: true });
+      expect(header.alg).toBe("HS256");
+      expect(Object.keys(payload).sort()).toEqual(["exp", "iat", "userId"]);
+      expect(() => jwt.verify(res.body.token, process.env.JWT_KEY, { algorithms: ["HS256"] })).not.toThrow();
+    });
+
+    it("still accepts an unexpired token that carries the email (issued before this change)", async () => {
+      const jwt = require("jsonwebtoken");
+      const legacy = jwt.sign({ userId: owner.userId, email: "owner@example.com" }, process.env.JWT_KEY, {
+        expiresIn: "1h",
+      });
+      const res = await createScene(server, legacy, { fields: { title: "Legacy token" } });
+      expect(res.status).toBe(201);
+    });
+
+    it("refuses an alg:none token with 401", async () => {
+      const res = await createScene(server, algNoneToken({ userId: owner.userId }));
+      expect(res.status).toBe(401);
+    });
+
+    it("stores new passwords with bcrypt cost 10", async () => {
+      const User = require("../models/user.js");
+      const doc = await User.collection.findOne({ email: "owner@example.com" });
+      expect(doc.password).toMatch(/^\$2[aby]\$10\$/);
     });
   });
 });

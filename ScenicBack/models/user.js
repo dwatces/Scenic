@@ -29,4 +29,16 @@ const UserSchema = new Schema({
   ],
 });
 
+// Defence in depth: a user document turned into JSON or a plain object never
+// carries the password hash or email. Responses are still built from an
+// explicit field list; lean queries skip this transform.
+function hidePrivateFields(doc, ret) {
+  delete ret.password;
+  delete ret.email;
+  delete ret.__v;
+  return ret;
+}
+UserSchema.set("toJSON", { transform: hidePrivateFields });
+UserSchema.set("toObject", { transform: hidePrivateFields });
+
 module.exports = mongoose.model("User", UserSchema);
