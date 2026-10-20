@@ -16,6 +16,7 @@ const ScenePage = React.lazy(() => import("./scenes/pages/ScenePage"));
 const UpdateScene = React.lazy(() => import("./scenes/pages/UpdateScene"));
 const Login = React.lazy(() => import("./user/pages/Login"));
 const Signup = React.lazy(() => import("./user/pages/SignUp"));
+const NotFound = React.lazy(() => import("./shared/pages/NotFound"));
 
 const App = () => {
   const { token, login, logout, userId, sessionEnded } = useAuth();
@@ -68,7 +69,7 @@ const App = () => {
                   </GuestOnly>
                 }
               />
-              <Route path="*" element={<Navigate to="/" replace />} />
+              <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
         </main>
